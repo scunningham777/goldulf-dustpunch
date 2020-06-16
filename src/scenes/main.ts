@@ -9,7 +9,7 @@ export class MainScene extends Phaser.Scene {
 	create(): void {
 
 		this.player = new Player(WORLD_WIDTH/2, 100, this);
-		this.addPlatforms();
+		// this.addPlatforms();
 
 	}
 
@@ -19,14 +19,14 @@ export class MainScene extends Phaser.Scene {
 
 	}
 
-	addPlatforms(){
+	// addPlatforms(){
 
-		this.platforms = this.physics.add.staticGroup();
+	// 	this.platforms = this.physics.add.staticGroup();
 
-		const scaleX = WORLD_WIDTH / 400;
-		this.platforms.create(WORLD_WIDTH / 2, WORLD_HEIGHT, 'ground').setScale(scaleX, 1).refreshBody();
-		this.physics.add.collider(this.player.entity, this.platforms, null, null, this);
+	// 	const scaleX = WORLD_WIDTH / 400;
+	// 	this.platforms.create(WORLD_WIDTH / 2, WORLD_HEIGHT, 'ground').setScale(scaleX, 1).refreshBody();
+	// 	this.physics.add.collider(this.player.entity, this.platforms, null, null, this);
 
-	}
+	// }
 
 }
