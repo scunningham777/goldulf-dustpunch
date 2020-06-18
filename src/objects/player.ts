@@ -6,7 +6,7 @@ const ANIM_FRAME_RATE = 6;
 export default class Player {
 
     private player: Phaser.Physics.Arcade.Sprite;
-    
+
     constructor(
         private x: number,
         private y: number,
@@ -24,22 +24,34 @@ export default class Player {
 
     update(cursors): void {
         this.player.setVelocity(0);
+        let isMoving = false;
 
         if (cursors.left.isDown) {
-          this.player.setVelocityX(-this.velocity);
-          this.currentDirection = Cardinal_Direction.LEFT;
-        //   this.player.anims.play(Cardinal_Direction.LEFT);
+            this.player.setVelocityX(-this.velocity);
+            this.currentDirection = Cardinal_Direction.LEFT;
+            this.player.anims.play(Cardinal_Direction.LEFT, true);
+            isMoving = true;
         } else if (cursors.right.isDown) {
-          this.player.setVelocityX(this.velocity);
-          this.currentDirection = Cardinal_Direction.RIGHT;
+            this.player.setVelocityX(this.velocity);
+            this.currentDirection = Cardinal_Direction.RIGHT;
+            this.player.anims.play(Cardinal_Direction.RIGHT, true);
+            isMoving = true;
         }
-    
+        
         if (cursors.up.isDown) {
-          this.player.setVelocityY(-this.velocity);
-          this.currentDirection = Cardinal_Direction.UP;
+            this.player.setVelocityY(-this.velocity);
+            this.currentDirection = Cardinal_Direction.UP;
+            this.player.anims.play(Cardinal_Direction.UP, true);
+            isMoving = true;
         } else if (cursors.down.isDown) {
-          this.player.setVelocityY(this.velocity);
-          this.currentDirection = Cardinal_Direction.DOWN;
+            this.player.setVelocityY(this.velocity);
+            this.currentDirection = Cardinal_Direction.DOWN;
+            this.player.anims.play(Cardinal_Direction.DOWN, true);
+            isMoving = true;
+        }
+
+        if (!isMoving) {
+            this.player.anims.stop();
         }
     }
 
