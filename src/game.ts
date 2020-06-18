@@ -18,6 +18,15 @@ const config: Phaser.Types.Core.GameConfig = {
     render: {
         pixelArt: true,
     },
+    physics: {
+        default: 'arcade',
+        arcade: {
+            debug: true,
+            gravity: {
+                y: 0,
+            },
+        },
+    },
     zoom: 1,
 };
 

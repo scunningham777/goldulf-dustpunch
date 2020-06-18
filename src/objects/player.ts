@@ -1,60 +1,84 @@
+import { Cardinal_Direction } from '../utils';
 import { GAME_SCALE } from '../constants';
+
+const ANIM_FRAME_RATE = 6;
 
 export default class Player {
 
-	private player: Phaser.GameObjects.Sprite;
-	private scene: Phaser.Scene;
-	private x: number;
-	private y: number;
+    private player: Phaser.Physics.Arcade.Sprite;
+    
+    constructor(
+        private x: number,
+        private y: number,
+        private scene: Phaser.Scene,
+        private velocity: number,
+        private currentDirection = Cardinal_Direction.DOWN,
+    ) {
+        this.addToScene();
+        this.addAnimations();
+    }
 
-	constructor(x: number, y: number, scene: Phaser.Scene){
+    get entity() {
+        return this.player;
+    }
 
-		this.scene = scene;
-		this.x = x;
-		this.y = y;
+    update(cursors): void {
+        this.player.setVelocity(0);
 
-		this.addToScene();
-		this.addAnimations();
+        if (cursors.left.isDown) {
+          this.player.setVelocityX(-this.velocity);
+          this.currentDirection = Cardinal_Direction.LEFT;
+        //   this.player.anims.play(Cardinal_Direction.LEFT);
+        } else if (cursors.right.isDown) {
+          this.player.setVelocityX(this.velocity);
+          this.currentDirection = Cardinal_Direction.RIGHT;
+        }
+    
+        if (cursors.up.isDown) {
+          this.player.setVelocityY(-this.velocity);
+          this.currentDirection = Cardinal_Direction.UP;
+        } else if (cursors.down.isDown) {
+          this.player.setVelocityY(this.velocity);
+          this.currentDirection = Cardinal_Direction.DOWN;
+        }
+    }
 
-		console.log('player created');
-	}
+    addToScene(): void {
+        this.player = this.scene.physics.add.sprite(this.x, this.y, 'dude');
+        this.player.setScale(GAME_SCALE);
+        this.player.setFrame(7);
+    }
 
-	get entity() {
-		return this.player;
-	}
+    addAnimations(): void {
+        this.scene.anims.create({
+            key: Cardinal_Direction.UP,
+            frames: this.scene.anims.generateFrameNumbers('dude', { start: 0, end: 2 }),
+            frameRate: ANIM_FRAME_RATE,
+            repeat: -1,
+            yoyo: true,
+        });
+        this.scene.anims.create({
+            key: Cardinal_Direction.RIGHT,
+            frames: this.scene.anims.generateFrameNumbers('dude', { start: 3, end: 5 }),
+            frameRate: ANIM_FRAME_RATE,
+            repeat: -1,
+            yoyo: true,
+        });
+        this.scene.anims.create({
+            key: Cardinal_Direction.DOWN,
+            frames: this.scene.anims.generateFrameNumbers('dude', { start: 6, end: 8 }),
+            frameRate: ANIM_FRAME_RATE,
+            repeat: -1,
+            yoyo: true,
+        });
+        this.scene.anims.create({
+            key: Cardinal_Direction.LEFT,
+            frames: this.scene.anims.generateFrameNumbers('dude', { start: 9, end: 11 }),
+            frameRate: ANIM_FRAME_RATE,
+            repeat: -1,
+            yoyo: true,
+        });
+    }
 
-	update(): void {
-		
-	}
-
-	addToScene(): void {
-
-		this.player = this.scene.add.sprite(this.x, this.y, 'dude');
-		this.player.setScale(GAME_SCALE);
-	}
-
-	addAnimations(): void {
-		this.scene.anims.create({
-			key: 'left',
-			frames: this.scene.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
-			frameRate: 10,
-			repeat: -1
-		});
-
-		this.scene.anims.create({
-		    key: 'turn',
-		    frames: [ { key: 'dude', frame: 4 } ],
-		    frameRate: 20
-		});
-
-		this.scene.anims.create({
-		    key: 'right',
-		    frames: this.scene.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
-		    frameRate: 10,
-		    repeat: -1
-		});
-
-	}
-	
 
 }
