@@ -1,7 +1,12 @@
-import { Cardinal_Direction } from '../utils';
+import { Cardinal_Direction as CARDINAL_DIRECTION } from '../utils';
 import { GAME_SCALE } from '../constants';
 
 const ANIM_FRAME_RATE = 6;
+const DIRECTION_FRAMES: Map<CARDINAL_DIRECTION, number> = new Map();
+DIRECTION_FRAMES.set(CARDINAL_DIRECTION.UP, 1);
+DIRECTION_FRAMES.set(CARDINAL_DIRECTION.RIGHT, 4);
+DIRECTION_FRAMES.set(CARDINAL_DIRECTION.DOWN, 7);
+DIRECTION_FRAMES.set(CARDINAL_DIRECTION.LEFT, 10);
 
 export default class Player {
 
@@ -12,7 +17,7 @@ export default class Player {
         private y: number,
         private scene: Phaser.Scene,
         private velocity: number,
-        private currentDirection = Cardinal_Direction.DOWN,
+        private currentDirection = CARDINAL_DIRECTION.DOWN,
     ) {
         this.addToScene();
         this.addAnimations();
@@ -24,34 +29,30 @@ export default class Player {
 
     update(cursors): void {
         this.player.setVelocity(0);
-        let isMoving = false;
+        let newDirection: CARDINAL_DIRECTION = null;
 
         if (cursors.left.isDown) {
             this.player.setVelocityX(-this.velocity);
-            this.currentDirection = Cardinal_Direction.LEFT;
-            this.player.anims.play(Cardinal_Direction.LEFT, true);
-            isMoving = true;
+            newDirection = CARDINAL_DIRECTION.LEFT;
         } else if (cursors.right.isDown) {
             this.player.setVelocityX(this.velocity);
-            this.currentDirection = Cardinal_Direction.RIGHT;
-            this.player.anims.play(Cardinal_Direction.RIGHT, true);
-            isMoving = true;
+            newDirection = CARDINAL_DIRECTION.RIGHT;
         }
         
         if (cursors.up.isDown) {
             this.player.setVelocityY(-this.velocity);
-            this.currentDirection = Cardinal_Direction.UP;
-            this.player.anims.play(Cardinal_Direction.UP, true);
-            isMoving = true;
+            newDirection = CARDINAL_DIRECTION.UP;
         } else if (cursors.down.isDown) {
             this.player.setVelocityY(this.velocity);
-            this.currentDirection = Cardinal_Direction.DOWN;
-            this.player.anims.play(Cardinal_Direction.DOWN, true);
-            isMoving = true;
+            newDirection = CARDINAL_DIRECTION.DOWN;
         }
 
-        if (!isMoving) {
+        if (newDirection != null) {
+            this.currentDirection = newDirection;
+            this.player.anims.play(newDirection, true);
+        } else {
             this.player.anims.stop();
+            this.player.setFrame(DIRECTION_FRAMES.get(this.currentDirection));
         }
     }
 
@@ -63,28 +64,28 @@ export default class Player {
 
     addAnimations(): void {
         this.scene.anims.create({
-            key: Cardinal_Direction.UP,
+            key: CARDINAL_DIRECTION.UP,
             frames: this.scene.anims.generateFrameNumbers('dude', { start: 0, end: 2 }),
             frameRate: ANIM_FRAME_RATE,
             repeat: -1,
             yoyo: true,
         });
         this.scene.anims.create({
-            key: Cardinal_Direction.RIGHT,
+            key: CARDINAL_DIRECTION.RIGHT,
             frames: this.scene.anims.generateFrameNumbers('dude', { start: 3, end: 5 }),
             frameRate: ANIM_FRAME_RATE,
             repeat: -1,
             yoyo: true,
         });
         this.scene.anims.create({
-            key: Cardinal_Direction.DOWN,
+            key: CARDINAL_DIRECTION.DOWN,
             frames: this.scene.anims.generateFrameNumbers('dude', { start: 6, end: 8 }),
             frameRate: ANIM_FRAME_RATE,
             repeat: -1,
             yoyo: true,
         });
         this.scene.anims.create({
-            key: Cardinal_Direction.LEFT,
+            key: CARDINAL_DIRECTION.LEFT,
             frames: this.scene.anims.generateFrameNumbers('dude', { start: 9, end: 11 }),
             frameRate: ANIM_FRAME_RATE,
             repeat: -1,
