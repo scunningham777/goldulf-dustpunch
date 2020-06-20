@@ -8,9 +8,9 @@ DIRECTION_FRAMES.set(CARDINAL_DIRECTION.RIGHT, 4);
 DIRECTION_FRAMES.set(CARDINAL_DIRECTION.DOWN, 7);
 DIRECTION_FRAMES.set(CARDINAL_DIRECTION.LEFT, 10);
 
-export default class Player {
+export default class Hero {
 
-    private player: Phaser.Physics.Arcade.Sprite;
+    private heroSprite: Phaser.Physics.Arcade.Sprite;
 
     constructor(
         private x: number,
@@ -24,42 +24,43 @@ export default class Player {
     }
 
     get entity() {
-        return this.player;
+        return this.heroSprite;
     }
 
     update(cursors): void {
-        this.player.setVelocity(0);
+        this.heroSprite.setVelocity(0);
         let newDirection: CARDINAL_DIRECTION = null;
 
         if (cursors.left.isDown) {
-            this.player.setVelocityX(-this.velocity);
+            this.heroSprite.setVelocityX(-this.velocity);
             newDirection = CARDINAL_DIRECTION.LEFT;
         } else if (cursors.right.isDown) {
-            this.player.setVelocityX(this.velocity);
+            this.heroSprite.setVelocityX(this.velocity);
             newDirection = CARDINAL_DIRECTION.RIGHT;
         }
         
         if (cursors.up.isDown) {
-            this.player.setVelocityY(-this.velocity);
+            this.heroSprite.setVelocityY(-this.velocity);
             newDirection = CARDINAL_DIRECTION.UP;
         } else if (cursors.down.isDown) {
-            this.player.setVelocityY(this.velocity);
+            this.heroSprite.setVelocityY(this.velocity);
             newDirection = CARDINAL_DIRECTION.DOWN;
         }
 
         if (newDirection != null) {
             this.currentDirection = newDirection;
-            this.player.anims.play(newDirection, true);
+            this.heroSprite.anims.play(newDirection, true);
         } else {
-            this.player.anims.stop();
-            this.player.setFrame(DIRECTION_FRAMES.get(this.currentDirection));
+            this.heroSprite.anims.stop();
+            this.heroSprite.setFrame(DIRECTION_FRAMES.get(this.currentDirection));
         }
     }
 
     addToScene(): void {
-        this.player = this.scene.physics.add.sprite(this.x, this.y, 'dude');
-        this.player.setScale(GAME_SCALE);
-        this.player.setFrame(7);
+        this.heroSprite = this.scene.physics.add.sprite(this.x, this.y, 'dude');
+        this.heroSprite.setScale(GAME_SCALE);
+        this.heroSprite.setFrame(7);
+        this.heroSprite.setDepth(1);
     }
 
     addAnimations(): void {
@@ -92,6 +93,4 @@ export default class Player {
             yoyo: true,
         });
     }
-
-
 }

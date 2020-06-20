@@ -2,7 +2,8 @@ import 'phaser';
 import { BootScene } from './scenes/boot';
 import { PreloadScene } from './scenes/preload';
 import { GameTitleScene } from './scenes/game-title';
-import { MainScene } from './scenes/main';
+import { OverworldScene } from './scenes/overworld';
+import { DungeonScene } from './scenes/dungeon';
 import { GameOverScene } from './scenes/game-over';
 
 import { WORLD_WIDTH, WORLD_HEIGHT } from './constants';
@@ -41,7 +42,8 @@ export class Game extends Phaser.Game {
         this.scene.add('Boot', BootScene, false);
         this.scene.add('Preload', PreloadScene, false);
         this.scene.add('GameTitle', GameTitleScene, false);
-        this.scene.add('Main', MainScene, false);
+        this.scene.add('Overworld', OverworldScene, false);
+        this.scene.add('Dungeon', DungeonScene, false);
         this.scene.add('GameOver', GameOverScene, false);
 
         this.scene.start('Boot');
