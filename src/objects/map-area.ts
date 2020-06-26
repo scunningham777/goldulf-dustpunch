@@ -1,6 +1,7 @@
 export default interface MapArea {
     radius: number;
-    x: number;
-    y: number;
+    focusX: number;
+    focusY: number;
+    focusTileIndex: number;
     isAccessible: boolean;
 };

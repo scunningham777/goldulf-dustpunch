@@ -16,8 +16,6 @@ export class DungeonScene extends Phaser.Scene {
     private cursors: any;
     private heroStartDirection: Cardinal_Direction;
     private areas: MapArea[];
-    private entranceX: number;
-    private entranceY: number;
     private exit: Phaser.Physics.Arcade.Image;
     private map: Phaser.Tilemaps.Tilemap;
     private mapLayers = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
@@ -64,8 +62,8 @@ export class DungeonScene extends Phaser.Scene {
     
     createHero() {
         this.hasHeroReachedExit = false;
-        const entranceXInPixels = (this.areas[0].x + .5) * (this.map.tileWidth * GAME_SCALE);
-        const entranceYInPixels = (this.areas[0].y + .5) * (this.map.tileHeight * GAME_SCALE);
+        const entranceXInPixels = (this.areas[0].focusX + .5) * (this.map.tileWidth * GAME_SCALE);
+        const entranceYInPixels = (this.areas[0].focusY + .5) * (this.map.tileHeight * GAME_SCALE);
         this.hero = new Hero(entranceXInPixels , entranceYInPixels, this, 360, this.heroStartDirection);
     }
 
@@ -75,8 +73,14 @@ export class DungeonScene extends Phaser.Scene {
         this.hero.entity.setCollideWorldBounds(true);
 
         // collisions between hero and exit icons
-        // this.mapLayers.get(LAYER_KEYS.STUFF_LAYER).setTileIndexCallback()
-        this.physics.add.overlap(this.hero.entity, this.exit, this.exitDungeon.bind(this))
+        const bgLayer = this.mapLayers.get(LAYER_KEYS.BG_LAYER);
+        bgLayer.setCollision(26);
+        bgLayer.setTileIndexCallback(26, function() {
+            bgLayer.setTileIndexCallback(26, null, null);
+            this.exitDungeon();
+            return true;
+        }, this);
+        this.physics.add.collider(this.hero.entity, bgLayer);
     }
 
     initInput() {
@@ -108,7 +112,9 @@ export class DungeonScene extends Phaser.Scene {
 
     drawAreas() {
         const bgLayer = this.mapLayers.get(LAYER_KEYS.BG_LAYER);
-        bgLayer.putTileAt(50, this.areas[0].x, this.areas[0].y);
+        for (let area of this.areas) {
+            bgLayer.putTileAt(area.focusTileIndex, area.focusX, area.focusY);
+        }
     }
     
     connectAreas() {
@@ -145,17 +151,25 @@ export class DungeonScene extends Phaser.Scene {
         }
         const entranceArea: MapArea = {
             radius: 20,
-            x: entranceX,
-            y: entranceY,
+            focusX: entranceX,
+            focusY: entranceY,
+            focusTileIndex: 50,
             isAccessible: true,
         };
         this.areas.unshift(entranceArea);
 
-        this.exit = new Phaser.Physics.Arcade.Image(this, WORLD_WIDTH - 100, WORLD_HEIGHT / 2, 'terrain', 26);
-        this.exit.setScale(GAME_SCALE);
-        this.physics.world.enable(this.exit);
-
-        this.add.existing(this.exit);
+        const exitArea: MapArea = {
+            radius: Phaser.Math.RND.integerInRange(15, 20),
+            focusX: 0,
+            focusY: 0,
+            focusTileIndex: 26,
+            isAccessible: false,
+        }
+        do {
+            exitArea.focusX = Phaser.Math.RND.integerInRange(1, this.map.width-2);
+            exitArea.focusY = Phaser.Math.RND.integerInRange(1, this.map.height-2);
+        } while (this.isAreaCollision(exitArea));
+        this.areas.push(exitArea);
     }
 
     generateOtherAreas() {
@@ -170,5 +184,17 @@ export class DungeonScene extends Phaser.Scene {
         cam.once('camerafadeoutcomplete', () => {
             this.scene.start('Overworld');
         });
+    }
+
+    isAreaCollision(potentialArea: MapArea): boolean {
+        for (let existingArea of this.areas) {
+            const absX = Math.abs(existingArea.focusX - potentialArea.focusX);
+            const absY = Math.abs(existingArea.focusY - potentialArea.focusY);
+            const distance = Math.sqrt(absX**2 + absY**2);
+            if (distance < potentialArea.radius) {
+                return true;
+            }
+        }
+        return false;
     }
 }

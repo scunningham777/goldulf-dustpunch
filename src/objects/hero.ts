@@ -57,10 +57,11 @@ export default class Hero {
     }
 
     addToScene(): void {
-        this.heroSprite = this.scene.physics.add.sprite(this.x, this.y, 'dude');
-        this.heroSprite.setScale(GAME_SCALE);
-        this.heroSprite.setFrame(7);
-        this.heroSprite.setDepth(1);
+        this.heroSprite = this.scene.physics.add
+            .sprite(this.x, this.y, 'dude')
+            .setScale(GAME_SCALE)
+            .setFrame(7)
+            .setDepth(1);
     }
 
     addAnimations(): void {
