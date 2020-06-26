@@ -20,7 +20,8 @@ export class OverworldScene extends Phaser.Scene {
         this.createMap();
         this.createHero();
         this.addCollisions();
-        this.cursors = this.input.keyboard.createCursorKeys();
+        this.initInput();
+        this.initCamera();
     }
     
     update(): void {
@@ -61,11 +62,28 @@ export class OverworldScene extends Phaser.Scene {
     }
 
     addCollisions() {
+        // corral the hero within the map
+        this.physics.world.setBounds(0, 0, this.map.widthInPixels * GAME_SCALE, this.map.heightInPixels * GAME_SCALE);
+        this.hero.entity.setCollideWorldBounds(true);
+
         // collisions between player and dungeon icons
         this.physics.add.overlap(this.hero.entity, this.dungeon, this.enterDungeon.bind(this))
     }
 
     enterDungeon() {
         this.scene.start('Dungeon');
+    }
+
+    initInput() {
+        this.cursors = this.input.keyboard.createCursorKeys();
+    }
+
+    initCamera() {
+        // Phaser supports multiple cameras, but you can access the default camera like this:
+        const camera = this.cameras.main;
+
+        // Constrain the camera so that it isn't allowed to move outside the width/height of tilemap
+        camera.setBounds(0, 0, this.map.widthInPixels * GAME_SCALE, this.map.heightInPixels * GAME_SCALE);
+        camera.startFollow(this.hero.entity);
     }
 }
