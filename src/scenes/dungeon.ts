@@ -65,7 +65,16 @@ export class DungeonScene extends Phaser.Scene {
         this.hasHeroReachedExit = false;
         const entranceXInPixels = (this.areas[0].focusX + .5) * (this.map.tileWidth * GAME_SCALE);
         const entranceYInPixels = (this.areas[0].focusY + .5) * (this.map.tileHeight * GAME_SCALE);
-        this.hero = new Hero(entranceXInPixels , entranceYInPixels, this, 360, this.heroStartDirection);
+        // determine start direction based on location of entrance (this.areas[0]);
+        let heroStartDirection = Cardinal_Direction.DOWN;
+        if (this.areas[0].focusX === 0) {
+            heroStartDirection = Cardinal_Direction.RIGHT;
+        } else if (this.areas[0].focusX === this.map.width-1) {
+            heroStartDirection = Cardinal_Direction.LEFT;
+        } else if (this.areas[0].focusY === this.map.height-1) {
+            heroStartDirection = Cardinal_Direction.UP;
+        }
+        this.hero = new Hero(entranceXInPixels , entranceYInPixels, this, 360, heroStartDirection);
     }
 
     addCollisions() {
@@ -123,22 +132,23 @@ export class DungeonScene extends Phaser.Scene {
     }
     
     generateDoorAreas() {
-        const entranceArea = this.generateRandomArea('wall', 20, 20, 50);
+        const entranceArea = this.generateRandomArea('wall', 8, 8, 50);
         this.areas.unshift(entranceArea);
 
-        const exitArea = this.generateRandomArea('floor', 15, 20, 26);
+        const exitArea = this.generateRandomArea('floor', 5, 10, 26);
         this.areas.push(exitArea);
     }
 
     generateOtherAreas(numAreas: number) {
         for (let i = 0; i < numAreas; i++) {
-
+            const newArea = this.generateRandomArea('floor', 5, 10, 55);
+            this.areas.push(newArea);
         }
     }
 
     exitDungeon() {
         this.hasHeroReachedExit = true;
-        this.hero.entity.setVelocity(0);
+        this.hero.freeze();
         const cam = this.cameras.main;
         cam.fade(250, 0, 0, 0);
         cam.once('camerafadeoutcomplete', () => {

@@ -94,4 +94,8 @@ export default class Hero {
             yoyo: true,
         });
     }
+
+    freeze() {
+        (this.entity.body as Phaser.Physics.Arcade.Body).moves = false;
+    }
 }
