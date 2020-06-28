@@ -142,7 +142,9 @@ export class DungeonScene extends Phaser.Scene {
     generateOtherAreas(numAreas: number) {
         for (let i = 0; i < numAreas; i++) {
             const newArea = this.generateRandomArea('floor', 5, 10, 55);
-            this.areas.push(newArea);
+            if (newArea != null) {
+                this.areas.push(newArea);
+            }
         }
     }
 
@@ -165,7 +167,7 @@ export class DungeonScene extends Phaser.Scene {
             isAccessible: false,
         }
 
-        do {
+        for (let i = 0; i < 30; i++) {
             if (placement === 'wall') {
                 const direction = Phaser.Math.RND.pick(Object.keys(Cardinal_Direction));
                 switch(direction) {
@@ -188,9 +190,14 @@ export class DungeonScene extends Phaser.Scene {
                 newArea.focusX = Phaser.Math.RND.integerInRange(1, this.map.width-2);
                 newArea.focusY = Phaser.Math.RND.integerInRange(1, this.map.height-2);
             }
-        } while (this.isAreaCollision(newArea));
 
-        return newArea;
+            if (!this.isAreaCollision(newArea)) {
+                return newArea;
+            }
+        }
+
+        // map too crowded to place area after 30 tries
+        return null;
     }
 
     isAreaCollision(potentialArea: MapArea): boolean {
