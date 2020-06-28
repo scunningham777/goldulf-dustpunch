@@ -16,11 +16,12 @@ export class DungeonScene extends Phaser.Scene {
     private cursors: any;
     private heroStartDirection: Cardinal_Direction;
     private areas: MapArea[];
-    private exit: Phaser.Physics.Arcade.Image;
     private map: Phaser.Tilemaps.Tilemap;
     private mapLayers = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
     private tileset: Phaser.Tilemaps.Tileset;
     private hasHeroReachedExit = false;
+    private startingNumAreas = 3;
+    private startingNumStuff = 10;
 
     /* lifecycle methods */
     create(): void {
@@ -53,7 +54,7 @@ export class DungeonScene extends Phaser.Scene {
         }
         
         this.fillMap();
-        this.generateAreas();
+        this.generateAreas(this.startingNumAreas);
         this.drawAreas();
         this.connectAreas();
         
@@ -75,7 +76,7 @@ export class DungeonScene extends Phaser.Scene {
         // collisions between hero and exit icons
         const bgLayer = this.mapLayers.get(LAYER_KEYS.BG_LAYER);
         bgLayer.setCollision(26);
-        bgLayer.setTileIndexCallback(26, function() {
+        bgLayer.setTileIndexCallback(26, (_collidingSprite: Phaser.Physics.Arcade.Sprite) => {
             bgLayer.setTileIndexCallback(26, null, null);
             this.exitDungeon();
             return true;
@@ -104,10 +105,10 @@ export class DungeonScene extends Phaser.Scene {
         ]);
     }
     
-    generateAreas() {
+    generateAreas(numAreas: number) {
         this.areas = [];
         this.generateDoorAreas();
-        this.generateOtherAreas();
+        this.generateOtherAreas(numAreas);
     }
 
     drawAreas() {
@@ -122,58 +123,17 @@ export class DungeonScene extends Phaser.Scene {
     }
     
     generateDoorAreas() {
-        const entranceDirection = Phaser.Math.RND.pick(Object.keys(Cardinal_Direction));
-        let entranceX = 0;
-        let entranceY = 0;
-        switch(entranceDirection) {
-            case Cardinal_Direction.UP: 
-                entranceX = Phaser.Math.RND.integerInRange(1, this.map.width-2);
-
-                this.heroStartDirection = Cardinal_Direction.DOWN;
-                break;
-            case Cardinal_Direction.RIGHT:
-                entranceX = this.map.width-1;
-                entranceY = Phaser.Math.RND.integerInRange(1, this.map.height-2);
-
-                this.heroStartDirection = Cardinal_Direction.LEFT;
-                break;
-            case Cardinal_Direction.DOWN:
-                entranceX = Phaser.Math.RND.integerInRange(1, this.map.width-2);
-                entranceY = this.map.height-1;
-
-                this.heroStartDirection = Cardinal_Direction.UP;
-                break;
-            case Cardinal_Direction.LEFT:
-                entranceY = Phaser.Math.RND.integerInRange(1, this.map.height-2);
-
-                this.heroStartDirection = Cardinal_Direction.RIGHT;
-                break;
-        }
-        const entranceArea: MapArea = {
-            radius: 20,
-            focusX: entranceX,
-            focusY: entranceY,
-            focusTileIndex: 50,
-            isAccessible: true,
-        };
+        const entranceArea = this.generateRandomArea('wall', 20, 20, 50);
         this.areas.unshift(entranceArea);
 
-        const exitArea: MapArea = {
-            radius: Phaser.Math.RND.integerInRange(15, 20),
-            focusX: 0,
-            focusY: 0,
-            focusTileIndex: 26,
-            isAccessible: false,
-        }
-        do {
-            exitArea.focusX = Phaser.Math.RND.integerInRange(1, this.map.width-2);
-            exitArea.focusY = Phaser.Math.RND.integerInRange(1, this.map.height-2);
-        } while (this.isAreaCollision(exitArea));
+        const exitArea = this.generateRandomArea('floor', 15, 20, 26);
         this.areas.push(exitArea);
     }
 
-    generateOtherAreas() {
+    generateOtherAreas(numAreas: number) {
+        for (let i = 0; i < numAreas; i++) {
 
+        }
     }
 
     exitDungeon() {
@@ -184,6 +144,43 @@ export class DungeonScene extends Phaser.Scene {
         cam.once('camerafadeoutcomplete', () => {
             this.scene.start('Overworld');
         });
+    }
+
+    generateRandomArea(placement: 'wall'|'floor', minSize: number, maxSize: number, focusTileIndex: number): MapArea {
+        const newArea: MapArea = {
+            radius: Phaser.Math.RND.integerInRange(minSize, maxSize),
+            focusX: 0,
+            focusY: 0,
+            focusTileIndex: focusTileIndex,
+            isAccessible: false,
+        }
+
+        do {
+            if (placement === 'wall') {
+                const direction = Phaser.Math.RND.pick(Object.keys(Cardinal_Direction));
+                switch(direction) {
+                    case Cardinal_Direction.UP: 
+                        newArea.focusX = Phaser.Math.RND.integerInRange(1, this.map.width-2);
+                        break;
+                    case Cardinal_Direction.RIGHT:
+                        newArea.focusX = this.map.width-1;
+                        newArea.focusY = Phaser.Math.RND.integerInRange(1, this.map.height-2);
+                        break;
+                    case Cardinal_Direction.DOWN:
+                        newArea.focusX = Phaser.Math.RND.integerInRange(1, this.map.width-2);
+                        newArea.focusY = this.map.height-1;
+                        break;
+                    case Cardinal_Direction.LEFT:
+                        newArea.focusY = Phaser.Math.RND.integerInRange(1, this.map.height-2);
+                        break;
+                }
+            } else {
+                newArea.focusX = Phaser.Math.RND.integerInRange(1, this.map.width-2);
+                newArea.focusY = Phaser.Math.RND.integerInRange(1, this.map.height-2);
+            }
+        } while (this.isAreaCollision(newArea));
+
+        return newArea;
     }
 
     isAreaCollision(potentialArea: MapArea): boolean {
