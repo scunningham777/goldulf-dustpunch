@@ -99,7 +99,7 @@ export class DungeonScene extends Phaser.Scene {
         this.physics.world.setBounds(0, 0, this.map.widthInPixels * GAME_SCALE, this.map.heightInPixels * GAME_SCALE);
         this.hero.entity.setCollideWorldBounds(true);
 
-        // collisions between hero and exit icons
+        // collisions between hero and exit tiles, walls, and "broken" entrance
         const bgLayer = this.mapLayers.get(LAYER_KEYS.BG_LAYER);
         bgLayer.setCollision([26, ...WALL_TILE_INDICES, 50]);
         bgLayer.setTileIndexCallback(26, (_collidingSprite: Phaser.Physics.Arcade.Sprite) => {
@@ -177,7 +177,7 @@ export class DungeonScene extends Phaser.Scene {
 
     generateOtherAreas(numAreas: number) {
         for (let i = 0; i < numAreas; i++) {
-            const newArea = this.generateRandomArea('floor', 5, 10, 55);
+            const newArea = this.generateRandomArea('floor', 5, 10, Phaser.Math.RND.weightedPick(FLOOR_TILE_INDICES));
             if (newArea != null) {
                 this.areas.push(newArea);
             }
