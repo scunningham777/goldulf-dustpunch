@@ -17,7 +17,7 @@ const WALL_TILE_INDICES = [
 const FLOOR_TILE_INDICES = [
     30,         // smooth dark floor
     54,         // light gray cobble
-    55,         // grey brick with green
+    // 55,         // grey brick with green
 ]
 
 export class DungeonScene extends Phaser.Scene {
@@ -101,7 +101,7 @@ export class DungeonScene extends Phaser.Scene {
 
         // collisions between hero and exit icons
         const bgLayer = this.mapLayers.get(LAYER_KEYS.BG_LAYER);
-        bgLayer.setCollision([26, ...WALL_TILE_INDICES]);
+        bgLayer.setCollision([26, ...WALL_TILE_INDICES, 50]);
         bgLayer.setTileIndexCallback(26, (_collidingSprite: Phaser.Physics.Arcade.Sprite) => {
             bgLayer.setTileIndexCallback(26, null, null);
             this.exitDungeon();
