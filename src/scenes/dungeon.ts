@@ -10,6 +10,16 @@ const LAYER_KEYS = {
     DUST_LAYER: 'dust-layer',
 };
 
+const WALL_TILE_INDICES = [
+    53,         // plain brick
+    52,         // green mossy brick
+]
+const FLOOR_TILE_INDICES = [
+    30,         // smooth dark floor
+    54,         // light gray cobble
+    55,         // grey brick with green
+]
+
 export class DungeonScene extends Phaser.Scene {
 
     private hero: Hero;
@@ -22,6 +32,12 @@ export class DungeonScene extends Phaser.Scene {
     private hasHeroReachedExit = false;
     private startingNumAreas = 3;
     private startingNumStuff = 10;
+    private get greatestXCoord(): number {
+        return this.map.width - 1;
+    }
+    private get greatestYCood(): number {
+        return this.map.height - 1;
+    }
 
     /* lifecycle methods */
     create(): void {
@@ -55,16 +71,17 @@ export class DungeonScene extends Phaser.Scene {
         
         this.fillMap();
         this.generateAreas(this.startingNumAreas);
-        this.drawAreas();
         this.connectAreas();
+        this.drawAreas();
         
         this.mapLayers.get(LAYER_KEYS.BG_LAYER).setScale(GAME_SCALE);
     }
     
     createHero() {
         this.hasHeroReachedExit = false;
-        const entranceXInPixels = (this.areas[0].focusX + .5) * (this.map.tileWidth * GAME_SCALE);
-        const entranceYInPixels = (this.areas[0].focusY + .5) * (this.map.tileHeight * GAME_SCALE);
+        const entranceLocation = this.justInsideWall(new Phaser.Math.Vector2(this.areas[0].focusX, this.areas[0].focusY));
+        const heroStartXInPixels = (entranceLocation.x + .5) * (this.map.tileWidth * GAME_SCALE);
+        const heroStartYInPixels = (entranceLocation.y + .5) * (this.map.tileHeight * GAME_SCALE);
         // determine start direction based on location of entrance (this.areas[0]);
         let heroStartDirection = Cardinal_Direction.DOWN;
         if (this.areas[0].focusX === 0) {
@@ -74,7 +91,7 @@ export class DungeonScene extends Phaser.Scene {
         } else if (this.areas[0].focusY === this.map.height-1) {
             heroStartDirection = Cardinal_Direction.UP;
         }
-        this.hero = new Hero(entranceXInPixels , entranceYInPixels, this, 360, heroStartDirection);
+        this.hero = new Hero(heroStartXInPixels , heroStartYInPixels, this, 360, heroStartDirection);
     }
 
     addCollisions() {
@@ -84,7 +101,7 @@ export class DungeonScene extends Phaser.Scene {
 
         // collisions between hero and exit icons
         const bgLayer = this.mapLayers.get(LAYER_KEYS.BG_LAYER);
-        bgLayer.setCollision(26);
+        bgLayer.setCollision([26, ...WALL_TILE_INDICES]);
         bgLayer.setTileIndexCallback(26, (_collidingSprite: Phaser.Physics.Arcade.Sprite) => {
             bgLayer.setTileIndexCallback(26, null, null);
             this.exitDungeon();
@@ -128,11 +145,30 @@ export class DungeonScene extends Phaser.Scene {
     }
     
     connectAreas() {
-        
+        while(this.areas.filter(a => !a.isAccessible).length) {
+            // pick an accessible area as the starting point
+            const startArea: MapArea = Phaser.Math.RND.pick(this.areas.filter(a => a.isAccessible));
+            let startLocation = new Phaser.Math.Vector2(startArea.focusX, startArea.focusY);
+            
+            // pick any !accessible area as the end point
+            const endArea: MapArea = Phaser.Math.RND.pick(this.areas.filter(a => !a.isAccessible));
+            let endLocation = new Phaser.Math.Vector2(endArea.focusX, endArea.focusY);
+
+            // step away from the wall if need be
+            startLocation = this.justInsideWall(startLocation);
+            endLocation = this.justInsideWall(endLocation);
+
+            // create random path between them
+            this.createFloorPath(startLocation, endLocation);
+
+            // set destination as accessible
+            endArea.isAccessible = true;
+        }
     }
     
     generateDoorAreas() {
         const entranceArea = this.generateRandomArea('wall', 8, 8, 50);
+        entranceArea.isAccessible = true;
         this.areas.unshift(entranceArea);
 
         const exitArea = this.generateRandomArea('floor', 5, 10, 26);
@@ -204,11 +240,111 @@ export class DungeonScene extends Phaser.Scene {
         for (let existingArea of this.areas) {
             const absX = Math.abs(existingArea.focusX - potentialArea.focusX);
             const absY = Math.abs(existingArea.focusY - potentialArea.focusY);
-            const distance = Math.sqrt(absX**2 + absY**2);
-            if (distance < potentialArea.radius) {
+            if (absX + absY <= (potentialArea.radius / 2) +(existingArea.radius / 2)) {
                 return true;
             }
         }
         return false;
+    }
+
+    /** Will return the original coord if not on a wall */
+    justInsideWall(location: Phaser.Math.Vector2): Phaser.Math.Vector2 {
+        const newLocation = location.clone();
+
+        if (location.x === 0) {
+            newLocation.x += 1;
+        } else if (location.x === this.greatestXCoord) {
+            newLocation.x -= 1;
+        }
+        if (location.y === 0) {
+            newLocation.y += 1;
+        } else if (location.y === this.greatestYCood) {
+            newLocation.y -= 1;
+        }
+
+        return newLocation;
+    }
+
+    createFloorPath(startLocation: Phaser.Math.Vector2, endLocation: Phaser.Math.Vector2) {
+        let currentLocation = startLocation.clone();
+        const bgLayer = this.mapLayers.get(LAYER_KEYS.BG_LAYER);
+        do {
+            const seedMod = 7;
+            const chanceTangent = 20;
+            let randomSeed = seedMod + Phaser.Math.RND.integerInRange(0, 3);
+            bgLayer.putTileAt(Phaser.Math.RND.weightedPick(FLOOR_TILE_INDICES), currentLocation.x, currentLocation.y);
+
+            // chance of creating "tangent" path
+            if (chanceTangent > 0 && Phaser.Math.RND.integerInRange(0, chanceTangent-1) === 0) {
+                let newStart = currentLocation.clone();
+                const newEnd = new Phaser.Math.Vector2(((this.map.width - 3) * Phaser.Math.RND.integerInRange(0, 1)), ((this.map.height - 3) * Phaser.Math.RND.integerInRange(0, 1)));
+                for (let i = 0; i < this.map.height / 3; i++) {
+                    newStart = this.stepPathRandom(newStart, newEnd, randomSeed);
+                    if (newStart == null) {
+                        break;
+                    } else {
+                        bgLayer.putTileAt(Phaser.Math.RND.weightedPick(FLOOR_TILE_INDICES), newStart.x, newStart.y);
+                    }
+                }
+                randomSeed = seedMod + Phaser.Math.RND.integerInRange(0, 3);
+            }
+
+            currentLocation = this.stepPathRandom(currentLocation, endLocation, randomSeed);
+        } while (!currentLocation.equals(endLocation))
+
+        // set tile at end location
+        this.mapLayers.get(LAYER_KEYS.BG_LAYER).putTileAt(Phaser.Math.RND.weightedPick(FLOOR_TILE_INDICES), endLocation.x, endLocation.y);
+    }
+
+    stepPathRandom(startLocation: Phaser.Math.Vector2, endLocation: Phaser.Math.Vector2, randomSeed): Phaser.Math.Vector2 {
+        if (startLocation.equals(endLocation)) {
+            return null;
+        }
+
+        let deltaX = endLocation.x - startLocation.x;
+        let deltaY = endLocation.y - startLocation.y;
+
+        while (1) {
+            // move along the longer axis
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                deltaX = deltaX / Math.abs(deltaX);
+                deltaY = 0;
+            } else if (Math.abs(deltaX) < Math.abs(deltaY)) {
+                deltaX = 0;
+                deltaY = deltaY / Math.abs(deltaY);
+            } else {
+                // move along random axis
+                if ((deltaY = (deltaY / Math.abs(deltaY)) * Phaser.Math.RND.integerInRange(0, 1))) {
+                    deltaX = 0;
+                } else {
+                    deltaX = deltaX / Math.abs(deltaX);
+                }
+            }
+
+            switch (Phaser.Math.RND.integerInRange(0, randomSeed-1)) {
+                case 0:             // go opposite direction
+                    deltaX *= -1
+                    deltaY *= -1;
+                    break;
+                case 1:
+                case 2:             // mirrors across x=y axis
+                    [deltaX, deltaY] = [deltaY, deltaX];
+                    break;
+                case 3:
+                case 4:             // mirrors across x=-y axis
+                    [deltaX, deltaY] = [deltaY * -1, deltaX * -1];
+                    break;
+                default:            // leaves as is
+                    break;
+            }
+
+            // redo if out-of-bounds
+            if ((startLocation.x + deltaX <= 0) || (startLocation.y + deltaY <= 0) 
+                || (startLocation.x + deltaX >= this.greatestXCoord) || (startLocation.y + deltaY >= this.greatestYCood)) {
+                continue;
+            } else {
+                return new Phaser.Math.Vector2(startLocation.x + deltaX, startLocation.y + deltaY);
+            }
+        }
     }
 }
