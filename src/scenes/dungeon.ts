@@ -3,6 +3,8 @@ import { GAME_SCALE, DUNGEON_LAYER_KEYS, DUNGEON_ENTRANCE_INDEX } from '../const
 import { Cardinal_Direction, justInsideWall } from '../utils';
 import MapArea from '../objects/map-area';
 import generateDungeon from '../dungeon_generator/dungeon_generator_cave';
+import { MapConfig } from '../objects/map-config';
+import { MAP_CONFIGS } from '../config';
 
 const MAP_KEY = 'dungeon-map';
 const TILESET_KEY = 'terrain';
@@ -18,7 +20,7 @@ const FLOOR_TILE_INDICES = [
 ]
 
 export class DungeonScene extends Phaser.Scene {
-
+    private mapConfig: MapConfig;
     private hero: Hero;
     private cursors: any;
     private map: Phaser.Tilemaps.Tilemap;
@@ -34,6 +36,7 @@ export class DungeonScene extends Phaser.Scene {
 
     /* lifecycle methods */
     create(): void {
+        this.selectMapConfig();
         this.createMap();
         this.createHero();
         this.addCollisions();
@@ -48,24 +51,22 @@ export class DungeonScene extends Phaser.Scene {
     }
     /* end lifecycle */
 
+    selectMapConfig() {
+        this.mapConfig = Phaser.Math.RND.pick(MAP_CONFIGS.dungeon);
+    }
+
     createMap() {
         this.map = this.make.tilemap({
-            tileWidth: 32,
-            tileHeight: 32,
-            width: 30,
-            height: 30,
+            tileWidth: this.mapConfig.tileWidth,
+            tileHeight: this.mapConfig.tileHeight,
+            width: Phaser.Math.RND.integerInRange(this.mapConfig.minMapWidth, this.mapConfig.maxMapWidth),
+            height: Phaser.Math.RND.integerInRange(this.mapConfig.minMapHeight, this.mapConfig.maxMapHeight),
             key: MAP_KEY,
         });
         generateDungeon(
             this.map,
-            TILESET_KEY,
             this.mapLayers,
-            this.startingCountAreas,
-            [
-                {index: 53, weight: 9},
-                {index: 52, weight: 1},
-            ],
-            FLOOR_TILE_INDICES,
+            this.mapConfig,
         );
     }
     

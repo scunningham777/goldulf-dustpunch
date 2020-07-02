@@ -1,3 +1,5 @@
+import { AreaConfig } from "./area-config";
+
 export interface MapConfig {
     tileWidth: number;
     tileHeight: number;
@@ -6,8 +8,12 @@ export interface MapConfig {
     maxMapWidth: number;
     maxMapHeight: number;
     tilesetKey: string;
-    minCountAreas: number;
-    maxCountAreas: number;
     wallTileWeights: {index: number, weight: number}[];
     floorTileWeights: {index: number, weight: number}[];
+    entranceAreaConfig: AreaConfig;
+    exitAreaConfigs: AreaConfig[];
+    maxExitAreaCount: number;
+    otherAreaConfigs: AreaConfig[];
+    minCountAreas: number;
+    maxCountAreas: number;
 }

@@ -1,5 +1,5 @@
 export default interface MapArea {
-    radius: number;
+    size: number;
     focusX: number;
     focusY: number;
     focusTileIndex: number;

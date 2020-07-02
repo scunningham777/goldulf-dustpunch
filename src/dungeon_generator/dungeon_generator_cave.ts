@@ -1,83 +1,95 @@
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, DUNGEON_ENTRANCE_INDEX } from "../constants";
+import { GAME_SCALE, DUNGEON_LAYER_KEYS } from "../constants";
 import MapArea from "../objects/map-area";
 import { justInsideWall, Cardinal_Direction } from "../utils";
+import { MapConfig } from "../objects/map-config";
+import { AreaConfig } from "../objects/area-config";
 
 export default function generateDungeon(
         tileMap: Phaser.Tilemaps.Tilemap,
-        tilesetKey: string,
         layerMap: Map<string, Phaser.Tilemaps.DynamicTilemapLayer>,
-        startingNumAreas: number,
-        wallTileWeights: {index: number, weight: number}[],
-        floorTileIndices: number[],
+        mapConfig: MapConfig,
     ): Phaser.Tilemaps.Tilemap 
 {
 
-    const newTileset = tileMap.addTilesetImage(tilesetKey, tilesetKey, 32, 32);
+    const newTileset = tileMap.addTilesetImage(mapConfig.tilesetKey, mapConfig.tilesetKey, mapConfig.tileWidth, mapConfig.tileHeight);
     for (let keyIndex in DUNGEON_LAYER_KEYS) {
         layerMap.set(DUNGEON_LAYER_KEYS[keyIndex], tileMap.createBlankDynamicLayer(DUNGEON_LAYER_KEYS[keyIndex], newTileset));
         layerMap.get(DUNGEON_LAYER_KEYS[keyIndex]).setScale(GAME_SCALE);
     }
 
     const bgLayer = layerMap.get(DUNGEON_LAYER_KEYS.BG_LAYER);
-    fillMap(bgLayer, wallTileWeights);
-    const areas = generateAreas(startingNumAreas, floorTileIndices, tileMap.width-1, tileMap.height-1);
-    connectAreas(bgLayer, areas, tileMap.width-1, tileMap.height-1, floorTileIndices);
+    fillMap(bgLayer, mapConfig.wallTileWeights);
+
+    const floorTileIndices = mapConfig.floorTileWeights.map(ftw => ftw.index);
+
+    const areas = generateAreas(bgLayer, mapConfig);
+    connectAreas(bgLayer, areas, floorTileIndices);
     drawAreas(bgLayer, areas);
 
     return tileMap;
 }
 
 function fillMap(layer: Phaser.Tilemaps.DynamicTilemapLayer, wallTileWeights: {index: number, weight: number}[]) {
-    layer.weightedRandomize(0, 0, layer.width, layer.height, wallTileWeights);
+    layer.weightedRandomize(0, 0, layer.tilemap.width, layer.tilemap.height, wallTileWeights);
 }
 
-function generateAreas(numAreas: number, floorTileIndices: number[], maxXCoord: number, maxYCoord: number): MapArea[] {
+function generateAreas(layer: Phaser.Tilemaps.DynamicTilemapLayer, mapConfig: MapConfig): MapArea[] {
+    const maxXCoord = layer.tilemap.width-1;
+    const maxYCoord = layer.tilemap.height-1;
+    const startingCountAreas = Phaser.Math.RND.integerInRange(mapConfig.minCountAreas, mapConfig.maxCountAreas);
+
     const areas = [
-        ...generateDoorAreas(maxXCoord, maxYCoord),
-        ...generateOtherAreas(numAreas, floorTileIndices, maxXCoord, maxYCoord),
+        ...generateDoorAreas(mapConfig, maxXCoord, maxYCoord),
+        ...generateOtherAreas(startingCountAreas, mapConfig, maxXCoord, maxYCoord),
     ];
 
     return areas;
 }
 
-function generateDoorAreas(maxXCoord: number, maxYCoord: number): MapArea[] {
+function generateDoorAreas(mapConfig: MapConfig, maxXCoord: number, maxYCoord: number): MapArea[] {
     const areas: MapArea[] = [];
-    const entranceArea = generateRandomArea('wall', 8, 8, DUNGEON_ENTRANCE_INDEX, maxXCoord, maxYCoord);
+    const entranceArea = generateRandomArea(mapConfig.entranceAreaConfig, maxXCoord, maxYCoord);
     entranceArea.isAccessible = true;
     areas.unshift(entranceArea);
 
-    const exitArea = generateRandomArea('floor', 5, 10, 26, maxXCoord, maxYCoord);
+    const exitAreaConfig = Phaser.Math.RND.pick(mapConfig.exitAreaConfigs);
+    const exitArea = generateRandomArea(exitAreaConfig, maxXCoord, maxYCoord);
     areas.push(exitArea);
 
     return areas;
 }
 
-function generateOtherAreas(numAreas: number, floorTileIndices: number[], maxXCoord: number, maxYCoord: number): MapArea[] {
+function generateOtherAreas(numAreas: number, mapConfig: MapConfig, maxXCoord: number, maxYCoord: number): MapArea[] {
     const areas: MapArea[] = [];
     for (let i = 0; i < numAreas; i++) {
         for (let ii = 0; ii < 30; ii++) {
-            const newArea = generateRandomArea('floor', 5, 10, Phaser.Math.RND.weightedPick(floorTileIndices), maxXCoord, maxYCoord);
+            const newAreaConfig: AreaConfig = Phaser.Math.RND.pick(mapConfig.otherAreaConfigs);
+            if (newAreaConfig.focusTileIndex == null) {
+                newAreaConfig.focusTileIndex = Phaser.Math.RND.pick(mapConfig.floorTileWeights.map(ftw => ftw.index));
+            }
+            const newArea = generateRandomArea(newAreaConfig, maxXCoord, maxYCoord);
             if (!isAreaCollision(areas, newArea)) {
                 areas.push(newArea);
+                break;
             }
         }
         // fails silently if not enough room for the new area...
-        console.warn('ERROR: map too crowded to place area');
+        // console.warn('ERROR: map too crowded to place area');        // need to actually check if it failed or not...
     }
 
     return areas;
 }
 
-function generateRandomArea(placement: 'wall'|'floor', minSize: number, maxSize: number, focusTileIndex: number, maxXCoord: number, maxYCoord: number): MapArea {
+function generateRandomArea(areaConfig: AreaConfig, maxXCoord: number, maxYCoord: number): MapArea {
     const newArea: MapArea = {
-        radius: Phaser.Math.RND.integerInRange(minSize, maxSize),
+        size: Phaser.Math.RND.integerInRange(areaConfig.minSize, areaConfig.maxSize),
         focusX: 0,
         focusY: 0,
-        focusTileIndex: focusTileIndex,
+        focusTileIndex: areaConfig.focusTileIndex,
         isAccessible: false,
     }
 
-    if (placement === 'wall') {
+    if (areaConfig.placement === 'wall') {
         const direction = Phaser.Math.RND.pick(Object.keys(Cardinal_Direction));
         switch(direction) {
             case Cardinal_Direction.UP: 
@@ -107,14 +119,16 @@ function isAreaCollision(existingAreas: MapArea[], potentialArea: MapArea): bool
     for (let existingArea of existingAreas) {
         const absX = Math.abs(existingArea.focusX - potentialArea.focusX);
         const absY = Math.abs(existingArea.focusY - potentialArea.focusY);
-        if (absX + absY <= (potentialArea.radius / 2) + (existingArea.radius / 2)) {
+        if (absX + absY <= (potentialArea.size / 2) + (existingArea.size / 2)) {
             return true;
         }
     }
     return false;
 }
 
-function connectAreas(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, areas: MapArea[], maxXCoord: number, maxYCoord: number, floorTileIndices: number[]) {
+function connectAreas(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, areas: MapArea[], floorTileIndices: number[]) {
+    const maxXCoord = mapLayer.tilemap.width-1;
+    const maxYCoord = mapLayer.tilemap.height-1;
     while(areas.filter(a => !a.isAccessible).length) {
         // pick an accessible area as the starting point
         const startArea: MapArea = Phaser.Math.RND.pick(areas.filter(a => a.isAccessible));
