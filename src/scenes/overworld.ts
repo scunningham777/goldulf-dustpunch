@@ -1,21 +1,32 @@
 import Hero from '../objects/hero';
 import { WORLD_WIDTH, WORLD_HEIGHT, GAME_SCALE } from '../constants';
+import generateDungeon from '../dungeon_generator/dungeon_generator_cave';
 
 const MAP_KEY = 'overworld-map';
 const LAYER_KEYS = {
     BG_LAYER: 'bg-layer',
     STUFF_LAYER: 'stuff-layer',
 };
+const TILESET_KEY = 'terrain';
 
 export class OverworldScene extends Phaser.Scene {
 
     private hero: Hero;
     private cursors: any;
-    private dungeon: Phaser.Physics.Arcade.Image;
     private map: Phaser.Tilemaps.Tilemap;
     private mapLayers = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
+    private hasHeroReachedExit = false;
+    private startingCountAreas = 2;
+    private get greatestXCoord(): number {
+        return this.map.width - 1;
+    }
+    private get greatestYCoord(): number {
+        return this.map.height - 1;
+    }
     private tileset: Phaser.Tilemaps.Tileset;
+    private dungeon: Phaser.Physics.Arcade.Image;
 
+    /* lifecycle methods */
     create(): void {
         this.createMap();
         this.createHero();
@@ -23,13 +34,14 @@ export class OverworldScene extends Phaser.Scene {
         this.initInput();
         this.initCamera();
     }
-    
+
     update(): void {
         if (!!this.hero) {
             this.hero.update(this.cursors);
         }
     }
-    
+    /* end lifecycle */
+
     createMap() {
         this.map = this.make.tilemap({
             tileWidth: 32,
@@ -38,6 +50,18 @@ export class OverworldScene extends Phaser.Scene {
             height: 30,
             key: MAP_KEY,
         });
+        // generateDungeon(
+        //     this.map,
+        //     TILESET_KEY,
+        //     this.mapLayers,
+        //     this.startingCountAreas,
+        //     [
+        //         {index: 2, weight: 1},
+        //         {index: 3, weight: 1},
+        //     ],
+
+
+        // )
         this.tileset = this.map.addTilesetImage('terrain', 'terrain', 32, 32);
         for (const keyIndex in LAYER_KEYS) {
             this.mapLayers.set(LAYER_KEYS[keyIndex], this.map.createBlankDynamicLayer(LAYER_KEYS[keyIndex], this.tileset));
@@ -71,7 +95,11 @@ export class OverworldScene extends Phaser.Scene {
     }
 
     enterDungeon() {
-        this.scene.start('Dungeon');
+        const cam = this.cameras.main;
+        cam.fade(250, 0, 0, 0);
+        cam.once('camerafadeoutcomplete', () => {
+            this.scene.start('Dungeon');
+        });
     }
 
     initInput() {
