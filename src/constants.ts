@@ -7,3 +7,4 @@ export const DUNGEON_LAYER_KEYS = {
     DUST_LAYER: 'dust-layer',
 };
 export const DUNGEON_ENTRANCE_INDEX = 50;
+export const OVERWORLD_ENTRANCE_INDEX = 0;

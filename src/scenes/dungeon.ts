@@ -1,23 +1,11 @@
 import Hero from '../objects/hero';
 import { GAME_SCALE, DUNGEON_LAYER_KEYS, DUNGEON_ENTRANCE_INDEX } from '../constants';
 import { Cardinal_Direction, justInsideWall } from '../utils';
-import MapArea from '../objects/map-area';
 import generateDungeon from '../dungeon_generator/dungeon_generator_cave';
 import { MapConfig } from '../objects/map-config';
 import { MAP_CONFIGS } from '../config';
 
 const MAP_KEY = 'dungeon-map';
-const TILESET_KEY = 'terrain';
-
-const WALL_TILE_INDICES = [
-    53,         // plain brick
-    52,         // green mossy brick
-]
-const FLOOR_TILE_INDICES = [
-    30,         // smooth dark floor
-    54,         // light gray cobble
-    // 55,         // grey brick with green
-]
 
 export class DungeonScene extends Phaser.Scene {
     private mapConfig: MapConfig;
@@ -26,7 +14,6 @@ export class DungeonScene extends Phaser.Scene {
     private map: Phaser.Tilemaps.Tilemap;
     private mapLayers = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
     private hasHeroReachedExit = false;
-    private startingCountAreas = 3;
     private get greatestXCoord(): number {
         return this.map.width - 1;
     }
@@ -95,9 +82,13 @@ export class DungeonScene extends Phaser.Scene {
 
         // collisions between hero and exit tiles, walls, and "broken" entrance
         const bgLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
-        bgLayer.setCollision([26, ...WALL_TILE_INDICES, 50]);
-        bgLayer.setTileIndexCallback(26, (_collidingSprite: Phaser.Physics.Arcade.Sprite) => {
-            bgLayer.setTileIndexCallback(26, null, null);
+        bgLayer.setCollision([
+            ...this.mapConfig.exitAreaConfigs.map(eac => eac.focusTileIndex),
+            ...this.mapConfig.wallTileWeights.map(wtw => wtw.index),
+            this.mapConfig.entranceAreaConfig.focusTileIndex
+        ]);
+        bgLayer.setTileIndexCallback(this.mapConfig.exitAreaConfigs.map(eac => eac.focusTileIndex), (_collidingSprite: Phaser.Physics.Arcade.Sprite) => {
+            bgLayer.setTileIndexCallback(this.mapConfig.exitAreaConfigs.map(eac => eac.focusTileIndex), null, null);
             this.exitDungeon();
             return true;
         }, this);
