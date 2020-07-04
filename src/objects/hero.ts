@@ -11,6 +11,9 @@ DIRECTION_FRAMES.set(CARDINAL_DIRECTION.LEFT, 10);
 export default class Hero {
 
     private heroSprite: Phaser.Physics.Arcade.Sprite;
+    private touchStartX: number = null;
+    private touchStartY: number = null;
+	private moveThreshold = 30;
 
     constructor(
         private x: number,
@@ -21,6 +24,7 @@ export default class Hero {
     ) {
         this.addToScene();
         this.addAnimations();
+        this.setUpInput();
     }
 
     get entity() {
@@ -30,19 +34,20 @@ export default class Hero {
     update(cursors): void {
         this.heroSprite.setVelocity(0);
         let newDirection: CARDINAL_DIRECTION = null;
+		const activePointer = this.scene.input.activePointer;
 
-        if (cursors.left.isDown) {
+        if (cursors.left.isDown || this.touchStartX != null && activePointer.x < this.touchStartX - this.moveThreshold) {
             this.heroSprite.setVelocityX(-this.velocity);
             newDirection = CARDINAL_DIRECTION.LEFT;
-        } else if (cursors.right.isDown) {
+        } else if (cursors.right.isDown || this.touchStartX != null && activePointer.x > this.touchStartX + this.moveThreshold) {
             this.heroSprite.setVelocityX(this.velocity);
             newDirection = CARDINAL_DIRECTION.RIGHT;
         }
-        
-        if (cursors.up.isDown) {
+
+        if (cursors.up.isDown || this.touchStartY != null && activePointer.y < this.touchStartY - this.moveThreshold) {
             this.heroSprite.setVelocityY(-this.velocity);
             newDirection = CARDINAL_DIRECTION.UP;
-        } else if (cursors.down.isDown) {
+        } else if (cursors.down.isDown || this.touchStartY != null && activePointer.y > this.touchStartY + this.moveThreshold) {
             this.heroSprite.setVelocityY(this.velocity);
             newDirection = CARDINAL_DIRECTION.DOWN;
         }
@@ -95,6 +100,17 @@ export default class Hero {
             frameRate: ANIM_FRAME_RATE,
             repeat: -1,
             yoyo: true,
+        });
+    }
+
+    setUpInput() {
+        this.scene.input.on('pointerdown', pointer => {
+            this.touchStartX = pointer.x;
+            this.touchStartY = pointer.y;
+        });
+        this.scene.input.on('pointerup', () => {
+            this.touchStartX = null;
+            this.touchStartY = null;
         });
     }
 

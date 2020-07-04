@@ -120,7 +120,7 @@ export class DungeonScene extends Phaser.Scene {
 
     getEntranceLocation(): Phaser.Math.Vector2 {
         const bgLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
-        const entranceTile = bgLayer.findTile((tile: Phaser.Tilemaps.Tile, index: number) => {
+        const entranceTile = bgLayer.findTile((tile: Phaser.Tilemaps.Tile) => {
             return tile.index == DUNGEON_ENTRANCE_INDEX;
         })
         if (!!entranceTile) {
