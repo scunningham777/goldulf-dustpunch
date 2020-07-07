@@ -5,43 +5,45 @@ import { MapConfig } from "../objects/map-config";
 import { AreaConfig } from "../objects/area-config";
 
 export default function generateDungeon(
+        mapConfig: MapConfig,
+        tileMap: Phaser.Tilemaps.Tilemap,
+    ): {
         tileMap: Phaser.Tilemaps.Tilemap,
         layerMap: Map<string, Phaser.Tilemaps.DynamicTilemapLayer>,
-        mapConfig: MapConfig,
-    ): Phaser.Tilemaps.Tilemap 
+        areas: MapArea[],
+    }
 {
-
+    const newLayerMap = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
     const newTileset = tileMap.addTilesetImage(mapConfig.tilesetKey, mapConfig.tilesetKey, mapConfig.tileWidth, mapConfig.tileHeight);
     for (let keyIndex in DUNGEON_LAYER_KEYS) {
-        layerMap.set(DUNGEON_LAYER_KEYS[keyIndex], tileMap.createBlankDynamicLayer(DUNGEON_LAYER_KEYS[keyIndex], newTileset));
-        layerMap.get(DUNGEON_LAYER_KEYS[keyIndex]).setScale(GAME_SCALE);
+        newLayerMap.set(DUNGEON_LAYER_KEYS[keyIndex], tileMap.createBlankDynamicLayer(DUNGEON_LAYER_KEYS[keyIndex], newTileset));
+        newLayerMap.get(DUNGEON_LAYER_KEYS[keyIndex]).setScale(GAME_SCALE);
     }
 
-    const bgLayer = layerMap.get(DUNGEON_LAYER_KEYS.BG_LAYER);
+    const bgLayer = newLayerMap.get(DUNGEON_LAYER_KEYS.BG_LAYER);
     fillMap(bgLayer, mapConfig.wallTileWeights);
 
     const floorTileIndices = mapConfig.floorTileWeights.map(ftw => ftw.index);
 
-    const areas = generateAreas(bgLayer, mapConfig);
-    connectAreas(bgLayer, areas, floorTileIndices);
-    drawAreas(bgLayer, areas);
+    const newAreas: MapArea[] = [];
+    generateAreas(bgLayer, newAreas, mapConfig);
+    connectAreas(bgLayer, newAreas, floorTileIndices);
+    drawAreas(bgLayer, newAreas);
 
-    return tileMap;
+    return {tileMap: tileMap, layerMap: newLayerMap, areas: newAreas};
 }
 
 function fillMap(layer: Phaser.Tilemaps.DynamicTilemapLayer, wallTileWeights: {index: number, weight: number}[]) {
     layer.weightedRandomize(0, 0, layer.tilemap.width, layer.tilemap.height, wallTileWeights);
 }
 
-function generateAreas(layer: Phaser.Tilemaps.DynamicTilemapLayer, mapConfig: MapConfig): MapArea[] {
+function generateAreas(layer: Phaser.Tilemaps.DynamicTilemapLayer, areas: MapArea[], mapConfig: MapConfig): MapArea[] {
     const maxXCoord = layer.tilemap.width-1;
     const maxYCoord = layer.tilemap.height-1;
     const startingCountAreas = Phaser.Math.RND.integerInRange(mapConfig.minCountAreas, mapConfig.maxCountAreas);
 
-    const areas = [
-        ...generateDoorAreas(mapConfig, maxXCoord, maxYCoord),
-        ...generateOtherAreas(startingCountAreas, mapConfig, maxXCoord, maxYCoord),
-    ];
+    areas.unshift(...generateDoorAreas(mapConfig, maxXCoord, maxYCoord));
+    areas.push(...generateOtherAreas(startingCountAreas, mapConfig, maxXCoord, maxYCoord));
 
     return areas;
 }

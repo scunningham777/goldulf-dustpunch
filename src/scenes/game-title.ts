@@ -5,7 +5,7 @@ export class GameTitleScene extends Phaser.Scene {
 	}	
 
 	create(): void {
-		this.scene.start('Overworld');
+		this.scene.start('Overworld', {mapConfigName: 'new_game'});
 	}
 
 }

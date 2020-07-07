@@ -4,6 +4,7 @@ import generateDungeon from '../dungeon_generator/dungeon_generator_cave';
 import { MapConfig } from '../objects/map-config';
 import { MAP_CONFIGS } from '../config';
 import { Cardinal_Direction } from '../utils';
+import MapArea from '../objects/map-area';
 
 const MAP_KEY = 'overworld-map';
 
@@ -13,6 +14,7 @@ export class OverworldScene extends Phaser.Scene {
     private cursors: any;
     private map: Phaser.Tilemaps.Tilemap;
     private mapLayers = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
+    private areas: MapArea[] = [];
     private hasHeroReachedExit = false;
 
     /* lifecycle methods */
@@ -33,7 +35,8 @@ export class OverworldScene extends Phaser.Scene {
     /* end lifecycle */
 
     selectMapConfig() {
-        this.mapConfig = Phaser.Math.RND.pick(MAP_CONFIGS.overworld);
+        this.mapConfig = MAP_CONFIGS.overworld.find(mc => mc.mapConfigName == this.scene.settings.data['mapConfigName'])
+            ?? Phaser.Math.RND.pick(MAP_CONFIGS.overworld);
     }
 
     createMap() {
@@ -44,11 +47,13 @@ export class OverworldScene extends Phaser.Scene {
             height: Phaser.Math.RND.integerInRange(this.mapConfig.minMapHeight, this.mapConfig.maxMapHeight),
             key: MAP_KEY,
         });
-        generateDungeon(
-            this.map,
-            this.mapLayers,
+        const mapData = generateDungeon(
             this.mapConfig,
+            this.map,
         );
+        this.map = mapData.tileMap;
+        this.mapLayers = mapData.layerMap;
+        this.areas = mapData.areas;
     }
 
     createHero() {
@@ -98,18 +103,20 @@ export class OverworldScene extends Phaser.Scene {
         const cam = this.cameras.main;
         cam.fade(250, 0, 0, 0);
         cam.once('camerafadeoutcomplete', () => {
-            this.scene.start('Dungeon');
+            this.scene.start('Dungeon', {mapConfigName: null});
         });
     }
 
     getEntranceLocation(): Phaser.Math.Vector2 {
-        const bgLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
-        const entranceTile = bgLayer.findTile((tile: Phaser.Tilemaps.Tile) => {
-            return tile.index == OVERWORLD_ENTRANCE_INDEX;
-        })
-        if (!!entranceTile) {
-            return new Phaser.Math.Vector2(entranceTile.x, entranceTile.y);
-        }
-        return null;
+        const entranceLocation = new Phaser.Math.Vector2(this.areas[0].focusX, this.areas[0].focusY);
+        return entranceLocation;
+        // const bgLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
+        // const entranceTile = bgLayer.findTile((tile: Phaser.Tilemaps.Tile) => {
+        //     return tile.index == OVERWORLD_ENTRANCE_INDEX;
+        // })
+        // if (!!entranceTile) {
+        //     return new Phaser.Math.Vector2(entranceTile.x, entranceTile.y);
+        // }
+        // return null;
     }
 }
