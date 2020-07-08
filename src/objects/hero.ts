@@ -1,5 +1,5 @@
 import { Cardinal_Direction as CARDINAL_DIRECTION } from '../utils';
-import { GAME_SCALE } from '../constants';
+import { GAME_SCALE, POINTS_REGISTRY_KEY } from '../constants';
 
 const ANIM_FRAME_RATE = 6;
 const DIRECTION_FRAMES: Map<CARDINAL_DIRECTION, number> = new Map();
@@ -58,6 +58,10 @@ export default class Hero {
         } else {
             this.heroSprite.anims.stop();
             this.heroSprite.setFrame(DIRECTION_FRAMES.get(this.currentDirection));
+        }
+
+        if (Phaser.Input.Keyboard.JustDown(cursors.space)) {
+            this.scene.registry.set(POINTS_REGISTRY_KEY,  this.scene.registry.get(POINTS_REGISTRY_KEY) + 10);
         }
     }
 

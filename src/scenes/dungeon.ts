@@ -1,5 +1,5 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, DUNGEON_ENTRANCE_INDEX } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS } from '../constants';
 import { Cardinal_Direction, justInsideWall } from '../utils';
 import generateDungeon from '../dungeon_generator/dungeon_generator_cave';
 import { MapConfig } from '../objects/map-config';
@@ -42,7 +42,7 @@ export class DungeonScene extends Phaser.Scene {
 
     selectMapConfig() {
         this.mapConfig = MAP_CONFIGS.dungeon.find(mc => mc.mapConfigName == this.scene.settings.data['mapConfigName'])
-            ?? Phaser.Math.RND.pick(MAP_CONFIGS.dungeon);
+            ?? Phaser.Math.RND.pick(MAP_CONFIGS.dungeon.filter(mc => mc.isRandomlySelectable));
     }
 
     createMap() {
@@ -126,13 +126,5 @@ export class DungeonScene extends Phaser.Scene {
     getEntranceLocation(): Phaser.Math.Vector2 {
         const entranceLocation = new Phaser.Math.Vector2(this.areas[0].focusX, this.areas[0].focusY);
         return entranceLocation;
-        // const bgLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
-        // const entranceTile = bgLayer.findTile((tile: Phaser.Tilemaps.Tile) => {
-        //     return tile.index == DUNGEON_ENTRANCE_INDEX;
-        // })
-        // if (!!entranceTile) {
-        //     return new Phaser.Math.Vector2(entranceTile.x, entranceTile.y);
-        // }
-        // return null;
     }
 }

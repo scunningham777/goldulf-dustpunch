@@ -1,5 +1,5 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, OVERWORLD_ENTRANCE_INDEX } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, UI_SCENE_KEY } from '../constants';
 import generateDungeon from '../dungeon_generator/dungeon_generator_cave';
 import { MapConfig } from '../objects/map-config';
 import { MAP_CONFIGS } from '../config';
@@ -18,6 +18,11 @@ export class OverworldScene extends Phaser.Scene {
     private hasHeroReachedExit = false;
 
     /* lifecycle methods */
+    init() {
+        // is this the best place for this?
+        this.scene.launch(UI_SCENE_KEY);
+    }
+    
     create(): void {
         this.selectMapConfig();
         this.createMap();
@@ -36,7 +41,7 @@ export class OverworldScene extends Phaser.Scene {
 
     selectMapConfig() {
         this.mapConfig = MAP_CONFIGS.overworld.find(mc => mc.mapConfigName == this.scene.settings.data['mapConfigName'])
-            ?? Phaser.Math.RND.pick(MAP_CONFIGS.overworld);
+            ?? Phaser.Math.RND.pick(MAP_CONFIGS.overworld.filter(mc => mc.isRandomlySelectable));
     }
 
     createMap() {
@@ -110,13 +115,5 @@ export class OverworldScene extends Phaser.Scene {
     getEntranceLocation(): Phaser.Math.Vector2 {
         const entranceLocation = new Phaser.Math.Vector2(this.areas[0].focusX, this.areas[0].focusY);
         return entranceLocation;
-        // const bgLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
-        // const entranceTile = bgLayer.findTile((tile: Phaser.Tilemaps.Tile) => {
-        //     return tile.index == OVERWORLD_ENTRANCE_INDEX;
-        // })
-        // if (!!entranceTile) {
-        //     return new Phaser.Math.Vector2(entranceTile.x, entranceTile.y);
-        // }
-        // return null;
     }
 }

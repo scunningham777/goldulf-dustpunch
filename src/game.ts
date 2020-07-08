@@ -6,16 +6,17 @@ import { OverworldScene } from './scenes/overworld';
 import { DungeonScene } from './scenes/dungeon';
 import { GameOverScene } from './scenes/game-over';
 
-import { WORLD_WIDTH, WORLD_HEIGHT } from './constants';
+import { WORLD_WIDTH, WORLD_HEIGHT, POINTS_REGISTRY_KEY, UI_SCENE_KEY } from './constants';
 
 import { Plugins } from '@capacitor/core';
+import { UIScene } from './scenes/ui-scene';
 
 const config: Phaser.Types.Core.GameConfig = {
     width: WORLD_WIDTH,
     height: WORLD_HEIGHT,
     type: Phaser.AUTO,
     parent: 'game',
-    backgroundColor: '#93e7ff',
+    backgroundColor: '#000044',
     render: {
         pixelArt: true,
     },
@@ -39,11 +40,14 @@ export class Game extends Phaser.Game {
 
         super(config);
 
+        this.registry.set(POINTS_REGISTRY_KEY, 0);
+
         this.scene.add('Boot', BootScene, false);
         this.scene.add('Preload', PreloadScene, false);
         this.scene.add('GameTitle', GameTitleScene, false);
         this.scene.add('Overworld', OverworldScene, false);
         this.scene.add('Dungeon', DungeonScene, false);
+        this.scene.add(UI_SCENE_KEY, UIScene, false);
         this.scene.add('GameOver', GameOverScene, false);
 
         this.scene.start('Boot');
