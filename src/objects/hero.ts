@@ -1,12 +1,12 @@
-import { Cardinal_Direction as CARDINAL_DIRECTION } from '../utils';
+import { CARDINAL_DIRECTION } from '../utils';
 import { GAME_SCALE, POINTS_REGISTRY_KEY } from '../constants';
 
 const ANIM_FRAME_RATE = 6;
 const DIRECTION_FRAMES: Map<CARDINAL_DIRECTION, number> = new Map();
 DIRECTION_FRAMES.set(CARDINAL_DIRECTION.UP, 1);
 DIRECTION_FRAMES.set(CARDINAL_DIRECTION.RIGHT, 4);
-DIRECTION_FRAMES.set(CARDINAL_DIRECTION.DOWN, 7);
-DIRECTION_FRAMES.set(CARDINAL_DIRECTION.LEFT, 10);
+DIRECTION_FRAMES.set(CARDINAL_DIRECTION.DOWN, 1);
+DIRECTION_FRAMES.set(CARDINAL_DIRECTION.LEFT, 4);
 
 export default class Hero {
 
@@ -38,23 +38,30 @@ export default class Hero {
 
         if (cursors.left.isDown || this.touchStartX != null && activePointer.x < this.touchStartX - this.moveThreshold) {
             this.heroSprite.setVelocityX(-this.velocity);
+            this.heroSprite.flipX = true;
             newDirection = CARDINAL_DIRECTION.LEFT;
         } else if (cursors.right.isDown || this.touchStartX != null && activePointer.x > this.touchStartX + this.moveThreshold) {
             this.heroSprite.setVelocityX(this.velocity);
+            this.heroSprite.flipX = false;
             newDirection = CARDINAL_DIRECTION.RIGHT;
         }
 
         if (cursors.up.isDown || this.touchStartY != null && activePointer.y < this.touchStartY - this.moveThreshold) {
             this.heroSprite.setVelocityY(-this.velocity);
+            this.heroSprite.flipX = false;
             newDirection = CARDINAL_DIRECTION.UP;
         } else if (cursors.down.isDown || this.touchStartY != null && activePointer.y > this.touchStartY + this.moveThreshold) {
             this.heroSprite.setVelocityY(this.velocity);
+            this.heroSprite.flipX = true;
             newDirection = CARDINAL_DIRECTION.DOWN;
         }
 
         if (newDirection != null) {
             this.currentDirection = newDirection;
-            this.heroSprite.anims.play(newDirection, true);
+            const animDirection = newDirection == CARDINAL_DIRECTION.DOWN ? CARDINAL_DIRECTION.UP 
+                                : newDirection == CARDINAL_DIRECTION.LEFT ? CARDINAL_DIRECTION.RIGHT
+                                : newDirection;
+            this.heroSprite.anims.play(animDirection, true);
         } else {
             this.heroSprite.anims.stop();
             this.heroSprite.setFrame(DIRECTION_FRAMES.get(this.currentDirection));
@@ -67,11 +74,12 @@ export default class Hero {
 
     addToScene(): void {
         this.heroSprite = this.scene.physics.add
-            .sprite(this.x, this.y, 'dude')
-            .setSize(16, 16)
-            .setOffset(8, 16)
+            .sprite(this.x, this.y, 'hero')
+            .setSize(8, 8)
+            .setOffset(4, 8)
             .setScale(GAME_SCALE)
-            .setFrame(7)
+            .setFrame(1)
+            .setFlipX(true)
             .setDepth(1)
             ;
     }
@@ -79,28 +87,14 @@ export default class Hero {
     addAnimations(): void {
         this.scene.anims.create({
             key: CARDINAL_DIRECTION.UP,
-            frames: this.scene.anims.generateFrameNumbers('dude', { start: 0, end: 2 }),
+            frames: this.scene.anims.generateFrameNumbers('hero', { start: 0, end: 2 }),
             frameRate: ANIM_FRAME_RATE,
             repeat: -1,
             yoyo: true,
         });
         this.scene.anims.create({
             key: CARDINAL_DIRECTION.RIGHT,
-            frames: this.scene.anims.generateFrameNumbers('dude', { start: 3, end: 5 }),
-            frameRate: ANIM_FRAME_RATE,
-            repeat: -1,
-            yoyo: true,
-        });
-        this.scene.anims.create({
-            key: CARDINAL_DIRECTION.DOWN,
-            frames: this.scene.anims.generateFrameNumbers('dude', { start: 6, end: 8 }),
-            frameRate: ANIM_FRAME_RATE,
-            repeat: -1,
-            yoyo: true,
-        });
-        this.scene.anims.create({
-            key: CARDINAL_DIRECTION.LEFT,
-            frames: this.scene.anims.generateFrameNumbers('dude', { start: 9, end: 11 }),
+            frames: this.scene.anims.generateFrameNumbers('hero', { start: 3, end: 5 }),
             frameRate: ANIM_FRAME_RATE,
             repeat: -1,
             yoyo: true,

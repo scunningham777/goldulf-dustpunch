@@ -3,7 +3,7 @@ import { GAME_SCALE, DUNGEON_LAYER_KEYS, UI_SCENE_KEY } from '../constants';
 import generateDungeon from '../dungeon_generator/dungeon_generator_cave';
 import { MapConfig } from '../objects/map-config';
 import { MAP_CONFIGS } from '../config';
-import { Cardinal_Direction } from '../utils';
+import { CARDINAL_DIRECTION } from '../utils';
 import MapArea from '../objects/map-area';
 
 const MAP_KEY = 'overworld-map';
@@ -66,7 +66,7 @@ export class OverworldScene extends Phaser.Scene {
         const heroStartLocation = this.getEntranceLocation() || new Phaser.Math.Vector2(1,1);
         const heroStartXInPixels = (heroStartLocation.x + .5) * (this.map.tileWidth * GAME_SCALE);
         const heroStartYInPixels = (heroStartLocation.y + .5) * (this.map.tileHeight * GAME_SCALE);
-        let heroStartDirection = Cardinal_Direction.DOWN;
+        let heroStartDirection = CARDINAL_DIRECTION.DOWN;
         this.hero = new Hero(heroStartXInPixels , heroStartYInPixels, this, 360, heroStartDirection);
     }
 

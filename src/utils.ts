@@ -1,4 +1,4 @@
-export enum Cardinal_Direction {
+export enum CARDINAL_DIRECTION {
     RIGHT = 'RIGHT',
     LEFT = 'LEFT',
     UP = 'UP',

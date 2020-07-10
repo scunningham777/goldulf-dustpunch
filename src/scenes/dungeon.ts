@@ -1,6 +1,6 @@
 import Hero from '../objects/hero';
 import { GAME_SCALE, DUNGEON_LAYER_KEYS } from '../constants';
-import { Cardinal_Direction, justInsideWall } from '../utils';
+import { CARDINAL_DIRECTION, justInsideWall } from '../utils';
 import generateDungeon from '../dungeon_generator/dungeon_generator_cave';
 import { MapConfig } from '../objects/map-config';
 import { MAP_CONFIGS } from '../config';
@@ -69,13 +69,13 @@ export class DungeonScene extends Phaser.Scene {
         const heroStartXInPixels = (heroStartLocation.x + .5) * (this.map.tileWidth * GAME_SCALE);
         const heroStartYInPixels = (heroStartLocation.y + .5) * (this.map.tileHeight * GAME_SCALE);
         // determine start direction based on location of entrance (this.areas[0]);
-        let heroStartDirection = Cardinal_Direction.DOWN;
+        let heroStartDirection = CARDINAL_DIRECTION.DOWN;
         if (entranceLocation.x === 0) {
-            heroStartDirection = Cardinal_Direction.RIGHT;
+            heroStartDirection = CARDINAL_DIRECTION.RIGHT;
         } else if (entranceLocation.x === this.greatestXCoord) {
-            heroStartDirection = Cardinal_Direction.LEFT;
+            heroStartDirection = CARDINAL_DIRECTION.LEFT;
         } else if (entranceLocation.y === this.greatestYCoord) {
-            heroStartDirection = Cardinal_Direction.UP;
+            heroStartDirection = CARDINAL_DIRECTION.UP;
         }
         this.hero = new Hero(heroStartXInPixels , heroStartYInPixels, this, 360, heroStartDirection);
     }

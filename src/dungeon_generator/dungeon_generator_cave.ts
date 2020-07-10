@@ -1,6 +1,6 @@
 import { GAME_SCALE, DUNGEON_LAYER_KEYS } from "../constants";
 import MapArea from "../objects/map-area";
-import { justInsideWall, Cardinal_Direction } from "../utils";
+import { justInsideWall, CARDINAL_DIRECTION } from "../utils";
 import { MapConfig } from "../objects/map-config";
 import { AreaConfig } from "../objects/area-config";
 
@@ -14,7 +14,7 @@ export default function generateDungeon(
     }
 {
     const newLayerMap = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
-    const newTileset = tileMap.addTilesetImage(mapConfig.tilesetKey, mapConfig.tilesetKey, mapConfig.tileWidth, mapConfig.tileHeight);
+    const newTileset = tileMap.addTilesetImage(mapConfig.tilesetKey, mapConfig.tilesetKey, mapConfig.tileWidth, mapConfig.tileHeight, mapConfig.tilesetMargin ?? 0, mapConfig.tileSpacing ?? 0);
     for (let keyIndex in DUNGEON_LAYER_KEYS) {
         newLayerMap.set(DUNGEON_LAYER_KEYS[keyIndex], tileMap.createBlankDynamicLayer(DUNGEON_LAYER_KEYS[keyIndex], newTileset));
         newLayerMap.get(DUNGEON_LAYER_KEYS[keyIndex]).setScale(GAME_SCALE);
@@ -29,6 +29,7 @@ export default function generateDungeon(
     generateAreas(bgLayer, newAreas, mapConfig);
     connectAreas(bgLayer, newAreas, floorTileIndices);
     drawAreas(bgLayer, newAreas);
+    // bgLayer.filterTiles(t => mapConfig.wallTileWeights.find(wtw => wtw.index === t.index)).forEach(t => t.tint = -0xD99E18);
 
     return {tileMap: tileMap, layerMap: newLayerMap, areas: newAreas};
 }
@@ -92,20 +93,20 @@ function generateRandomArea(areaConfig: AreaConfig, maxXCoord: number, maxYCoord
     }
 
     if (areaConfig.placement === 'wall') {
-        const direction = Phaser.Math.RND.pick(Object.keys(Cardinal_Direction));
+        const direction = Phaser.Math.RND.pick(Object.keys(CARDINAL_DIRECTION));
         switch(direction) {
-            case Cardinal_Direction.UP: 
+            case CARDINAL_DIRECTION.UP: 
                 newArea.focusX = Phaser.Math.RND.integerInRange(1, maxXCoord - 1);
                 break;
-            case Cardinal_Direction.RIGHT:
+            case CARDINAL_DIRECTION.RIGHT:
                 newArea.focusX = maxXCoord;
                 newArea.focusY = Phaser.Math.RND.integerInRange(1, maxYCoord - 1);
                 break;
-            case Cardinal_Direction.DOWN:
+            case CARDINAL_DIRECTION.DOWN:
                 newArea.focusX = Phaser.Math.RND.integerInRange(1, maxXCoord - 1);
                 newArea.focusY = maxYCoord;
                 break;
-            case Cardinal_Direction.LEFT:
+            case CARDINAL_DIRECTION.LEFT:
                 newArea.focusY = Phaser.Math.RND.integerInRange(1, maxYCoord - 1);
                 break;
         }

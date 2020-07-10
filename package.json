@@ -11,6 +11,7 @@
   ],
   "devDependencies": {
     "expose-loader": "0.7.5",
+    "tile-extruder": "^2.0.6",
     "ts-loader": "6.0.4",
     "typescript": "3.7.3",
     "webpack": "4.35.2",

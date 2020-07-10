@@ -5,11 +5,13 @@ export interface MapConfig {
     isRandomlySelectable: boolean;
     tileWidth: number;
     tileHeight: number;
+    tilesetKey: string;
+    tilesetMargin?: number;
+    tileSpacing?: number;
     minMapWidth: number;
     minMapHeight: number;
     maxMapWidth: number;
     maxMapHeight: number;
-    tilesetKey: string;
     wallTileWeights: {index: number, weight: number}[];
     floorTileWeights: {index: number, weight: number}[];
     entranceAreaConfig: AreaConfig;
