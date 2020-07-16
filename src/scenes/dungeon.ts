@@ -5,6 +5,9 @@ import generateDungeon from '../dungeon_generator/dungeon_generator_cave';
 import { MapConfig } from '../objects/map-config';
 import { MAP_CONFIGS } from '../config';
 import MapArea from '../objects/map-area';
+import { StuffModel } from '../dungeon_generator/stuffModel';
+import Stuff from '../objects/stuff';
+import { Physics } from 'phaser';
 
 const MAP_KEY = 'dungeon-map';
 
@@ -15,6 +18,7 @@ export class DungeonScene extends Phaser.Scene {
     private map: Phaser.Tilemaps.Tilemap;
     private mapLayers = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
     private areas: MapArea[] = [];
+    private stuffGroup: Phaser.Physics.Arcade.Group;
     private hasHeroReachedExit = false;
     private get greatestXCoord(): number {
         return this.map.width - 1;
@@ -60,6 +64,7 @@ export class DungeonScene extends Phaser.Scene {
             this.map = mapData.tileMap;
             this.mapLayers = mapData.layerMap;
             this.areas = mapData.areas;
+            this.stuffGroup = this.createStuff(mapData.stuff);
     }
     
     createHero() {
@@ -98,6 +103,7 @@ export class DungeonScene extends Phaser.Scene {
             return true;
         }, this);
         this.physics.add.collider(this.hero.entity, bgLayer);
+        this.physics.add.overlap(this.hero.entity, this.stuffGroup, this.stuffCollision, null, this)
     }
 
     initInput() {
@@ -113,6 +119,15 @@ export class DungeonScene extends Phaser.Scene {
         camera.startFollow(this.hero.entity);
     }
 
+    createStuff(stuffData: StuffModel[]): Phaser.Physics.Arcade.Group {
+        const stuffGroup = this.physics.add.group();
+        for (let stuff of stuffData) {
+            const newStuff = new Stuff(this, stuff.x, stuff.y, stuff.key, stuff.frame, stuff.points, stuff.id);
+            stuffGroup.add(newStuff);
+        }
+        return stuffGroup;
+    }
+
     exitDungeon() {
         this.hasHeroReachedExit = true;
         this.hero.freeze();
@@ -121,6 +136,13 @@ export class DungeonScene extends Phaser.Scene {
         cam.once('camerafadeoutcomplete', () => {
             this.scene.start('Overworld', {mapConfigName: null});
         });
+    }
+
+    stuffCollision: ArcadePhysicsCallback = (_heroObj, stuffObj) => {
+        if (this.hero.isPunching) {
+            (stuffObj as Stuff).scorePoints();
+            console.log(this.hero.entity.body);
+        }
     }
 
     getEntranceLocation(): Phaser.Math.Vector2 {

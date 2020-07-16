@@ -1,5 +1,5 @@
 import { CARDINAL_DIRECTION } from '../utils';
-import { GAME_SCALE, POINTS_REGISTRY_KEY, HERO_ANIM_FRAME_RATE, HERO_FRAMES, HERO_TINT } from '../constants';
+import { GAME_SCALE, HERO_ANIM_FRAME_RATE, HERO_FRAMES, HERO_TINT, HERO_OFFSETS } from '../constants';
 
 export default class Hero {
 
@@ -7,7 +7,7 @@ export default class Hero {
     private touchStartX: number = null;
     private touchStartY: number = null;
     private moveThreshold = 30;
-    private isPunching = false;
+    public isPunching = false;
 
     constructor(
         private x: number,
@@ -32,9 +32,10 @@ export default class Hero {
 
         if (Phaser.Input.Keyboard.JustDown(cursors.space)) {
             this.isPunching = true;
-            this.scene.time.delayedCall(150, () => {
+            this.heroSprite.setOffset(HERO_OFFSETS.punching[this.currentDirection].x, HERO_OFFSETS.punching[this.currentDirection].y);
+            this.scene.time.delayedCall(250, () => {
                 this.isPunching = false;
-                this.scene.registry.set(POINTS_REGISTRY_KEY, this.scene.registry.get(POINTS_REGISTRY_KEY) + 10);
+                this.heroSprite.setOffset(HERO_OFFSETS.standing.x, HERO_OFFSETS.standing.y);
             }, [], this);
         }
 
@@ -76,7 +77,7 @@ export default class Hero {
         this.heroSprite = this.scene.physics.add
             .sprite(this.x, this.y, 'hero')
             .setSize(8, 8)
-            .setOffset(4, 8)
+            .setOffset(HERO_OFFSETS.standing.x, HERO_OFFSETS.standing.y)
             .setScale(GAME_SCALE)
             .setFrame(HERO_FRAMES.standing[CARDINAL_DIRECTION.DOWN])
             .setDepth(1)

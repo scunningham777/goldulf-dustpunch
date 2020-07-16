@@ -3,7 +3,7 @@ import MapArea from "../objects/map-area";
 import { justInsideWall, CARDINAL_DIRECTION } from "../utils";
 import { MapConfig } from "../objects/map-config";
 import { AreaConfig } from "../objects/area-config";
-import Stuff from "../objects/stuff";
+import { StuffModel } from "./stuffModel";
 
 export default function generateDungeon(
         mapConfig: MapConfig,
@@ -12,6 +12,7 @@ export default function generateDungeon(
         tileMap: Phaser.Tilemaps.Tilemap,
         layerMap: Map<string, Phaser.Tilemaps.DynamicTilemapLayer>,
         areas: MapArea[],
+        stuff: StuffModel[],
     }
 {
     const newLayerMap = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
@@ -34,7 +35,7 @@ export default function generateDungeon(
 
     const stuff = generateStuff(newLayerMap.get(DUNGEON_LAYER_KEYS.STUFF_LAYER), mapConfig);
 
-    return {tileMap: tileMap, layerMap: newLayerMap, areas: newAreas};
+    return {tileMap: tileMap, layerMap: newLayerMap, areas: newAreas, stuff: stuff};
 }
 
 function fillMap(layer: Phaser.Tilemaps.DynamicTilemapLayer, wallTileWeights: {index: number, weight: number}[]) {
@@ -249,17 +250,17 @@ function tintMap(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, mapConfig: MapCo
     mapLayer.forEachTile(t => t.tint = mapConfig.defaultTileTint);
 }
 
-function generateStuff(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, mapConfig: MapConfig): Stuff[] {
+function generateStuff(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, mapConfig: MapConfig): StuffModel[] {
     const startingCountStuff = Phaser.Math.RND.integerInRange(mapConfig.minCountStuff, mapConfig.maxCountStuff);
-    const newStuffArray: Stuff[] = [];
+    const newStuffArray: StuffModel[] = [];
     for (let i = 0; i < startingCountStuff; i++) {
-        const newStuff = new Stuff(
+        const newStuff = new StuffModel(
             (Phaser.Math.RND.integerInRange(0, mapLayer.tilemap.width) + .5) * mapLayer.tilemap.tileWidth * GAME_SCALE,
             (Phaser.Math.RND.integerInRange(0, mapLayer.tilemap.height) + .5) * mapLayer.tilemap.tileHeight * GAME_SCALE,
-            mapLayer.tilemap.scene,
             mapConfig.stuffSpritesheetKey,
             0,
             10,
+            i,
         )
         newStuffArray.push(newStuff);
     }

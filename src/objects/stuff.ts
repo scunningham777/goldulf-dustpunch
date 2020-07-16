@@ -1,23 +1,23 @@
-import { GAME_SCALE } from "../constants";
+import { GAME_SCALE, POINTS_REGISTRY_KEY } from "../constants";
 
-export default class Stuff {
-    private stuffSprite: Phaser.Physics.Arcade.Image;
+export default class Stuff extends Phaser.Physics.Arcade.Image {
+    private hasBeenScored = false;
 
-    constructor(
-        private x: number,
-        private y: number,
-        private scene: Phaser.Scene,
-        private key: string,
-        private frame: number,
-        public points:number
-    ) {
-        this.addToScene();
+    constructor(scene: Phaser.Scene, x: number, y: number, key: string, frame: number, private points: number, public id: string) {
+        super(scene, x, y, key, frame);
+
+        // enable physics
+        this.scene.physics.world.enable(this);
+        // scale the stuff
+        this.setScale(GAME_SCALE);
+        // add the monster to our existing scene
+        this.scene.add.existing(this);
     }
 
-    addToScene() {
-        this.stuffSprite = this.scene.physics.add
-            .image(this.x, this.y, this.key, this.frame)
-            .setScale(GAME_SCALE)
-            ;
+    scorePoints() {
+        if (this.hasBeenScored === false) {
+            this.scene.registry.set(POINTS_REGISTRY_KEY, this.scene.registry.get(POINTS_REGISTRY_KEY) + this.points);
+        }
+        this.hasBeenScored = true;
     }
 }

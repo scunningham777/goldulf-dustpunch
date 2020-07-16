@@ -36,4 +36,13 @@ export const HERO_FRAMES = {
     }
 };
 export const HERO_TINT = 0xE2DB75;
+export const HERO_OFFSETS = {
+    standing: {x: 4, y: 8},
+    punching: {
+        'UP': {x: 8, y: 1},
+        'RIGHT': {x: 10, y: 2},
+        'DOWN': {x: 0, y: 9},
+        'LEFT': {x: -2, y: 2},
+    }
+}
 export const UI_SCENE_KEY = 'UIScene';
