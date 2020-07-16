@@ -6,7 +6,7 @@ import { OverworldScene } from './scenes/overworld';
 import { DungeonScene } from './scenes/dungeon';
 import { GameOverScene } from './scenes/game-over';
 
-import { WORLD_WIDTH, WORLD_HEIGHT, POINTS_REGISTRY_KEY, UI_SCENE_KEY } from './constants';
+import { WORLD_WIDTH, WORLD_HEIGHT, POINTS_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR } from './constants';
 
 import { Plugins } from '@capacitor/core';
 import { UIScene } from './scenes/ui-scene';
@@ -16,7 +16,7 @@ const config: Phaser.Types.Core.GameConfig = {
     height: WORLD_HEIGHT,
     type: Phaser.AUTO,
     parent: 'game',
-    backgroundColor: '#000044',
+    backgroundColor: GAME_BG_COLOR,
     render: {
         pixelArt: true,
         roundPixels: true,

@@ -29,7 +29,7 @@ export default function generateDungeon(
     generateAreas(bgLayer, newAreas, mapConfig);
     connectAreas(bgLayer, newAreas, floorTileIndices);
     drawAreas(bgLayer, newAreas);
-    // bgLayer.filterTiles(t => mapConfig.wallTileWeights.find(wtw => wtw.index === t.index)).forEach(t => t.tint = -0xD99E18);
+    tintMap(bgLayer, mapConfig);
 
     return {tileMap: tileMap, layerMap: newLayerMap, areas: newAreas};
 }
@@ -240,4 +240,8 @@ function drawAreas(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, areas: MapArea
     for (let area of areas) {
         mapLayer.putTileAt(area.focusTileIndex, area.focusX, area.focusY);
     }
+}
+
+function tintMap(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, mapConfig: MapConfig) {
+    mapLayer.forEachTile(t => t.tint = mapConfig.defaultTileTint);
 }

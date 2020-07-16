@@ -1,39 +1,5 @@
 import { CARDINAL_DIRECTION } from '../utils';
-import { GAME_SCALE, POINTS_REGISTRY_KEY } from '../constants';
-
-const ANIM_FRAME_RATE = 6;
-
-const frames = {
-    standing: {
-        'UP': 1,
-        'RIGHT': 5,
-        'DOWN': 9,
-        'LEFT': 5,
-    },
-    animStart: {
-        'UP': 0,
-        'RIGHT': 4,
-        'DOWN': 8,
-        'LEFT': 4,
-    },
-    animEnd: {
-        'UP': 2,
-        'RIGHT': 6,
-        'DOWN': 10,
-        'LEFT': 6,
-    },
-    punch: {
-        'UP': 3,
-        'RIGHT': 7,
-        'DOWN': 11,
-        'LEFT': 7,
-    }
-}
-// const DIRECTION_FRAMES: Map<CARDINAL_DIRECTION, number> = new Map();
-// DIRECTION_FRAMES.set(CARDINAL_DIRECTION.UP, 1);
-// DIRECTION_FRAMES.set(CARDINAL_DIRECTION.RIGHT, 4);
-// DIRECTION_FRAMES.set(CARDINAL_DIRECTION.DOWN, 1);
-// DIRECTION_FRAMES.set(CARDINAL_DIRECTION.LEFT, 4);
+import { GAME_SCALE, POINTS_REGISTRY_KEY, HERO_ANIM_FRAME_RATE, HERO_FRAMES, HERO_TINT } from '../constants';
 
 export default class Hero {
 
@@ -101,8 +67,8 @@ export default class Hero {
             this.heroSprite.anims.play(animDirection, true);
         } else {
             this.heroSprite.anims.stop();
-            this.heroSprite.setFrame(this.isPunching ? frames.punch[this.currentDirection]
-                : frames.standing[this.currentDirection]);
+            this.heroSprite.setFrame(this.isPunching ? HERO_FRAMES.punch[this.currentDirection]
+                : HERO_FRAMES.standing[this.currentDirection]);
         }
     }
 
@@ -112,9 +78,10 @@ export default class Hero {
             .setSize(8, 8)
             .setOffset(4, 8)
             .setScale(GAME_SCALE)
-            .setFrame(frames.standing[CARDINAL_DIRECTION.DOWN])
+            .setFrame(HERO_FRAMES.standing[CARDINAL_DIRECTION.DOWN])
             .setDepth(1)
             ;
+        this.heroSprite.tint = HERO_TINT;
     }
 
     addAnimations(): void {
@@ -125,8 +92,8 @@ export default class Hero {
         ].forEach(direction => {
             this.scene.anims.create({
                 key: direction,
-                frames: this.scene.anims.generateFrameNumbers('hero', { start: frames.animStart[direction], end: frames.animEnd[direction] }),
-                frameRate: ANIM_FRAME_RATE,
+                frames: this.scene.anims.generateFrameNumbers('hero', { start: HERO_FRAMES.animStart[direction], end: HERO_FRAMES.animEnd[direction] }),
+                frameRate: HERO_ANIM_FRAME_RATE,
                 repeat: -1,
                 yoyo: true,
             });

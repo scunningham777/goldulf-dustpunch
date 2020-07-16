@@ -20,4 +20,6 @@ export interface MapConfig {
     otherAreaConfigs: AreaConfig[];
     minCountAreas: number;
     maxCountAreas: number;
+    defaultTileTint: number;
+    tileTintOverrides?: {index: number, tintValue: number}[];
 }
