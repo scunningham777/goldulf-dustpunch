@@ -48,6 +48,9 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
             maxCountAreas: 4,
             // Tinting, so we need to invert RGB order
             defaultTileTint: 0x189ED9,
+            minCountStuff: 0,
+            maxCountStuff: 0,
+            stuffSpritesheetKey: 'stuff',
         },
         {
             mapConfigName: 'forest_temples',
@@ -95,6 +98,9 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
             maxCountAreas: 4,
             // Tinting, so we need to invert RGB order
             defaultTileTint: 0x189ED9,
+            minCountStuff: 0,
+            maxCountStuff: 0,
+            stuffSpritesheetKey: 'stuff',
         }
     ],
     dungeon: [
@@ -145,6 +151,9 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
             maxCountAreas: 4,
             // Tinting, so we need to invert RGB order
             defaultTileTint: 0x81698D,
+            minCountStuff: 6,
+            maxCountStuff: 10,
+            stuffSpritesheetKey: 'stuff',
         }
     ],
 }

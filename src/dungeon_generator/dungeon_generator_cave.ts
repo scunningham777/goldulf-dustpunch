@@ -3,6 +3,7 @@ import MapArea from "../objects/map-area";
 import { justInsideWall, CARDINAL_DIRECTION } from "../utils";
 import { MapConfig } from "../objects/map-config";
 import { AreaConfig } from "../objects/area-config";
+import Stuff from "../objects/stuff";
 
 export default function generateDungeon(
         mapConfig: MapConfig,
@@ -30,6 +31,8 @@ export default function generateDungeon(
     connectAreas(bgLayer, newAreas, floorTileIndices);
     drawAreas(bgLayer, newAreas);
     tintMap(bgLayer, mapConfig);
+
+    const stuff = generateStuff(newLayerMap.get(DUNGEON_LAYER_KEYS.STUFF_LAYER), mapConfig);
 
     return {tileMap: tileMap, layerMap: newLayerMap, areas: newAreas};
 }
@@ -244,4 +247,22 @@ function drawAreas(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, areas: MapArea
 
 function tintMap(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, mapConfig: MapConfig) {
     mapLayer.forEachTile(t => t.tint = mapConfig.defaultTileTint);
+}
+
+function generateStuff(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, mapConfig: MapConfig): Stuff[] {
+    const startingCountStuff = Phaser.Math.RND.integerInRange(mapConfig.minCountStuff, mapConfig.maxCountStuff);
+    const newStuffArray: Stuff[] = [];
+    for (let i = 0; i < startingCountStuff; i++) {
+        const newStuff = new Stuff(
+            (Phaser.Math.RND.integerInRange(0, mapLayer.tilemap.width) + .5) * mapLayer.tilemap.tileWidth * GAME_SCALE,
+            (Phaser.Math.RND.integerInRange(0, mapLayer.tilemap.height) + .5) * mapLayer.tilemap.tileHeight * GAME_SCALE,
+            mapLayer.tilemap.scene,
+            mapConfig.stuffSpritesheetKey,
+            0,
+            10,
+        )
+        newStuffArray.push(newStuff);
+    }
+
+    return newStuffArray;
 }

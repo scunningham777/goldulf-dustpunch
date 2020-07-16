@@ -7,6 +7,7 @@ export class PreloadScene extends Phaser.Scene {
         
         this.load.image('terrain_16', 'assets/sprites/terrain_16_extruded.png');
 
+        this.load.spritesheet('stuff', 'assets/sprites/stuff.png', { frameWidth: 16, frameHeight: 16 });
         this.load.spritesheet('hero', 'assets/sprites/hero_extruded.png', { frameWidth: 16, frameHeight: 16, margin: 1, spacing: 2 });
     }
 

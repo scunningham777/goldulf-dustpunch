@@ -22,4 +22,7 @@ export interface MapConfig {
     maxCountAreas: number;
     defaultTileTint: number;
     tileTintOverrides?: {index: number, tintValue: number}[];
+    minCountStuff: number;
+    maxCountStuff: number;
+    stuffSpritesheetKey: string;
 }
