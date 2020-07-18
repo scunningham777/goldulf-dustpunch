@@ -1,15 +1,15 @@
 import 'phaser';
 import { BootScene } from './scenes/boot';
 import { PreloadScene } from './scenes/preload';
-import { GameTitleScene } from './scenes/game-title';
+import { GameTitleScene } from './scenes/gameTitle';
 import { OverworldScene } from './scenes/overworld';
 import { DungeonScene } from './scenes/dungeon';
-import { GameOverScene } from './scenes/game-over';
+import { GameOverScene } from './scenes/gameOver';
 
 import { WORLD_WIDTH, WORLD_HEIGHT, POINTS_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR } from './constants';
 
 import { Plugins } from '@capacitor/core';
-import { UIScene } from './scenes/ui-scene';
+import { UIScene } from './scenes/uiScene';
 
 const config: Phaser.Types.Core.GameConfig = {
     width: WORLD_WIDTH,

@@ -1,8 +1,8 @@
 import { GAME_SCALE, DUNGEON_LAYER_KEYS } from "../constants";
-import MapArea from "../objects/map-area";
+import MapArea from "../objects/mapArea";
 import { justInsideWall, CARDINAL_DIRECTION } from "../utils";
-import { MapConfig } from "../objects/map-config";
-import { AreaConfig } from "../objects/area-config";
+import { MapConfig } from "../objects/mapConfig";
+import { AreaConfig } from "../objects/areaConfig";
 import { StuffModel } from "./stuffModel";
 
 export default function generateDungeon(
@@ -33,7 +33,7 @@ export default function generateDungeon(
     drawAreas(bgLayer, newAreas);
     tintMap(bgLayer, mapConfig);
 
-    const stuff = generateStuff(newLayerMap.get(DUNGEON_LAYER_KEYS.STUFF_LAYER), mapConfig);
+    const stuff = generateStuff(newLayerMap, mapConfig);
 
     return {tileMap: tileMap, layerMap: newLayerMap, areas: newAreas, stuff: stuff};
 }
@@ -250,19 +250,40 @@ function tintMap(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, mapConfig: MapCo
     mapLayer.forEachTile(t => t.tint = mapConfig.defaultTileTint);
 }
 
-function generateStuff(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, mapConfig: MapConfig): StuffModel[] {
+function generateStuff(mapLayers: Map<string, Phaser.Tilemaps.DynamicTilemapLayer>, mapConfig: MapConfig) : StuffModel[] {
+    const bgLayer = mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
+    const stuffLayer = mapLayers.get(DUNGEON_LAYER_KEYS.STUFF_LAYER);
     const startingCountStuff = Phaser.Math.RND.integerInRange(mapConfig.minCountStuff, mapConfig.maxCountStuff);
     const newStuffArray: StuffModel[] = [];
     for (let i = 0; i < startingCountStuff; i++) {
-        const newStuff = new StuffModel(
-            (Phaser.Math.RND.integerInRange(0, mapLayer.tilemap.width) + .5) * mapLayer.tilemap.tileWidth * GAME_SCALE,
-            (Phaser.Math.RND.integerInRange(0, mapLayer.tilemap.height) + .5) * mapLayer.tilemap.tileHeight * GAME_SCALE,
-            mapConfig.stuffSpritesheetKey,
-            0,
-            10,
-            i,
-        )
-        newStuffArray.push(newStuff);
+        let newStuffX: number;
+        let newStuffY: number;
+        let j: number;
+        for (j = 0; j < 30; j++) {
+            newStuffX = Phaser.Math.RND.integerInRange(0, bgLayer.tilemap.width - 1);
+            newStuffY = Phaser.Math.RND.integerInRange(0, bgLayer.tilemap.height - 1);
+            // confirm that new tile is floor tile, and doesn't overlap with existing stuff
+            // TODO: wrong layer!!
+            const tile = bgLayer.getTileAt(newStuffX, newStuffY);
+            if (mapConfig.floorTileWeights.some(ftw => ftw.index === tile.index) && !newStuffArray.some(s => s.x === newStuffX && s.y === newStuffY)) {
+                break;
+            }
+        } 
+        if (j < 30){
+            newStuffX = (newStuffX + .5) * stuffLayer.tilemap.tileWidth * GAME_SCALE;
+            newStuffY = (newStuffY + .5) * stuffLayer.tilemap.tileHeight * GAME_SCALE;
+            const newStuff = new StuffModel(
+                newStuffX,
+                newStuffY,
+                mapConfig.stuffSpritesheetKey,
+                0,
+                10,
+                i,
+                );
+            newStuffArray.push(newStuff);
+        } else {
+            console.warn('Not enough room to place Stuff');
+        }
     }
 
     return newStuffArray;

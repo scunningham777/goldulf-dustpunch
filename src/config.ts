@@ -1,4 +1,4 @@
-import { MapConfig } from "./objects/map-config";
+import { MapConfig } from "./objects/mapConfig";
 
 export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
     overworld: [

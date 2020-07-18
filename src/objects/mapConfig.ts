@@ -1,4 +1,4 @@
-import { AreaConfig } from "./area-config";
+import { AreaConfig } from "./areaConfig";
 
 export interface MapConfig {
     mapConfigName: string;

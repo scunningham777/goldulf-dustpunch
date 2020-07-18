@@ -1,10 +1,10 @@
 import Hero from '../objects/hero';
 import { GAME_SCALE, DUNGEON_LAYER_KEYS, UI_SCENE_KEY } from '../constants';
-import generateDungeon from '../dungeon_generator/dungeon_generator_cave';
-import { MapConfig } from '../objects/map-config';
+import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
+import { MapConfig } from '../objects/mapConfig';
 import { MAP_CONFIGS } from '../config';
 import { CARDINAL_DIRECTION } from '../utils';
-import MapArea from '../objects/map-area';
+import MapArea from '../objects/mapArea';
 
 const MAP_KEY = 'overworld-map';
 

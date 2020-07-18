@@ -1,13 +1,12 @@
 import Hero from '../objects/hero';
 import { GAME_SCALE, DUNGEON_LAYER_KEYS } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall } from '../utils';
-import generateDungeon from '../dungeon_generator/dungeon_generator_cave';
-import { MapConfig } from '../objects/map-config';
+import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
+import { MapConfig } from '../objects/mapConfig';
 import { MAP_CONFIGS } from '../config';
-import MapArea from '../objects/map-area';
-import { StuffModel } from '../dungeon_generator/stuffModel';
+import MapArea from '../objects/mapArea';
+import { StuffModel } from '../dungeonGenerator/stuffModel';
 import Stuff from '../objects/stuff';
-import { Physics } from 'phaser';
 
 const MAP_KEY = 'dungeon-map';
 
