@@ -4,6 +4,7 @@ import { justInsideWall, CARDINAL_DIRECTION } from "../utils";
 import { MapConfig } from "../objects/mapConfig";
 import { AreaConfig } from "../objects/areaConfig";
 import { StuffModel } from "./stuffModel";
+import { DustModel } from "./dustModel";
 
 export default function generateDungeon(
         mapConfig: MapConfig,
@@ -13,6 +14,7 @@ export default function generateDungeon(
         layerMap: Map<string, Phaser.Tilemaps.DynamicTilemapLayer>,
         areas: MapArea[],
         stuff: StuffModel[],
+        dust: DustModel[],
     }
 {
     const newLayerMap = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
@@ -34,8 +36,9 @@ export default function generateDungeon(
     tintMap(bgLayer, mapConfig);
 
     const stuff = generateStuff(newLayerMap, mapConfig);
+    const dust = generateDust(stuff, newLayerMap, mapConfig);
 
-    return {tileMap: tileMap, layerMap: newLayerMap, areas: newAreas, stuff: stuff};
+    return {tileMap: tileMap, layerMap: newLayerMap, areas: newAreas, stuff: stuff, dust: dust};
 }
 
 function fillMap(layer: Phaser.Tilemaps.DynamicTilemapLayer, wallTileWeights: {index: number, weight: number}[]) {
@@ -263,9 +266,10 @@ function generateStuff(mapLayers: Map<string, Phaser.Tilemaps.DynamicTilemapLaye
             newStuffX = Phaser.Math.RND.integerInRange(0, bgLayer.tilemap.width - 1);
             newStuffY = Phaser.Math.RND.integerInRange(0, bgLayer.tilemap.height - 1);
             // confirm that new tile is floor tile, and doesn't overlap with existing stuff
-            // TODO: wrong layer!!
             const tile = bgLayer.getTileAt(newStuffX, newStuffY);
-            if (mapConfig.floorTileWeights.some(ftw => ftw.index === tile.index) && !newStuffArray.some(s => s.x === newStuffX && s.y === newStuffY)) {
+            const isFloorTile = mapConfig.floorTileWeights.some(ftw => ftw.index === tile.index);
+            const isStuffThereAlready = newStuffArray.some(s => s.x === newStuffX && s.y === newStuffY);
+            if (isFloorTile && !isStuffThereAlready) {
                 break;
             }
         } 
@@ -276,7 +280,7 @@ function generateStuff(mapLayers: Map<string, Phaser.Tilemaps.DynamicTilemapLaye
                 newStuffX,
                 newStuffY,
                 mapConfig.stuffSpritesheetKey,
-                0,
+                4,
                 10,
                 i,
                 );
@@ -287,4 +291,19 @@ function generateStuff(mapLayers: Map<string, Phaser.Tilemaps.DynamicTilemapLaye
     }
 
     return newStuffArray;
+}
+
+function generateDust(stuffArray: StuffModel[], mapLayers: Map<string, Phaser.Tilemaps.DynamicTilemapLayer>, mapConfig: MapConfig): DustModel[] {
+    const newDustArray = stuffArray.map((stuff: StuffModel, index: number) => {
+        const newDust = new DustModel(
+            stuff.x,
+            stuff.y,
+            mapConfig.stuffSpritesheetKey,
+            0,
+            stuff.id,
+            index,
+        )
+        return newDust;
+    });
+    return newDustArray;
 }

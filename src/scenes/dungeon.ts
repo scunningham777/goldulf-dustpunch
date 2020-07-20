@@ -7,6 +7,8 @@ import { MAP_CONFIGS } from '../config';
 import MapArea from '../objects/mapArea';
 import { StuffModel } from '../dungeonGenerator/stuffModel';
 import Stuff from '../objects/stuff';
+import { DustModel } from '../dungeonGenerator/dustModel';
+import Dust from '../objects/dust';
 
 const MAP_KEY = 'dungeon-map';
 
@@ -18,6 +20,7 @@ export class DungeonScene extends Phaser.Scene {
     private mapLayers = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
     private areas: MapArea[] = [];
     private stuffGroup: Phaser.Physics.Arcade.Group;
+    private dustGroup: Phaser.Physics.Arcade.Group;
     private hasHeroReachedExit = false;
     private get greatestXCoord(): number {
         return this.map.width - 1;
@@ -64,6 +67,7 @@ export class DungeonScene extends Phaser.Scene {
             this.mapLayers = mapData.layerMap;
             this.areas = mapData.areas;
             this.stuffGroup = this.createStuff(mapData.stuff);
+            this.dustGroup = this.createDust(mapData.dust);
     }
     
     createHero() {
@@ -102,7 +106,7 @@ export class DungeonScene extends Phaser.Scene {
             return true;
         }, this);
         this.physics.add.collider(this.hero.entity, bgLayer);
-        this.physics.add.overlap(this.hero.entity, this.stuffGroup, this.stuffCollision, null, this)
+        this.physics.add.overlap(this.hero.entity, this.dustGroup, this.dustCollision, null, this)
     }
 
     initInput() {
@@ -127,6 +131,15 @@ export class DungeonScene extends Phaser.Scene {
         return stuffGroup;
     }
 
+    createDust(dustData: DustModel[]): Phaser.Physics.Arcade.Group {
+        const dustGroup = this.physics.add.group();
+        for (let dust of dustData) {
+            const newDust = new Dust(this, dust.x, dust.y, dust.key, dust.frame, dust.associatedStuffId, dust.id);
+            dustGroup.add(newDust);
+        }
+        return dustGroup;
+    }
+
     exitDungeon() {
         this.hasHeroReachedExit = true;
         this.hero.freeze();
@@ -140,7 +153,12 @@ export class DungeonScene extends Phaser.Scene {
     stuffCollision: ArcadePhysicsCallback = (_heroObj, stuffObj) => {
         if (this.hero.isPunching) {
             (stuffObj as Stuff).scorePoints();
-            console.log(this.hero.entity.body);
+        }
+    }
+
+    dustCollision: ArcadePhysicsCallback = (_heroObj, dustObj) => {
+        if (this.hero.isPunching) {
+            (dustObj as Dust).clearDust();
         }
     }
 
