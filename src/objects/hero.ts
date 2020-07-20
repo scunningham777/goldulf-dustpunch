@@ -7,6 +7,7 @@ export default class Hero {
     private touchStartX: number = null;
     private touchStartY: number = null;
     private moveThreshold = 30;
+    private doubleTouch = false;
     public isPunching = false;
 
     constructor(
@@ -31,12 +32,7 @@ export default class Hero {
         const activePointer = this.scene.input.activePointer;
 
         if (Phaser.Input.Keyboard.JustDown(cursors.space)) {
-            this.isPunching = true;
-            this.heroSprite.setOffset(HERO_OFFSETS.punching[this.currentDirection].x, HERO_OFFSETS.punching[this.currentDirection].y);
-            this.scene.time.delayedCall(250, () => {
-                this.isPunching = false;
-                this.heroSprite.setOffset(HERO_OFFSETS.standing.x, HERO_OFFSETS.standing.y);
-            }, [], this);
+            this.punch();
         }
 
         if (!this.isPunching) {
@@ -110,9 +106,31 @@ export default class Hero {
             this.touchStartX = null;
             this.touchStartY = null;
         });
+        this.scene.input.on('pointerdown', pointer => {
+            this.touchStartX = pointer.x;
+
+            if (this.doubleTouch) {
+                this.punch();
+                this.doubleTouch = false;
+            } else {
+                this.doubleTouch = true;
+                setTimeout(() => {
+                    this.doubleTouch = false;
+                }, 500);
+            }
+        });
     }
 
     freeze() {
         (this.entity.body as Phaser.Physics.Arcade.Body).moves = false;
+    }
+
+    punch() {
+        this.isPunching = true;
+        this.heroSprite.setOffset(HERO_OFFSETS.punching[this.currentDirection].x, HERO_OFFSETS.punching[this.currentDirection].y);
+        this.scene.time.delayedCall(250, () => {
+            this.isPunching = false;
+            this.heroSprite.setOffset(HERO_OFFSETS.standing.x, HERO_OFFSETS.standing.y);
+        }, [], this);
     }
 }
