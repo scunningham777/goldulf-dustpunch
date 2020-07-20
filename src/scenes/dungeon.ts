@@ -15,7 +15,7 @@ const MAP_KEY = 'dungeon-map';
 export class DungeonScene extends Phaser.Scene {
     private mapConfig: MapConfig;
     private hero: Hero;
-    private cursors: any;
+    private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
     private map: Phaser.Tilemaps.Tilemap;
     private mapLayers = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
     private areas: MapArea[] = [];

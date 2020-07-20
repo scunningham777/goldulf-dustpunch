@@ -9,24 +9,32 @@ export default class Hero {
     private moveThreshold = 30;
     private doubleTouch = false;
     public isPunching = false;
+    private set currentDirection(newDir: CARDINAL_DIRECTION) {
+        this._currentDirection = newDir;
+        if (this.heroSprite != null) {
+            this.heroSprite.flipX = newDir === CARDINAL_DIRECTION.LEFT ? true : false;
+        }
+    }
+    private get currentDirection(): CARDINAL_DIRECTION {
+        return this._currentDirection;
+    }
+    public get entity() {
+        return this.heroSprite;
+    }
 
     constructor(
         private x: number,
         private y: number,
         private scene: Phaser.Scene,
         private velocity: number,
-        private currentDirection = CARDINAL_DIRECTION.DOWN,
+        private _currentDirection = CARDINAL_DIRECTION.DOWN,
     ) {
         this.addToScene();
         this.addAnimations();
         this.setUpInput();
     }
 
-    get entity() {
-        return this.heroSprite;
-    }
-
-    update(cursors): void {
+    update(cursors: Phaser.Types.Input.Keyboard.CursorKeys): void {
         this.heroSprite.setVelocity(0);
         let newDirection: CARDINAL_DIRECTION = null;
         const activePointer = this.scene.input.activePointer;
@@ -38,21 +46,17 @@ export default class Hero {
         if (!this.isPunching) {
             if (cursors.left.isDown || this.touchStartX != null && activePointer.x < this.touchStartX - this.moveThreshold) {
                 this.heroSprite.setVelocityX(-this.velocity);
-                this.heroSprite.flipX = true;
                 newDirection = CARDINAL_DIRECTION.LEFT;
             } else if (cursors.right.isDown || this.touchStartX != null && activePointer.x > this.touchStartX + this.moveThreshold) {
                 this.heroSprite.setVelocityX(this.velocity);
-                this.heroSprite.flipX = false;
                 newDirection = CARDINAL_DIRECTION.RIGHT;
             }
 
             if (cursors.up.isDown || this.touchStartY != null && activePointer.y < this.touchStartY - this.moveThreshold) {
                 this.heroSprite.setVelocityY(-this.velocity);
-                this.heroSprite.flipX = false;
                 newDirection = CARDINAL_DIRECTION.UP;
             } else if (cursors.down.isDown || this.touchStartY != null && activePointer.y > this.touchStartY + this.moveThreshold) {
                 this.heroSprite.setVelocityY(this.velocity);
-                this.heroSprite.flipX = false;
                 newDirection = CARDINAL_DIRECTION.DOWN;
             }
         }
@@ -79,6 +83,8 @@ export default class Hero {
             .setDepth(1)
             ;
         this.heroSprite.tint = HERO_TINT;
+        // jump-start flipX
+        this.currentDirection = this.currentDirection;
     }
 
     addAnimations(): void {
