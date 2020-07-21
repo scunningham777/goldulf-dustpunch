@@ -16,7 +16,7 @@ module.exports = {
     open: true
   },
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: ['.ts', '.js', '.d.ts'],
     alias: {
       phaser: phaser
     }
