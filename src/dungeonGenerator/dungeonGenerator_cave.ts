@@ -280,7 +280,7 @@ function generateStuff(mapLayers: Map<string, Phaser.Tilemaps.DynamicTilemapLaye
                 newStuffX,
                 newStuffY,
                 mapConfig.stuffSpritesheetKey,
-                4,
+                Phaser.Math.RND.pick([4, 5]),
                 10,
                 i,
                 );
