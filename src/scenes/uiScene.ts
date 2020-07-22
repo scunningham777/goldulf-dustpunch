@@ -9,7 +9,7 @@ export class UIScene extends Phaser.Scene {
     create(): void {
         const gamePoints = this.registry.values[POINTS_REGISTRY_KEY] ?? 0;
         
-        this.pointsText = this.add.text(20, 16, 'Points: ' + gamePoints, {font: '32px Arial', fill: '#fff'});
+        this.pointsText = this.add.text(20, 16, 'Points: ' + gamePoints, {font: `32px '7_12'`, fill: '#fff'});
         
         // maybe a hack to clean up duplicate listeners
         this.registry.events.off('changedata', this.updatePoints, this);
