@@ -4,6 +4,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
     overworld: [
         {
             mapConfigName: 'new_game',
+            mapConfigCategories: [],
             isRandomlySelectable: false,
             tileWidth: 16,
             tileHeight: 16,
@@ -54,6 +55,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
         },
         {
             mapConfigName: 'forest_temples',
+            mapConfigCategories: [],
             isRandomlySelectable: true,
             tileWidth: 16,
             tileHeight: 16,
@@ -106,6 +108,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
     dungeon: [
         {
             mapConfigName: 'cave_small',
+            mapConfigCategories: ['cave'],
             isRandomlySelectable: true,
             tileWidth: 16,
             tileHeight: 16,

@@ -41,6 +41,7 @@ export class OverworldScene extends Phaser.Scene {
 
     selectMapConfig() {
         this.mapConfig = MAP_CONFIGS.overworld.find(mc => mc.mapConfigName == this.scene.settings.data['mapConfigName'])
+            ?? Phaser.Math.RND.pick(MAP_CONFIGS.overworld.filter(mc => mc.mapConfigCategories.some(mcc => mcc == this.scene.settings.data['mapConfigCategory'])))
             ?? Phaser.Math.RND.pick(MAP_CONFIGS.overworld.filter(mc => mc.isRandomlySelectable));
     }
 

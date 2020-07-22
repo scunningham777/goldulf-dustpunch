@@ -2,6 +2,7 @@ import { AreaConfig } from "./areaConfig";
 
 export interface MapConfig {
     mapConfigName: string;
+    mapConfigCategories: string[];
     isRandomlySelectable: boolean;
     tileWidth: number;
     tileHeight: number;
