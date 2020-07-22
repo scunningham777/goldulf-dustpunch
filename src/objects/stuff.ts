@@ -12,6 +12,8 @@ export default class Stuff extends Phaser.Physics.Arcade.Image {
         this.setScale(GAME_SCALE);
         // hide by default
         this.setAlpha(0);
+        // color - should this be done here??
+        this.setTint(0x79A1D2);
         // listen for dustpunch events
         this.scene.registry.events.on(DUST_PUNCH_EVENT_KEY, this.dustpunchHandler, this);
         // add the stuff to our existing scene
