@@ -62,9 +62,12 @@ function generateDoorAreas(mapConfig: MapConfig, maxXCoord: number, maxYCoord: n
     entranceArea.isAccessible = true;
     areas.unshift(entranceArea);
 
-    const exitAreaConfig = Phaser.Math.RND.pick(mapConfig.exitAreaConfigs);
-    const exitArea = generateRandomArea(exitAreaConfig, maxXCoord, maxYCoord);
-    areas.push(exitArea);
+    const countExits = Phaser.Math.RND.integerInRange(1, mapConfig.maxExitAreaCount);
+    for (let i = 0; i< countExits; i++) {
+        const exitAreaConfig = Phaser.Math.RND.pick(mapConfig.exitAreaConfigs);
+        const exitArea = generateRandomArea(exitAreaConfig, maxXCoord, maxYCoord);
+        areas.push(exitArea);
+    }
 
     return areas;
 }
