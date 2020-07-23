@@ -13,6 +13,7 @@ export interface MapConfig {
     minMapHeight: number;
     maxMapWidth: number;
     maxMapHeight: number;
+    externalIconTileIndex: number;
     wallTileWeights: {index: number, weight: number}[];
     floorTileWeights: {index: number, weight: number}[];
     entranceAreaConfig: AreaConfig;

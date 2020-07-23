@@ -15,12 +15,13 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
             minMapHeight: 40,
             maxMapWidth: 30,
             maxMapHeight: 40,
+            externalIconTileIndex: 2,
             wallTileWeights: [
                 {index: 0, weight: 5},
                 {index: 1, weight: 1},
             ],
             floorTileWeights: [
-                {index: 5, weight: 1},
+                {index: 59, weight: 1},
             ],
             entranceAreaConfig: {
                 placement: 'floor',
@@ -33,10 +34,10 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
                     placement: 'floor',
                     minSize: 5,
                     maxSize: 10,
-                    focusTileIndex: 2,
+                    availableLinkedMapConfigName: ['cave_small', 'fire_cave_small']
                 }
             ],
-            maxExitAreaCount: 2,
+            maxExitAreaCount: 3,
             otherAreaConfigs: [
                 {
                     placement: 'floor',
@@ -47,8 +48,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
             ],
             minCountAreas: 2,
             maxCountAreas: 4,
-            // Tinting, so we need to invert RGB order
-            defaultTileTint: 0x189ED9,
+            defaultTileTint: 0xD99E18,
             minCountStuff: 0,
             maxCountStuff: 0,
             stuffSpritesheetKey: 'stuff',
@@ -66,12 +66,13 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
             minMapHeight: 40,
             maxMapWidth: 30,
             maxMapHeight: 40,
+            externalIconTileIndex: 2,
             wallTileWeights: [
                 {index: 0, weight: 5},
                 {index: 1, weight: 1},
             ],
             floorTileWeights: [
-                {index: 5, weight: 1},
+                {index: 59, weight: 1},
             ],
             entranceAreaConfig: {
                 placement: 'floor',
@@ -84,10 +85,10 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
                     placement: 'floor',
                     minSize: 5,
                     maxSize: 10,
-                    focusTileIndex: 2,
+                    availableLinkedMapConfigName: ['cave_small', 'fire_cave_small']
                 }
             ],
-            maxExitAreaCount: 2,
+            maxExitAreaCount: 4,
             otherAreaConfigs: [
                 {
                     placement: 'floor',
@@ -98,8 +99,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
             ],
             minCountAreas: 2,
             maxCountAreas: 4,
-            // Tinting, so we need to invert RGB order
-            defaultTileTint: 0x189ED9,
+            defaultTileTint: 0xD99E18,
             minCountStuff: 0,
             maxCountStuff: 0,
             stuffSpritesheetKey: 'stuff',
@@ -119,13 +119,13 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
             minMapHeight: 40,
             maxMapWidth: 30,
             maxMapHeight: 40,
+            externalIconTileIndex: 4,
             wallTileWeights: [
                 {index: 0, weight: 5},
                 {index: 1, weight: 1},
             ],
             floorTileWeights: [
-                {index: 30, weight: 1},
-                {index: 54, weight: 1},
+                {index: 59, weight: 1},
             ],
             entranceAreaConfig: {
                 placement: 'wall',
@@ -138,7 +138,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
                     placement: 'floor',
                     minSize: 5,
                     maxSize: 10,
-                    focusTileIndex: 2,
+                    availableLinkedMapConfigName: ['forest_temples']
                 }
             ],
             maxExitAreaCount: 1,
@@ -152,11 +152,61 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
             ],
             minCountAreas: 2,
             maxCountAreas: 4,
-            // Tinting, so we need to invert RGB order
-            defaultTileTint: 0x81698D,
+            defaultTileTint: 0x8D6981,
             minCountStuff: 6,
             maxCountStuff: 10,
             stuffSpritesheetKey: 'stuff',
-        }
+        },
+        {
+            mapConfigName: 'fire_cave_small',
+            mapConfigCategories: ['cave'],
+            isRandomlySelectable: true,
+            tileWidth: 16,
+            tileHeight: 16,
+            tilesetKey: 'terrain_16',
+            tilesetMargin: 1,
+            tileSpacing: 2,
+            minMapWidth: 90,
+            minMapHeight: 30,
+            maxMapWidth: 140,
+            maxMapHeight: 40,
+            externalIconTileIndex: 5,
+            wallTileWeights: [
+                {index: 0, weight: 5},
+                {index: 1, weight: 1},
+            ],
+            floorTileWeights: [
+                {index: 59, weight: 1},
+            ],
+            entranceAreaConfig: {
+                placement: 'wall',
+                minSize: 8,
+                maxSize: 8,
+                focusTileIndex: 3,
+            },
+            exitAreaConfigs: [
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    availableLinkedMapConfigName: ['forest_temples']
+                }
+            ],
+            maxExitAreaCount: 1,
+            otherAreaConfigs: [
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    focusTileIndex: null,
+                }
+            ],
+            minCountAreas: 2,
+            maxCountAreas: 4,
+            defaultTileTint: 0x81102D,
+            minCountStuff: 16,
+            maxCountStuff: 20,
+            stuffSpritesheetKey: 'stuff',
+        },
     ],
 }

@@ -4,6 +4,7 @@ export const GAME_SCALE = 4;
 export const GAME_BG_COLOR = '#517339';
 export const POINTS_REGISTRY_KEY = 'points';
 export const DUST_PUNCH_EVENT_KEY = 'dustpunch';
+export const EXIT_COLLISION_EVENT_KEY = 'exit_collision';
 export const DUNGEON_LAYER_KEYS = {
     BG_LAYER: 'bg-layer',
     STUFF_LAYER: 'stuff-layer',

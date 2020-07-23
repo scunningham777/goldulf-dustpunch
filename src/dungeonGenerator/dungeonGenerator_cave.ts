@@ -33,7 +33,6 @@ export default function generateDungeon(
     generateAreas(bgLayer, newAreas, mapConfig);
     connectAreas(bgLayer, newAreas, floorTileIndices);
     drawAreas(bgLayer, newAreas);
-    tintMap(bgLayer, mapConfig);
 
     const stuff = generateStuff(newLayerMap, mapConfig);
     const dust = generateDust(stuff, newLayerMap, mapConfig);
@@ -58,14 +57,14 @@ function generateAreas(layer: Phaser.Tilemaps.DynamicTilemapLayer, areas: MapAre
 
 function generateDoorAreas(mapConfig: MapConfig, maxXCoord: number, maxYCoord: number): MapArea[] {
     const areas: MapArea[] = [];
-    const entranceArea = generateRandomArea(mapConfig.entranceAreaConfig, maxXCoord, maxYCoord);
+    const entranceArea = generateRandomArea(mapConfig.entranceAreaConfig, mapConfig, maxXCoord, maxYCoord);
     entranceArea.isAccessible = true;
     areas.unshift(entranceArea);
 
     const countExits = Phaser.Math.RND.integerInRange(1, mapConfig.maxExitAreaCount);
     for (let i = 0; i< countExits; i++) {
-        const exitAreaConfig = Phaser.Math.RND.pick(mapConfig.exitAreaConfigs);
-        const exitArea = generateRandomArea(exitAreaConfig, maxXCoord, maxYCoord);
+        const exitAreaConfig = Phaser.Math.RND.pick(mapConfig.exitAreaConfigs ?? []);
+        const exitArea = generateRandomArea(exitAreaConfig, mapConfig, maxXCoord, maxYCoord);
         areas.push(exitArea);
     }
 
@@ -76,11 +75,8 @@ function generateOtherAreas(numAreas: number, mapConfig: MapConfig, maxXCoord: n
     const areas: MapArea[] = [];
     for (let i = 0; i < numAreas; i++) {
         for (let ii = 0; ii < 30; ii++) {
-            const newAreaConfig: AreaConfig = Phaser.Math.RND.pick(mapConfig.otherAreaConfigs);
-            if (newAreaConfig.focusTileIndex == null) {
-                newAreaConfig.focusTileIndex = Phaser.Math.RND.pick(mapConfig.floorTileWeights.map(ftw => ftw.index));
-            }
-            const newArea = generateRandomArea(newAreaConfig, maxXCoord, maxYCoord);
+            const newAreaConfig: AreaConfig = Phaser.Math.RND.pick(mapConfig.otherAreaConfigs ?? []);
+            const newArea = generateRandomArea(newAreaConfig, mapConfig, maxXCoord, maxYCoord);
             if (!isAreaCollision(areas, newArea)) {
                 areas.push(newArea);
                 break;
@@ -93,12 +89,15 @@ function generateOtherAreas(numAreas: number, mapConfig: MapConfig, maxXCoord: n
     return areas;
 }
 
-function generateRandomArea(areaConfig: AreaConfig, maxXCoord: number, maxYCoord: number): MapArea {
+function generateRandomArea(areaConfig: AreaConfig, mapConfig: MapConfig, maxXCoord: number, maxYCoord: number): MapArea {
+    const focusTileIndex = areaConfig.focusTileIndex;
     const newArea: MapArea = {
         size: Phaser.Math.RND.integerInRange(areaConfig.minSize, areaConfig.maxSize),
         focusX: 0,
         focusY: 0,
-        focusTileIndex: areaConfig.focusTileIndex,
+        focusTileIndex: focusTileIndex,
+        linkedMapConfigName: Phaser.Math.RND.pick(areaConfig.availableLinkedMapConfigName ?? []),
+        linkedMapConfigCategory: Phaser.Math.RND.pick(areaConfig.availableLinkedMapConfigCategory ?? []),
         isAccessible: false,
     }
 
@@ -250,10 +249,6 @@ function drawAreas(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, areas: MapArea
     for (let area of areas) {
         mapLayer.putTileAt(area.focusTileIndex, area.focusX, area.focusY);
     }
-}
-
-function tintMap(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, mapConfig: MapConfig) {
-    mapLayer.forEachTile(t => t.tint = mapConfig.defaultTileTint);
 }
 
 function generateStuff(mapLayers: Map<string, Phaser.Tilemaps.DynamicTilemapLayer>, mapConfig: MapConfig) : StuffModel[] {

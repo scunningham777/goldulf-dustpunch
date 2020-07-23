@@ -23,7 +23,7 @@
     "@capacitor/cli": "^1.4.0",
     "@capacitor/core": "^1.4.0",
     "@capacitor/ios": "^1.4.0",
-    "phaser": "3.20.1"
+    "phaser": "^3.24.1"
   },
   "scripts": {
     "copy": "copy src\\index.html www\\index.html && xcopy /e /v /i /y assets www\\assets && copy src\\service-worker.js www\\service-worker.js && copy src\\manifest.json www\\manifest.json && copy sw-toolbox.js www\\sw-toolbox.js",

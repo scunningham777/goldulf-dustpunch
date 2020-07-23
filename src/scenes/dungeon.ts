@@ -1,5 +1,5 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, WORLD_WIDTH } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall } from '../utils';
 import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
 import { MapConfig } from '../objects/mapConfig';
@@ -9,6 +9,7 @@ import { StuffModel } from '../dungeonGenerator/stuffModel';
 import Stuff from '../objects/stuff';
 import { DustModel } from '../dungeonGenerator/dustModel';
 import Dust from '../objects/dust';
+import Exit from '../objects/exit';
 
 const MAP_KEY = 'dungeon-map';
 
@@ -21,6 +22,7 @@ export class DungeonScene extends Phaser.Scene {
     private areas: MapArea[] = [];
     private stuffGroup: Phaser.Physics.Arcade.Group;
     private dustGroup: Phaser.Physics.Arcade.Group;
+    private exitGroup: Phaser.Physics.Arcade.Group;
     private hasHeroReachedExit = false;
     private get greatestXCoord(): number {
         return this.map.width - 1;
@@ -34,6 +36,7 @@ export class DungeonScene extends Phaser.Scene {
         this.selectMapConfig();
         this.createMap();
         this.createHero();
+        this.addListeners();
         this.addCollisions();
         this.initInput();
         this.initCamera();
@@ -48,8 +51,8 @@ export class DungeonScene extends Phaser.Scene {
 
     selectMapConfig() {
         this.mapConfig = MAP_CONFIGS.dungeon.find(mc => mc.mapConfigName == this.scene.settings.data['mapConfigName'])
-            ?? Phaser.Math.RND.pick(MAP_CONFIGS.overworld.filter(mc => mc.mapConfigCategories.some(mcc => mcc == this.scene.settings.data['mapConfigCategory'])))
-            ?? Phaser.Math.RND.pick(MAP_CONFIGS.dungeon.filter(mc => mc.isRandomlySelectable));
+            ?? Phaser.Math.RND.pick(MAP_CONFIGS.dungeon.filter(mc => mc.mapConfigCategories.some(mcc => mcc == this.scene.settings.data['mapConfigCategory'])) ?? [])
+            ?? Phaser.Math.RND.pick(MAP_CONFIGS.dungeon.filter(mc => mc.isRandomlySelectable) ?? []);
     }
 
     createMap() {
@@ -67,9 +70,11 @@ export class DungeonScene extends Phaser.Scene {
             this.map = mapData.tileMap;
             this.mapLayers = mapData.layerMap;
             this.areas = mapData.areas;
+            this.exitGroup = this.createExits(mapData.areas.filter(a => a.linkedMapConfigName != null || a.linkedMapConfigCategory != null))
             this.stuffGroup = this.createStuff(mapData.stuff);
             this.dustGroup = this.createDust(mapData.dust);
-    }
+            this.tintMap();
+        }
     
     createHero() {
         this.hasHeroReachedExit = false;
@@ -77,7 +82,7 @@ export class DungeonScene extends Phaser.Scene {
         const heroStartLocation = justInsideWall(entranceLocation, this.greatestXCoord, this.greatestYCoord);
         const heroStartXInPixels = (heroStartLocation.x + .5) * (this.map.tileWidth * GAME_SCALE);
         const heroStartYInPixels = (heroStartLocation.y + .5) * (this.map.tileHeight * GAME_SCALE);
-        // determine start direction based on location of entrance (this.areas[0]);
+        // determine start direction based on location of entrance;
         let heroStartDirection = CARDINAL_DIRECTION.DOWN;
         if (entranceLocation.x === 0) {
             heroStartDirection = CARDINAL_DIRECTION.RIGHT;
@@ -89,23 +94,25 @@ export class DungeonScene extends Phaser.Scene {
         this.hero = new Hero(heroStartXInPixels , heroStartYInPixels, this, 360, heroStartDirection);
     }
 
+    addListeners() {
+        this.registry.events.on(EXIT_COLLISION_EVENT_KEY, this.exitDungeon, this);
+    }
+    clearListeners() {
+        this.registry.events.off(EXIT_COLLISION_EVENT_KEY, this.exitDungeon, this);
+    }
+
     addCollisions() {
         // corral the hero within the map
         this.physics.world.setBounds(0, 0, this.map.widthInPixels * GAME_SCALE, this.map.heightInPixels * GAME_SCALE);
         this.hero.entity.setCollideWorldBounds(true);
 
-        // collisions between hero and exit tiles, walls, and "broken" entrance
+        // collisions between hero and walls, and "broken" entrance
         const bgLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
         bgLayer.setCollision([
-            ...this.mapConfig.exitAreaConfigs.map(eac => eac.focusTileIndex),
             ...this.mapConfig.wallTileWeights.map(wtw => wtw.index),
             this.mapConfig.entranceAreaConfig.focusTileIndex
         ]);
-        bgLayer.setTileIndexCallback(this.mapConfig.exitAreaConfigs.map(eac => eac.focusTileIndex), (_collidingSprite: Phaser.Physics.Arcade.Sprite) => {
-            bgLayer.setTileIndexCallback(this.mapConfig.exitAreaConfigs.map(eac => eac.focusTileIndex), null, null);
-            this.exitDungeon();
-            return true;
-        }, this);
+        this.physics.add.overlap(this.hero.entity, this.exitGroup, this.exitCollision, null, this);
         this.physics.add.collider(this.hero.entity, bgLayer);
         this.physics.add.overlap(this.hero.entity, this.dustGroup, this.dustCollision, null, this)
     }
@@ -121,6 +128,26 @@ export class DungeonScene extends Phaser.Scene {
         // Constrain the camera so that it isn't allowed to move outside the width/height of tilemap
         camera.setBounds(0, 0, this.map.widthInPixels * GAME_SCALE, this.map.heightInPixels * GAME_SCALE);
         camera.startFollow(this.hero.entity);
+    }
+
+    createExits(exitData: MapArea[]): Phaser.Physics.Arcade.Group {
+        const exitGroup = this.physics.add.group();
+        for (let exit of exitData) {
+            const imageIndex = exit.focusTileIndex != null
+                ? exit.focusTileIndex
+                : MAP_CONFIGS.overworld.find(mc => mc.mapConfigName == exit.linkedMapConfigName)?.externalIconTileIndex;
+            const exitX = (exit.focusX + .5) * this.map.tileWidth * GAME_SCALE;
+            const exitY = (exit.focusY + .5) * this.map.tileWidth * GAME_SCALE;
+            const newExit = new Exit(
+                this,
+                exitX, exitY,
+                this.mapConfig.tilesetKey, imageIndex,
+                '' + new Date().getTime(),
+                exit.linkedMapConfigName, exit.linkedMapConfigCategory
+            );
+            exitGroup.add(newExit);
+        }
+        return exitGroup;
     }
 
     createStuff(stuffData: StuffModel[]): Phaser.Physics.Arcade.Group {
@@ -141,13 +168,26 @@ export class DungeonScene extends Phaser.Scene {
         return dustGroup;
     }
 
-    exitDungeon() {
+    tintMap() {
+        const mapLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
+        mapLayer.forEachTile(t => t.tint = this.mapConfig.defaultTileTint);
+        this.exitGroup.children.iterate(exit => {
+            (exit as Exit).setTint((this.mapConfig.defaultTileTint));
+        }, this);
+    }
+
+    exitDungeon(exitConfig?: {linkedMapConfigName: string, linkedMapConfigCategory: string}) {
         this.hasHeroReachedExit = true;
         this.hero.freeze();
+        this.clearListeners();
         const cam = this.cameras.main;
         cam.fade(250, 0, 0, 0);
         cam.once('camerafadeoutcomplete', () => {
-            this.scene.start('Overworld', {mapConfigName: null});
+            const sceneConfig = {
+                mapConfigName: exitConfig?.linkedMapConfigName,
+                mapConfigCategory: exitConfig?.linkedMapConfigCategory
+            };
+            this.scene.start('Overworld', sceneConfig);
         });
     }
 
@@ -160,6 +200,12 @@ export class DungeonScene extends Phaser.Scene {
     dustCollision: ArcadePhysicsCallback = (_heroObj, dustObj) => {
         if (this.hero.isPunching) {
             (dustObj as Dust).clearDust();
+        }
+    }
+
+    exitCollision: ArcadePhysicsCallback = (_heroObj, exitObj) => {
+        if (!this.hero.isPunching) {
+            (exitObj as Exit).exitCollision();
         }
     }
 

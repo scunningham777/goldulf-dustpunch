@@ -1,10 +1,11 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, UI_SCENE_KEY } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, UI_SCENE_KEY, EXIT_COLLISION_EVENT_KEY } from '../constants';
 import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
 import { MapConfig } from '../objects/mapConfig';
 import { MAP_CONFIGS } from '../config';
 import { CARDINAL_DIRECTION } from '../utils';
 import MapArea from '../objects/mapArea';
+import Exit from '../objects/exit';
 
 const MAP_KEY = 'overworld-map';
 
@@ -15,6 +16,7 @@ export class OverworldScene extends Phaser.Scene {
     private map: Phaser.Tilemaps.Tilemap;
     private mapLayers = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
     private areas: MapArea[] = [];
+    private exitGroup: Phaser.Physics.Arcade.Group;
     private hasHeroReachedExit = false;
 
     /* lifecycle methods */
@@ -27,6 +29,7 @@ export class OverworldScene extends Phaser.Scene {
         this.selectMapConfig();
         this.createMap();
         this.createHero();
+        this.addListeners();
         this.addCollisions();
         this.initInput();
         this.initCamera();
@@ -41,8 +44,8 @@ export class OverworldScene extends Phaser.Scene {
 
     selectMapConfig() {
         this.mapConfig = MAP_CONFIGS.overworld.find(mc => mc.mapConfigName == this.scene.settings.data['mapConfigName'])
-            ?? Phaser.Math.RND.pick(MAP_CONFIGS.overworld.filter(mc => mc.mapConfigCategories.some(mcc => mcc == this.scene.settings.data['mapConfigCategory'])))
-            ?? Phaser.Math.RND.pick(MAP_CONFIGS.overworld.filter(mc => mc.isRandomlySelectable));
+            ?? Phaser.Math.RND.pick(MAP_CONFIGS.overworld.filter(mc => mc.mapConfigCategories.some(mcc => mcc == this.scene.settings.data['mapConfigCategory'])) ?? [])
+            ?? Phaser.Math.RND.pick(MAP_CONFIGS.overworld.filter(mc => mc.isRandomlySelectable) ?? []);
     }
 
     createMap() {
@@ -60,6 +63,8 @@ export class OverworldScene extends Phaser.Scene {
         this.map = mapData.tileMap;
         this.mapLayers = mapData.layerMap;
         this.areas = mapData.areas;
+        this.exitGroup = this.createExits(mapData.areas.filter(a => a.linkedMapConfigName != null || a.linkedMapConfigCategory != null));
+        this.tintMap();
     }
 
     createHero() {
@@ -71,22 +76,25 @@ export class OverworldScene extends Phaser.Scene {
         this.hero = new Hero(heroStartXInPixels , heroStartYInPixels, this, 360, heroStartDirection);
     }
 
+    addListeners() {
+        this.registry.events.on(EXIT_COLLISION_EVENT_KEY, this.enterDungeon, this);
+    }
+    clearListeners() {
+        this.registry.events.off(EXIT_COLLISION_EVENT_KEY, this.enterDungeon, this);
+    }
+    
     addCollisions() {
         // corral the hero within the map
         this.physics.world.setBounds(0, 0, this.map.widthInPixels * GAME_SCALE, this.map.heightInPixels * GAME_SCALE);
         this.hero.entity.setCollideWorldBounds(true);
 
-        // collisions between hero and exit tiles and walls
+        // collisions between hero and walls
         const bgLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
         bgLayer.setCollision([
-            ...this.mapConfig.exitAreaConfigs.map(eac => eac.focusTileIndex),
             ...this.mapConfig.wallTileWeights.map(wtw => wtw.index),
         ]);
-        bgLayer.setTileIndexCallback(this.mapConfig.exitAreaConfigs.map(eac => eac.focusTileIndex), (_collidingSprite: Phaser.Physics.Arcade.Sprite) => {
-            bgLayer.setTileIndexCallback(this.mapConfig.exitAreaConfigs.map(eac => eac.focusTileIndex), null, null);
-            this.enterDungeon();
-            return true;
-        }, this);
+
+        this.physics.add.overlap(this.hero.entity, this.exitGroup, this.exitCollision, null, this);
         this.physics.add.collider(this.hero.entity, bgLayer);
     }
 
@@ -103,14 +111,53 @@ export class OverworldScene extends Phaser.Scene {
         camera.startFollow(this.hero.entity);
     }
 
-    enterDungeon() {
+    createExits(exitData: MapArea[]): Phaser.Physics.Arcade.Group {
+        const exitGroup = this.physics.add.group();
+        for (let exit of exitData) {
+            const imageIndex = exit.focusTileIndex != null
+                ? exit.focusTileIndex
+                : MAP_CONFIGS.dungeon.find(mc => mc.mapConfigName == exit.linkedMapConfigName)?.externalIconTileIndex;
+            const exitX = (exit.focusX + .5) * this.map.tileWidth * GAME_SCALE;
+            const exitY = (exit.focusY + .5) * this.map.tileWidth * GAME_SCALE;
+            const newExit = new Exit(
+                this,
+                exitX, exitY,
+                this.mapConfig.tilesetKey, imageIndex,
+                '' + new Date().getTime(),
+                exit.linkedMapConfigName, exit.linkedMapConfigCategory
+            );
+            exitGroup.add(newExit);
+        }
+        return exitGroup;
+    }
+
+    tintMap() {
+        const mapLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
+        mapLayer.forEachTile(t => t.tint = this.mapConfig.defaultTileTint);
+        this.exitGroup.children.iterate(exit => {
+            (exit as Exit).setTint((this.mapConfig.defaultTileTint));
+        }, this);
+    }
+
+    enterDungeon(exitConfig?: {linkedMapConfigName: string, linkedMapConfigCategory: string}) {
         this.hasHeroReachedExit = true;
         this.hero.freeze();
+        this.clearListeners();
         const cam = this.cameras.main;
         cam.fade(250, 0, 0, 0);
         cam.once('camerafadeoutcomplete', () => {
-            this.scene.start('Dungeon', {mapConfigName: null});
+            const sceneConfig = {
+                mapConfigName: exitConfig?.linkedMapConfigName,
+                mapConfigCategory: exitConfig?.linkedMapConfigCategory
+            };
+            this.scene.start('Dungeon', sceneConfig);
         });
+    }
+
+    exitCollision: ArcadePhysicsCallback = (_heroObj, exitObj) => {
+        if (!this.hero.isPunching) {
+            (exitObj as Exit).exitCollision();
+        }
     }
 
     getEntranceLocation(): Phaser.Math.Vector2 {
