@@ -4,6 +4,8 @@ export class StuffModel {
     constructor(
         public x: number,
         public y: number,
+        public tileX: number,
+        public tileY: number,
         public key: string,
         public frame: number,
         public points: number,

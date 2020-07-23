@@ -1,3 +1,5 @@
+import { UI_SCENE_KEY, OVERWORLD_SCENE_KEY } from "../constants";
+
 const TITLE_PORTION = .25;
 const TITLE_TEXT_PORTION = .08;
 const SUBTITLE_Y_OFFSET = .04;
@@ -86,6 +88,12 @@ export class GameTitleScene extends Phaser.Scene {
     }
     
     startGame() {
-        this.scene.start('Overworld', { mapConfigName: 'new_game' });
+        this.scene.launch(UI_SCENE_KEY);
+
+        const initialMapSceneConfig = {
+            mapConfigName: 'new_game',
+            mapConfigCategory: null,
+        };
+        this.scene.start(OVERWORLD_SCENE_KEY, initialMapSceneConfig);
     }
 }

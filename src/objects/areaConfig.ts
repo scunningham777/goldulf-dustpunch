@@ -3,6 +3,7 @@ export interface AreaConfig {
     minSize: number;
     maxSize: number;
     focusTileIndex?: number;
+    linkedMapConfigType?: 'dungeon'|'overworld';
     availableLinkedMapConfigName?: string[];
     availableLinkedMapConfigCategory?: string[];
 }

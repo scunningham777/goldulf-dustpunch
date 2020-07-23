@@ -34,6 +34,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
                     placement: 'floor',
                     minSize: 5,
                     maxSize: 10,
+                    linkedMapConfigType: 'dungeon',
                     availableLinkedMapConfigName: ['cave_small', 'fire_cave_small']
                 }
             ],
@@ -85,6 +86,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
                     placement: 'floor',
                     minSize: 5,
                     maxSize: 10,
+                    linkedMapConfigType: 'dungeon',
                     availableLinkedMapConfigName: ['cave_small', 'fire_cave_small']
                 }
             ],
@@ -138,6 +140,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
                     placement: 'floor',
                     minSize: 5,
                     maxSize: 10,
+                    linkedMapConfigType: 'overworld',
                     availableLinkedMapConfigName: ['forest_temples']
                 }
             ],
@@ -189,6 +192,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
                     placement: 'floor',
                     minSize: 5,
                     maxSize: 10,
+                    linkedMapConfigType: 'overworld',
                     availableLinkedMapConfigName: ['forest_temples']
                 }
             ],

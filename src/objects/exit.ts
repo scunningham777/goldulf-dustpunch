@@ -6,6 +6,7 @@ export default class Exit extends Phaser.Physics.Arcade.Image {
         x: number, y: number,
         key: string, frame: number,
         public id: string,
+        private linkedMapSceneType?: 'overworld'|'dungeon',
         private linkedMapConfigName?: string,
         private linkedMapConfigCategory?: string,
     ) {
@@ -22,6 +23,6 @@ export default class Exit extends Phaser.Physics.Arcade.Image {
     }
 
     exitCollision() {
-        this.scene.registry.events.emit(EXIT_COLLISION_EVENT_KEY, {linkedMapConfigName: this.linkedMapConfigName, linkedMapConfigCategory: this.linkedMapConfigCategory});
+        this.scene.registry.events.emit(EXIT_COLLISION_EVENT_KEY, {linkedMapSceneType: this.linkedMapSceneType, linkedMapConfigName: this.linkedMapConfigName, linkedMapConfigCategory: this.linkedMapConfigCategory});
     }
 }

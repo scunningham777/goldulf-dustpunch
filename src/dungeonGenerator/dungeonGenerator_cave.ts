@@ -99,6 +99,7 @@ function generateRandomArea(areaConfig: AreaConfig, mapConfig: MapConfig, maxXCo
         focusX: 0,
         focusY: 0,
         focusTileIndex: focusTileIndex,
+        linkedMapConfigType: areaConfig.linkedMapConfigType,
         linkedMapConfigName: Phaser.Math.RND.pick(areaConfig.availableLinkedMapConfigName ?? []),
         linkedMapConfigCategory: Phaser.Math.RND.pick(areaConfig.availableLinkedMapConfigCategory ?? []),
         isAccessible: false,
@@ -260,26 +261,28 @@ function generateStuff(mapLayers: Map<string, Phaser.Tilemaps.DynamicTilemapLaye
     const startingCountStuff = Phaser.Math.RND.integerInRange(mapConfig.minCountStuff, mapConfig.maxCountStuff);
     const newStuffArray: StuffModel[] = [];
     for (let i = 0; i < startingCountStuff; i++) {
-        let newStuffX: number;
-        let newStuffY: number;
+        let newStuffTileX: number;
+        let newStuffTileY: number;
         let j: number;
         for (j = 0; j < 30; j++) {
-            newStuffX = Phaser.Math.RND.integerInRange(0, bgLayer.tilemap.width - 1);
-            newStuffY = Phaser.Math.RND.integerInRange(0, bgLayer.tilemap.height - 1);
+            newStuffTileX = Phaser.Math.RND.integerInRange(0, bgLayer.tilemap.width - 1);
+            newStuffTileY = Phaser.Math.RND.integerInRange(0, bgLayer.tilemap.height - 1);
             // confirm that new tile is floor tile, and doesn't overlap with existing stuff
-            const tile = bgLayer.getTileAt(newStuffX, newStuffY);
+            const tile = bgLayer.getTileAt(newStuffTileX, newStuffTileY);
             const isFloorTile = mapConfig.floorTileWeights.some(ftw => ftw.index === tile.index);
-            const isStuffThereAlready = newStuffArray.some(s => s.x === newStuffX && s.y === newStuffY);
+            const isStuffThereAlready = newStuffArray.some(s => s.tileX === newStuffTileX && s.tileY === newStuffTileY);
             if (isFloorTile && !isStuffThereAlready) {
                 break;
             }
         } 
         if (j < 30){
-            newStuffX = (newStuffX + .5) * stuffLayer.tilemap.tileWidth * GAME_SCALE;
-            newStuffY = (newStuffY + .5) * stuffLayer.tilemap.tileHeight * GAME_SCALE;
+            const newStuffX = (newStuffTileX + .5) * stuffLayer.tilemap.tileWidth * GAME_SCALE;
+            const newStuffY = (newStuffTileY + .5) * stuffLayer.tilemap.tileHeight * GAME_SCALE;
             const newStuff = new StuffModel(
                 newStuffX,
                 newStuffY,
+                newStuffTileX,
+                newStuffTileY,
                 mapConfig.stuffSpritesheetKey,
                 Phaser.Math.RND.pick([4, 5]),
                 10,
