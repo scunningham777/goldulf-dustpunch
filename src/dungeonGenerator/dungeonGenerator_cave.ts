@@ -63,8 +63,11 @@ function generateDoorAreas(mapConfig: MapConfig, maxXCoord: number, maxYCoord: n
 
     const countExits = Phaser.Math.RND.integerInRange(1, mapConfig.maxExitAreaCount);
     for (let i = 0; i< countExits; i++) {
-        const exitAreaConfig = Phaser.Math.RND.pick(mapConfig.exitAreaConfigs ?? []);
-        const exitArea = generateRandomArea(exitAreaConfig, mapConfig, maxXCoord, maxYCoord);
+        let exitArea: MapArea;
+        do {
+            const exitAreaConfig = Phaser.Math.RND.pick(mapConfig.exitAreaConfigs ?? []);
+            exitArea = generateRandomArea(exitAreaConfig, mapConfig, maxXCoord, maxYCoord);
+        } while (isAreaCollision(areas, exitArea))
         areas.push(exitArea);
     }
 
