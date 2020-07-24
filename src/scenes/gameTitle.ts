@@ -1,4 +1,4 @@
-import { UI_SCENE_KEY, OVERWORLD_SCENE_KEY } from "../constants";
+import { UI_SCENE_KEY, OVERWORLD_SCENE_KEY, WORLD_WIDTH } from "../constants";
 
 const TITLE_PORTION = .25;
 const TITLE_TEXT_PORTION = .08;
@@ -61,10 +61,10 @@ export class GameTitleScene extends Phaser.Scene {
                 this.scale.width / 2,
                 this.scale.height * (1 - INSTRUCTION_PORTION),
                 'Tap or press any key to begin',
-                {font: `${this.scale.height * INSTRUCTION_TEXT_POTION}px '7_12'`, fill: '#fff'}
-            );
-            this.instructionText.setOrigin(0.5, 0);
-    
+                {font: `${this.scale.height * INSTRUCTION_TEXT_POTION}px '7_12'`, fill: '#fff', align: 'center', wordWrap: {width: this.scale.width - 16}},
+            )
+            .setOrigin(0.5, 0);
+
             this.input.keyboard.on('keydown', this.startGame, this);
             this.input.on('pointerdown', this.startGame, this);
 
