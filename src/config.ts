@@ -137,7 +137,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
             },
             exitAreaConfigs: [
                 {
-                    placement: 'floor',
+                    placement: 'wall',
                     minSize: 5,
                     maxSize: 10,
                     linkedMapConfigType: 'overworld',
@@ -189,7 +189,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
             },
             exitAreaConfigs: [
                 {
-                    placement: 'floor',
+                    placement: 'wall',
                     minSize: 5,
                     maxSize: 10,
                     linkedMapConfigType: 'overworld',

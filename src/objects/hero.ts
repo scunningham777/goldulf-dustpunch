@@ -1,5 +1,5 @@
 import { CARDINAL_DIRECTION } from '../utils';
-import { GAME_SCALE, HERO_ANIM_FRAME_RATE, HERO_FRAMES, HERO_TINT, HERO_OFFSETS } from '../constants';
+import { GAME_SCALE, HERO_ANIM_FRAME_RATE, HERO_FRAMES, HERO_TINT, HERO_OFFSETS, TOUCH_MOVEMENT_REGISTRY_KEY } from '../constants';
 
 export default class Hero {
 
@@ -71,6 +71,11 @@ export default class Hero {
             this.heroSprite.setFrame(this.isPunching ? HERO_FRAMES.punch[this.currentDirection]
                 : HERO_FRAMES.standing[this.currentDirection]);
         }
+
+        // event for touch "virtual joystick"
+        if ((this.heroSprite.body.velocity.x != 0 || this.heroSprite.body.velocity.y != 0) && this.touchStartX != null) {
+            this.scene.registry.set(TOUCH_MOVEMENT_REGISTRY_KEY, {startX: this.touchStartX, startY: this.touchStartY});
+        }
     }
 
     addToScene(): void {
@@ -111,6 +116,7 @@ export default class Hero {
         this.scene.input.on('pointerup', () => {
             this.touchStartX = null;
             this.touchStartY = null;
+            this.scene.registry.set(TOUCH_MOVEMENT_REGISTRY_KEY, null);
         });
         this.scene.input.on('pointerdown', pointer => {
             this.touchStartX = pointer.x;
