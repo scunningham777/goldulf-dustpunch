@@ -50,4 +50,8 @@ export const HERO_OFFSETS = {
 }
 export const UI_SCENE_KEY = 'UIScene';
 export const OVERWORLD_SCENE_KEY = 'overworld';
-export const DUNGEON_SCENE_KEY = 'dungeon';
+export const SITE_SCENE_KEY = 'site';
+export const enum SITE_TYPES {
+    overworld = 'overworld',
+    site = 'site',
+}
