@@ -1,6 +1,6 @@
 import { AreaConfig } from "./areaConfig";
 
-export interface MapConfig {
+export interface SiteConfig {
     mapConfigName: string;
     mapConfigCategories: string[];
     isRandomlySelectable: boolean;

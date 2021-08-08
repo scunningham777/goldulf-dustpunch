@@ -2,10 +2,10 @@ import 'phaser';
 import { BootScene } from './scenes/boot';
 import { PreloadScene } from './scenes/preload';
 import { GameTitleScene } from './scenes/gameTitle';
-import { MapScene } from './scenes/dungeon';
+import { SiteScene } from './scenes/site';
 import { GameOverScene } from './scenes/gameOver';
 
-import { WORLD_WIDTH, WORLD_HEIGHT, POINTS_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR, OVERWORLD_SCENE_KEY, DUNGEON_SCENE_KEY } from './constants';
+import { WORLD_WIDTH, WORLD_HEIGHT, POINTS_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR, SITE_TYPES } from './constants';
 
 import { Plugins } from '@capacitor/core';
 import { UIScene } from './scenes/uiScene';
@@ -45,8 +45,8 @@ export class Game extends Phaser.Game {
         this.scene.add('Boot', BootScene, false);
         this.scene.add('Preload', PreloadScene, false);
         this.scene.add('GameTitle', GameTitleScene, false);
-        this.scene.add(OVERWORLD_SCENE_KEY, MapScene, false);
-        this.scene.add(DUNGEON_SCENE_KEY, MapScene, false);
+        this.scene.add(SITE_TYPES.overworld, SiteScene, false);
+        this.scene.add(SITE_TYPES.site, SiteScene, false);
         this.scene.add(UI_SCENE_KEY, UIScene, false);
         this.scene.add('GameOver', GameOverScene, false);
 

@@ -1,8 +1,8 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, WORLD_WIDTH } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall } from '../utils';
 import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
-import { MapConfig } from '../objects/mapConfig';
+import { SiteConfig } from '../objects/siteConfig';
 import { MAP_CONFIGS } from '../config';
 import MapArea from '../objects/mapArea';
 import { StuffModel } from '../dungeonGenerator/stuffModel';
@@ -11,9 +11,9 @@ import { DustModel } from '../dungeonGenerator/dustModel';
 import Dust from '../objects/dust';
 import Exit from '../objects/exit';
 
-export class MapScene extends Phaser.Scene {
+export class SiteScene extends Phaser.Scene {
     private mapKey: string;
-    private mapConfig: MapConfig;
+    private mapConfig: SiteConfig;
     private hero: Hero;
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
     private map: Phaser.Tilemaps.Tilemap;
@@ -186,12 +186,16 @@ export class MapScene extends Phaser.Scene {
         }, this);
     }
 
-    nextMap(exitConfig?: {linkedMapSceneType: 'overworld'|'dungeon', linkedMapConfigName: string, linkedMapConfigCategory: string}) {
+    nextMap(exitConfig?: {linkedMapSceneType: SITE_TYPES, linkedMapConfigName: string, linkedMapConfigCategory: string}) {
         this.hasHeroReachedExit = true;
         this.hero.freeze();
         this.clearListeners();
         const cam = this.cameras.main;
-        cam.fade(250, 0, 0, 0);
+        cam.fade(250, 0, 0, 0, false, (camera: Phaser.Cameras.Scene2D.Camera, progress: number) => {
+            if (progress >= .5) {
+                
+            }
+        });
         cam.once('camerafadeoutcomplete', () => {
             const sceneConfig = {
                 mapConfigName: exitConfig?.linkedMapConfigName,

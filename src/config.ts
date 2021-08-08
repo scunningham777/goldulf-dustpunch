@@ -1,7 +1,10 @@
-import { MapConfig } from "./objects/mapConfig";
+import { SiteConfig } from "./objects/siteConfig";
+import { SITE_TYPES } from './constants';
 
-export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
-    overworld: [
+const SITE_KEY = SITE_TYPES.site;
+const OVERWORLD_KEY = SITE_TYPES.overworld;
+export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
+    'overworld': [
         {
             mapConfigName: 'new_game',
             mapConfigCategories: [],
@@ -34,7 +37,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
                     placement: 'floor',
                     minSize: 5,
                     maxSize: 10,
-                    linkedMapConfigType: 'dungeon',
+                    linkedMapConfigType: SITE_TYPES.site,
                     availableLinkedMapConfigName: ['cave_small', 'fire_cave_small']
                 }
             ],
@@ -86,7 +89,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
                     placement: 'floor',
                     minSize: 5,
                     maxSize: 10,
-                    linkedMapConfigType: 'dungeon',
+                    linkedMapConfigType: SITE_TYPES.site,
                     availableLinkedMapConfigName: ['cave_small', 'fire_cave_small']
                 }
             ],
@@ -107,7 +110,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
             stuffSpritesheetKey: 'stuff',
         }
     ],
-    dungeon: [
+    'site': [
         {
             mapConfigName: 'cave_small',
             mapConfigCategories: ['cave'],
@@ -140,7 +143,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
                     placement: 'wall',
                     minSize: 5,
                     maxSize: 10,
-                    linkedMapConfigType: 'overworld',
+                    linkedMapConfigType: SITE_TYPES.overworld,
                     availableLinkedMapConfigName: ['forest_temples']
                 }
             ],
@@ -192,7 +195,7 @@ export const MAP_CONFIGS: {[T in 'overworld'|'dungeon']: MapConfig[]} = {
                     placement: 'wall',
                     minSize: 5,
                     maxSize: 10,
-                    linkedMapConfigType: 'overworld',
+                    linkedMapConfigType: SITE_TYPES.overworld,
                     availableLinkedMapConfigName: ['forest_temples']
                 }
             ],

@@ -1,4 +1,4 @@
-import { GAME_SCALE, EXIT_COLLISION_EVENT_KEY } from "../constants";
+import { GAME_SCALE, EXIT_COLLISION_EVENT_KEY, SITE_TYPES } from "../constants";
 
 export default class Exit extends Phaser.Physics.Arcade.Image {
     constructor(
@@ -6,7 +6,7 @@ export default class Exit extends Phaser.Physics.Arcade.Image {
         x: number, y: number,
         key: string, frame: number,
         public id: string,
-        private linkedMapSceneType?: 'overworld'|'dungeon',
+        private linkedMapSceneType?: SITE_TYPES,
         private linkedMapConfigName?: string,
         private linkedMapConfigCategory?: string,
     ) {
