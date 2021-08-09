@@ -1,4 +1,4 @@
-import { UI_SCENE_KEY, OVERWORLD_SCENE_KEY, WORLD_WIDTH } from "../constants";
+import { UI_SCENE_KEY, SITE_TYPES } from "../constants";
 
 const TITLE_PORTION = .25;
 const TITLE_TEXT_PORTION = .08;
@@ -94,6 +94,6 @@ export class GameTitleScene extends Phaser.Scene {
             mapConfigName: 'new_game',
             mapConfigCategory: null,
         };
-        this.scene.start(OVERWORLD_SCENE_KEY, initialMapSceneConfig);
+        this.scene.start(SITE_TYPES.overworld, initialMapSceneConfig);
     }
 }

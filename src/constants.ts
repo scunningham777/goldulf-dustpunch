@@ -1,6 +1,6 @@
 export const WORLD_WIDTH = window.innerWidth;
 export const WORLD_HEIGHT = window.innerHeight;
-export const GAME_SCALE = 4;
+export const GAME_SCALE = 3;
 export const GAME_BG_COLOR = '#517339';
 export const POINTS_REGISTRY_KEY = 'points';
 export const DUST_PUNCH_EVENT_KEY = 'dustpunch';
@@ -49,9 +49,11 @@ export const HERO_OFFSETS = {
     }
 }
 export const UI_SCENE_KEY = 'UIScene';
-export const OVERWORLD_SCENE_KEY = 'overworld';
 export const SITE_SCENE_KEY = 'site';
 export const enum SITE_TYPES {
     overworld = 'overworld',
     site = 'site',
 }
+
+// "ENVIRONMENT"
+export const IS_DEBUG = true;

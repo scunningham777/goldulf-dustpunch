@@ -7,9 +7,11 @@ import { GameTitleScene } from './scenes/gameTitle';
 import { SiteScene } from './scenes/site';
 import { GameOverScene } from './scenes/gameOver';
 
-import { WORLD_WIDTH, WORLD_HEIGHT, POINTS_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR, SITE_TYPES } from './constants';
+import { WORLD_WIDTH, WORLD_HEIGHT, POINTS_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR, SITE_TYPES, IS_DEBUG } from './constants';
 
-import { Plugins } from '@capacitor/core';
+import { SplashScreen } from '@capacitor/splash-screen';
+import { StatusBar } from '@capacitor/status-bar';
+import { Capacitor } from '@capacitor/core';
 import { UIScene } from './scenes/uiScene';
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -25,7 +27,7 @@ const config: Phaser.Types.Core.GameConfig = {
     physics: {
         default: 'arcade',
         arcade: {
-            debug: true,
+            debug: IS_DEBUG,
             gravity: {
                 y: 0,
             },
@@ -33,8 +35,6 @@ const config: Phaser.Types.Core.GameConfig = {
     },
     zoom: 1,
 };
-
-const { StatusBar, SplashScreen } = Plugins;
 
 export class Game extends Phaser.Game {
 
@@ -54,10 +54,11 @@ export class Game extends Phaser.Game {
 
         this.scene.start('Boot');
 
-        StatusBar.hide()
-            .catch(console.log);
-        SplashScreen.hide();
-
+        if (Capacitor.isNativePlatform()) {
+            StatusBar.hide()
+                .catch(console.log);
+            SplashScreen.hide();
+        }
     }
 
 }
