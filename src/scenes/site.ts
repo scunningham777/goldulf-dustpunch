@@ -17,7 +17,7 @@ export class SiteScene extends Phaser.Scene {
     private hero: Hero;
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
     private map: Phaser.Tilemaps.Tilemap;
-    private mapLayers = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
+    private mapLayers = new Map<string, Phaser.Tilemaps.TilemapLayer>();
     private areas: MapArea[] = [];
     private stuffGroup: Phaser.Physics.Arcade.Group;
     private dustGroup: Phaser.Physics.Arcade.Group;

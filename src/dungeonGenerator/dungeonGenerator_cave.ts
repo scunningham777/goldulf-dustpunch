@@ -11,16 +11,16 @@ export default function generateDungeon(
         tileMap: Phaser.Tilemaps.Tilemap,
     ): {
         tileMap: Phaser.Tilemaps.Tilemap,
-        layerMap: Map<string, Phaser.Tilemaps.DynamicTilemapLayer>,
+        layerMap: Map<string, Phaser.Tilemaps.TilemapLayer>,
         areas: MapArea[],
         stuff: StuffModel[],
         dust: DustModel[],
     }
 {
-    const newLayerMap = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
+    const newLayerMap = new Map<string, Phaser.Tilemaps.TilemapLayer>();
     const newTileset = tileMap.addTilesetImage(mapConfig.tilesetKey, mapConfig.tilesetKey, mapConfig.tileWidth, mapConfig.tileHeight, mapConfig.tilesetMargin ?? 0, mapConfig.tileSpacing ?? 0);
     for (let keyIndex in DUNGEON_LAYER_KEYS) {
-        newLayerMap.set(DUNGEON_LAYER_KEYS[keyIndex], tileMap.createBlankDynamicLayer(DUNGEON_LAYER_KEYS[keyIndex], newTileset));
+        newLayerMap.set(DUNGEON_LAYER_KEYS[keyIndex], tileMap.createBlankLayer(DUNGEON_LAYER_KEYS[keyIndex], newTileset));
         newLayerMap.get(DUNGEON_LAYER_KEYS[keyIndex]).setScale(GAME_SCALE);
     }
 
@@ -40,11 +40,11 @@ export default function generateDungeon(
     return {tileMap: tileMap, layerMap: newLayerMap, areas: newAreas, stuff: stuff, dust: dust};
 }
 
-function fillMap(layer: Phaser.Tilemaps.DynamicTilemapLayer, wallTileWeights: {index: number, weight: number}[]) {
-    layer.weightedRandomize(0, 0, layer.tilemap.width, layer.tilemap.height, wallTileWeights);
+function fillMap(layer: Phaser.Tilemaps.TilemapLayer, wallTileWeights: {index: number, weight: number}[]) {
+    layer.weightedRandomize(wallTileWeights, 0, 0, layer.tilemap.width, layer.tilemap.height);
 }
 
-function generateAreas(layer: Phaser.Tilemaps.DynamicTilemapLayer, areas: MapArea[], mapConfig: SiteConfig): MapArea[] {
+function generateAreas(layer: Phaser.Tilemaps.TilemapLayer, areas: MapArea[], mapConfig: SiteConfig): MapArea[] {
     const maxXCoord = layer.tilemap.width-1;
     const maxYCoord = layer.tilemap.height-1;
     const startingCountAreas = Phaser.Math.RND.integerInRange(mapConfig.minCountAreas, mapConfig.maxCountAreas);
@@ -142,7 +142,7 @@ function isAreaCollision(existingAreas: MapArea[], potentialArea: MapArea): bool
     return false;
 }
 
-function connectAreas(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, areas: MapArea[], floorTileIndices: number[]) {
+function connectAreas(mapLayer: Phaser.Tilemaps.TilemapLayer, areas: MapArea[], floorTileIndices: number[]) {
     const maxXCoord = mapLayer.tilemap.width-1;
     const maxYCoord = mapLayer.tilemap.height-1;
     while(areas.filter(a => !a.isAccessible).length) {
@@ -166,7 +166,7 @@ function connectAreas(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, areas: MapA
     }
 }
 
-function createFloorPath(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, startLocation: Phaser.Math.Vector2, endLocation: Phaser.Math.Vector2, floorTileIndices: number[]) {
+function createFloorPath(mapLayer: Phaser.Tilemaps.TilemapLayer, startLocation: Phaser.Math.Vector2, endLocation: Phaser.Math.Vector2, floorTileIndices: number[]) {
     let currentLocation = startLocation.clone();
     do {
         const seedMod = 7;
@@ -249,13 +249,13 @@ function stepPathRandom(startLocation: Phaser.Math.Vector2, endLocation: Phaser.
     }
 }
 
-function drawAreas(mapLayer: Phaser.Tilemaps.DynamicTilemapLayer, areas: MapArea[]) {
+function drawAreas(mapLayer: Phaser.Tilemaps.TilemapLayer, areas: MapArea[]) {
     for (let area of areas) {
         mapLayer.putTileAt(area.focusTileIndex, area.focusX, area.focusY);
     }
 }
 
-function generateStuff(mapLayers: Map<string, Phaser.Tilemaps.DynamicTilemapLayer>, mapConfig: SiteConfig) : StuffModel[] {
+function generateStuff(mapLayers: Map<string, Phaser.Tilemaps.TilemapLayer>, mapConfig: SiteConfig) : StuffModel[] {
     const bgLayer = mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
     const stuffLayer = mapLayers.get(DUNGEON_LAYER_KEYS.STUFF_LAYER);
     const startingCountStuff = Phaser.Math.RND.integerInRange(mapConfig.minCountStuff, mapConfig.maxCountStuff);
@@ -297,7 +297,7 @@ function generateStuff(mapLayers: Map<string, Phaser.Tilemaps.DynamicTilemapLaye
     return newStuffArray;
 }
 
-function generateDust(stuffArray: StuffModel[], mapLayers: Map<string, Phaser.Tilemaps.DynamicTilemapLayer>, mapConfig: SiteConfig): DustModel[] {
+function generateDust(stuffArray: StuffModel[], mapLayers: Map<string, Phaser.Tilemaps.TilemapLayer>, mapConfig: SiteConfig): DustModel[] {
     const newDustArray = stuffArray.map((stuff: StuffModel, index: number) => {
         const newDust = new DustModel(
             stuff.x,
