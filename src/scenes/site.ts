@@ -1,5 +1,5 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall } from '../utils';
 import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
 import { SiteConfig } from '../objects/siteConfig';
@@ -17,7 +17,7 @@ export class SiteScene extends Phaser.Scene {
     private hero: Hero;
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
     private map: Phaser.Tilemaps.Tilemap;
-    private mapLayers = new Map<string, Phaser.Tilemaps.DynamicTilemapLayer>();
+    private mapLayers = new Map<string, Phaser.Tilemaps.TilemapLayer>();
     private areas: MapArea[] = [];
     private stuffGroup: Phaser.Physics.Arcade.Group;
     private dustGroup: Phaser.Physics.Arcade.Group;
@@ -96,7 +96,7 @@ export class SiteScene extends Phaser.Scene {
         } else if (entranceLocation.y === this.greatestYCoord) {
             heroStartDirection = CARDINAL_DIRECTION.UP;
         }
-        this.hero = new Hero(heroStartXInPixels , heroStartYInPixels, this, 360, heroStartDirection);
+        this.hero = new Hero(heroStartXInPixels , heroStartYInPixels, this, IS_DEBUG ? 360 : 180, heroStartDirection);
     }
 
     addListeners() {

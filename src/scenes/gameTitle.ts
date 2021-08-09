@@ -1,4 +1,4 @@
-import { UI_SCENE_KEY, OVERWORLD_SCENE_KEY, WORLD_WIDTH } from "../constants";
+import { UI_SCENE_KEY, SITE_TYPES } from "../constants";
 
 const TITLE_PORTION = .25;
 const TITLE_TEXT_PORTION = .08;
@@ -26,7 +26,7 @@ export class GameTitleScene extends Phaser.Scene {
                 this.scale.width / 2,
                 this.scale.height * TITLE_PORTION,
                 'Goldulf:',
-                {font: `${this.scale.height * TITLE_TEXT_PORTION}px '7_12'`, fill: '#fff'}
+                {font: `${this.scale.height * TITLE_TEXT_PORTION}px '7_12'`, color: '#fff'}
             );
             this.titleText.setOrigin(0.5, 1);
         }, [], this);
@@ -38,7 +38,7 @@ export class GameTitleScene extends Phaser.Scene {
                 this.scale.height * (TITLE_PORTION + SUBTITLE_Y_OFFSET),
                 'DUSTPUNCH',
                 {font: `${subtitleFontSize}px '7_12'`,
-                fill: '#fff'}
+                color: '#fff'}
             );
             this.subtitleText.setOrigin(0.5, 0);
             while (this.subtitleText.displayWidth > this.scale.width - 16) {
@@ -61,7 +61,7 @@ export class GameTitleScene extends Phaser.Scene {
                 this.scale.width / 2,
                 this.scale.height * (1 - INSTRUCTION_PORTION),
                 'Tap or press any key to begin',
-                {font: `${this.scale.height * INSTRUCTION_TEXT_POTION}px '7_12'`, fill: '#fff', align: 'center', wordWrap: {width: this.scale.width - 16}},
+                {font: `${this.scale.height * INSTRUCTION_TEXT_POTION}px '7_12'`, color: '#fff', align: 'center', wordWrap: {width: this.scale.width - 16}},
             )
             .setOrigin(0.5, 0);
 
@@ -94,6 +94,6 @@ export class GameTitleScene extends Phaser.Scene {
             mapConfigName: 'new_game',
             mapConfigCategory: null,
         };
-        this.scene.start(OVERWORLD_SCENE_KEY, initialMapSceneConfig);
+        this.scene.start(SITE_TYPES.overworld, initialMapSceneConfig);
     }
 }
