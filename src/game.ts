@@ -7,7 +7,7 @@ import { GameTitleScene } from './scenes/gameTitle';
 import { SiteScene } from './scenes/site';
 import { GameOverScene } from './scenes/gameOver';
 
-import { WORLD_WIDTH, WORLD_HEIGHT, POINTS_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR, SITE_TYPES, IS_DEBUG } from './constants';
+import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR, SITE_TYPES, IS_DEBUG } from './constants';
 
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar } from '@capacitor/status-bar';
@@ -42,7 +42,7 @@ export class Game extends Phaser.Game {
 
         super(config);
 
-        this.registry.set(POINTS_REGISTRY_KEY, 0);
+        this.registry.set(INVENTORY_REGISTRY_KEY, 0);
 
         this.scene.add('Boot', BootScene, false);
         this.scene.add('Preload', PreloadScene, false);

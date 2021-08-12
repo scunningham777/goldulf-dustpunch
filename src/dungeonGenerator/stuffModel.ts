@@ -6,9 +6,8 @@ export class StuffModel {
         public y: number,
         public tileX: number,
         public tileY: number,
-        public key: string,
-        public frame: number,
-        public points: number,
+        public textureKey: string,
+        public stuffConfigId: string,
         index: number,
     ){
         this.id = `${index}${new Date().getTime()}`;

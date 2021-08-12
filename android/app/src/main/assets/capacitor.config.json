@@ -1,8 +1,8 @@
 {
-  "appId": "com.urtropedesigns.goldulfdustpunch",
-  "appName": "Goldulf: Dustpunch",
-  "bundledWebRuntime": false,
-  "npmClient": "npm",
-  "webDir": "www",
-  "cordova": {}
+	"appId": "com.urtropedesigns.goldulfdustpunch",
+	"appName": "Goldulf: Dustpunch",
+	"bundledWebRuntime": false,
+	"npmClient": "npm",
+	"webDir": "www",
+	"cordova": {}
 }

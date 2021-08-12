@@ -1,8 +1,7 @@
 import { SiteConfig } from "./objects/siteConfig";
-import { SITE_TYPES } from './constants';
+import { SITE_TYPES, TERRAIN_TEXTURE_KEY } from './constants';
+import StuffConfig from "./objects/stuffConfig";
 
-const SITE_KEY = SITE_TYPES.site;
-const OVERWORLD_KEY = SITE_TYPES.overworld;
 export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
     'overworld': [
         {
@@ -11,7 +10,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             isRandomlySelectable: false,
             tileWidth: 16,
             tileHeight: 16,
-            tilesetKey: 'terrain_16',
+            tilesetKey: TERRAIN_TEXTURE_KEY,
             tilesetMargin: 1,
             tileSpacing: 2,
             minMapWidth: 30,
@@ -55,7 +54,6 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             defaultTileTint: 0xD99E18,
             minCountStuff: 0,
             maxCountStuff: 0,
-            stuffSpritesheetKey: 'stuff',
         },
         {
             mapConfigName: 'forest_temples',
@@ -63,7 +61,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             isRandomlySelectable: true,
             tileWidth: 16,
             tileHeight: 16,
-            tilesetKey: 'terrain_16',
+            tilesetKey: TERRAIN_TEXTURE_KEY,
             tilesetMargin: 1,
             tileSpacing: 2,
             minMapWidth: 30,
@@ -107,7 +105,6 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             defaultTileTint: 0xD99E18,
             minCountStuff: 0,
             maxCountStuff: 0,
-            stuffSpritesheetKey: 'stuff',
         }
     ],
     'site': [
@@ -117,7 +114,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             isRandomlySelectable: true,
             tileWidth: 16,
             tileHeight: 16,
-            tilesetKey: 'terrain_16',
+            tilesetKey: TERRAIN_TEXTURE_KEY,
             tilesetMargin: 1,
             tileSpacing: 2,
             minMapWidth: 30,
@@ -161,7 +158,6 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             defaultTileTint: 0x8D6981,
             minCountStuff: 6,
             maxCountStuff: 10,
-            stuffSpritesheetKey: 'stuff',
         },
         {
             mapConfigName: 'fire_cave_small',
@@ -169,7 +165,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             isRandomlySelectable: true,
             tileWidth: 16,
             tileHeight: 16,
-            tilesetKey: 'terrain_16',
+            tilesetKey: TERRAIN_TEXTURE_KEY,
             tilesetMargin: 1,
             tileSpacing: 2,
             minMapWidth: 90,
@@ -213,7 +209,19 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             defaultTileTint: 0x81102D,
             minCountStuff: 16,
             maxCountStuff: 20,
-            stuffSpritesheetKey: 'stuff',
         },
     ],
 }
+
+export const STUFF_CONFIGS: StuffConfig[] = [
+    {
+        stuffName: 'chest',
+        frameIndex: 4,
+        points: 15
+    },
+    {
+        stuffName: 'urn',
+        frameIndex: 5,
+        points: 10
+    }
+]

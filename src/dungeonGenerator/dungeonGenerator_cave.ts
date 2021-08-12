@@ -1,10 +1,11 @@
-import { GAME_SCALE, DUNGEON_LAYER_KEYS } from "../constants";
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, STATIC_TEXTURE_KEY } from "../constants";
 import MapArea from "../objects/mapArea";
 import { justInsideWall, CARDINAL_DIRECTION } from "../utils";
 import { SiteConfig } from "../objects/siteConfig";
 import { AreaConfig } from "../objects/areaConfig";
 import { StuffModel } from "./stuffModel";
 import { DustModel } from "./dustModel";
+import { STUFF_CONFIGS } from "../config";
 
 export default function generateDungeon(
         mapConfig: SiteConfig,
@@ -278,15 +279,15 @@ function generateStuff(mapLayers: Map<string, Phaser.Tilemaps.TilemapLayer>, map
         if (j < 30){
             const newStuffX = (newStuffTileX + .5) * stuffLayer.tilemap.tileWidth * GAME_SCALE;
             const newStuffY = (newStuffTileY + .5) * stuffLayer.tilemap.tileHeight * GAME_SCALE;
+            const newStuffConfigType = Phaser.Math.RND.pick(STUFF_CONFIGS);
             const newStuff = new StuffModel(
-                newStuffX,
-                newStuffY,
-                newStuffTileX,
-                newStuffTileY,
-                mapConfig.stuffSpritesheetKey,
-                Phaser.Math.RND.pick([4, 5]),
-                10,
-                i,
+                    newStuffX,
+                    newStuffY,
+                    newStuffTileX,
+                    newStuffTileY,
+                    STATIC_TEXTURE_KEY,
+                    newStuffConfigType.stuffName,  
+                    i,
                 );
             newStuffArray.push(newStuff);
         } else {
@@ -302,7 +303,7 @@ function generateDust(stuffArray: StuffModel[], mapLayers: Map<string, Phaser.Ti
         const newDust = new DustModel(
             stuff.x,
             stuff.y,
-            mapConfig.stuffSpritesheetKey,
+            STATIC_TEXTURE_KEY,
             0,
             stuff.id,
             index,

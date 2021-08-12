@@ -26,5 +26,4 @@ export interface SiteConfig {
     tileTintOverrides?: {index: number, tintValue: number}[];
     minCountStuff: number;
     maxCountStuff: number;
-    stuffSpritesheetKey: string;
 }

@@ -3,7 +3,7 @@ import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, I
 import { CARDINAL_DIRECTION, justInsideWall } from '../utils';
 import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
 import { SiteConfig } from '../objects/siteConfig';
-import { MAP_CONFIGS } from '../config';
+import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
 import MapArea from '../objects/mapArea';
 import { StuffModel } from '../dungeonGenerator/stuffModel';
 import Stuff from '../objects/stuff';
@@ -70,16 +70,16 @@ export class SiteScene extends Phaser.Scene {
             this.mapConfig,
             this.map,
         );
-            this.map = mapData.tileMap;
-            this.mapLayers = mapData.layerMap;
-            this.areas = mapData.areas;
-            this.exitGroup = this.createExits(mapData.areas.filter(a => a.linkedMapConfigName != null || a.linkedMapConfigCategory != null))
-            if (mapData.stuff.length > 0){
-                this.stuffGroup = this.createStuff(mapData.stuff);
-                this.dustGroup = this.createDust(mapData.dust);
-            }
-            this.tintMap();
+        this.map = mapData.tileMap;
+        this.mapLayers = mapData.layerMap;
+        this.areas = mapData.areas;
+        this.exitGroup = this.createExits(mapData.areas.filter(a => a.linkedMapConfigName != null || a.linkedMapConfigCategory != null))
+        if (mapData.stuff.length > 0){
+            this.stuffGroup = this.createStuff(mapData.stuff);
+            this.dustGroup = this.createDust(mapData.dust);
         }
+        this.tintMap();
+    }
     
     createHero() {
         this.hasHeroReachedExit = false;
@@ -163,7 +163,11 @@ export class SiteScene extends Phaser.Scene {
     createStuff(stuffData: StuffModel[]): Phaser.Physics.Arcade.Group {
         const stuffGroup = this.physics.add.group();
         for (let stuff of stuffData) {
-            const newStuff = new Stuff(this, stuff.x, stuff.y, stuff.key, stuff.frame, stuff.points, stuff.id);
+            const newStuffConfig = STUFF_CONFIGS.find(s => s.stuffName === stuff.stuffConfigId);
+            if (newStuffConfig === undefined) {
+                continue;
+            }
+            const newStuff = new Stuff(this, stuff.x, stuff.y, stuff.textureKey, newStuffConfig, stuff.id);
             stuffGroup.add(newStuff);
         }
         return stuffGroup;

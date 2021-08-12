@@ -1,4 +1,6 @@
-import { POINTS_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE } from "../constants";
+import { STUFF_CONFIGS } from "../config";
+import { INVENTORY_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE } from "../constants";
+import StuffInInventory from "../objects/stuffInInventory";
 
 const VIRTUAL_JOYSTICK_DIAMETER = 16;
 
@@ -10,7 +12,7 @@ export class UIScene extends Phaser.Scene {
     }
 
     create(): void {
-        const gamePoints = this.registry.values[POINTS_REGISTRY_KEY] ?? 0;
+        const gamePoints = this.registry.values[INVENTORY_REGISTRY_KEY] ?? 0;
         
         this.pointsText = this.add.text(20, 16, 'Points: ' + gamePoints, {font: `32px '7_12'`, color: '#fff'});
         this.virtualJoystick = this.add.ellipse(10, 50, VIRTUAL_JOYSTICK_DIAMETER * GAME_SCALE, VIRTUAL_JOYSTICK_DIAMETER * GAME_SCALE, 0x000000, 1);
@@ -22,8 +24,15 @@ export class UIScene extends Phaser.Scene {
     }
 
     updatePoints(_parent: any, key: string, data: any) {
-        if (key === POINTS_REGISTRY_KEY) {
-            this.pointsText.setText('Points: ' + data);
+        if (key === INVENTORY_REGISTRY_KEY) {
+            const totalPoints =  (data as StuffInInventory[]).reduce((points: number, s) => {
+                const stuffConfig = STUFF_CONFIGS.find(sC => sC.stuffName === s.stuffConfigId);
+                if (stuffConfig === undefined) {
+                    return points;
+                }
+                return (points + (stuffConfig.points * s.quantity)); 
+            }, 0)
+            this.pointsText.setText('Points: ' + totalPoints);
         } else if (key === TOUCH_MOVEMENT_REGISTRY_KEY) {
             if (data != null) {
                 this.showVirtualJoystick(data);
