@@ -8,6 +8,7 @@ export const STATIC_TEXTURE_KEY = 'static_images';
 export const TERRAIN_TEXTURE_KEY = 'terrain';
 export const EXIT_COLLISION_EVENT_KEY = 'exit_collision';
 export const TOUCH_MOVEMENT_REGISTRY_KEY = 'touch_mvt_coords';
+export const SHOW_MENU_REGISTRY_KEY = 'do_show_menu';
 export const DUNGEON_LAYER_KEYS = {
     BG_LAYER: 'bg-layer',
     STUFF_LAYER: 'stuff-layer',

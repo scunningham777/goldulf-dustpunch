@@ -1,5 +1,5 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall } from '../utils';
 import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
 import { SiteConfig } from '../objects/siteConfig';
@@ -43,11 +43,21 @@ export class SiteScene extends Phaser.Scene {
         this.addCollisions();
         this.initInput();
         this.initCamera();
+        this.initRegistry();
     }
 
     update(): void {
-        if (!!this.hero && !this.hasHeroReachedExit) {
-            this.hero.update(this.cursors);
+        if (Phaser.Input.Keyboard.JustDown(this.cursors.shift)) {
+            console.log('here');
+            this.registry.set(SHOW_MENU_REGISTRY_KEY, !this.registry.get(SHOW_MENU_REGISTRY_KEY));
+        }
+
+        if (!!this.hero) {
+            if (this.registry.get(SHOW_MENU_REGISTRY_KEY)) {
+                this.hero.freeze();
+            } else if (!this.hasHeroReachedExit) {
+                this.hero.update(this.cursors);
+            }
         }
     }
     /* end lifecycle */
@@ -138,6 +148,10 @@ export class SiteScene extends Phaser.Scene {
         // Constrain the camera so that it isn't allowed to move outside the width/height of tilemap
         camera.setBounds(0, 0, this.map.widthInPixels * GAME_SCALE, this.map.heightInPixels * GAME_SCALE);
         camera.startFollow(this.hero.entity);
+    }
+
+    initRegistry() {
+        this.registry.set(SHOW_MENU_REGISTRY_KEY, false);
     }
 
     createExits(exitData: MapArea[]): Phaser.Physics.Arcade.Group {

@@ -9,6 +9,7 @@ export default class Hero {
     private moveThreshold = 30;
     private doubleTouch = false;
     public isPunching = false;
+    public isFrozen = false;
     private set currentDirection(newDir: CARDINAL_DIRECTION) {
         this._currentDirection = newDir;
         if (this.heroSprite != null) {
@@ -36,6 +37,9 @@ export default class Hero {
 
     update(cursors: Phaser.Types.Input.Keyboard.CursorKeys): void {
         this.heroSprite.setVelocity(0);
+        if (this.isFrozen) {
+            this.unfreeze();
+        }
         let newDirection: CARDINAL_DIRECTION = null;
         const activePointer = this.scene.input.activePointer;
 
@@ -135,6 +139,13 @@ export default class Hero {
 
     freeze() {
         (this.entity.body as Phaser.Physics.Arcade.Body).moves = false;
+        this.heroSprite.anims.pause();
+        this.isFrozen = true;
+    }
+    unfreeze() {
+        (this.entity.body as Phaser.Physics.Arcade.Body).moves = true;
+        this.heroSprite.anims.resume();
+        this.isFrozen = false;
     }
 
     punch() {
