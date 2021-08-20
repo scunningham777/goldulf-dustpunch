@@ -1,5 +1,6 @@
 import { STUFF_CONFIGS } from "../config";
-import { INVENTORY_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, WORLD_WIDTH, WORLD_HEIGHT, SHOW_MENU_REGISTRY_KEY } from "../constants";
+import { INVENTORY_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, WORLD_WIDTH, WORLD_HEIGHT, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT } from "../constants";
+import Stuff from "../objects/stuff";
 import StuffInInventory from "../objects/stuffInInventory";
 
 const VIRTUAL_JOYSTICK_DIAMETER = 16;
@@ -7,7 +8,9 @@ const VIRTUAL_JOYSTICK_DIAMETER = 16;
 export class UIScene extends Phaser.Scene {
     private pointsText: Phaser.GameObjects.Text;
     private virtualJoystick: Phaser.GameObjects.Ellipse;
-    private menu: Phaser.GameObjects.Layer;
+    private menuLayer: Phaser.GameObjects.Layer;
+    private menuBackground: Phaser.GameObjects.Rectangle;
+    private menuStuffDisplayGroup: Phaser.GameObjects.Group;
 
     preload(): void {
     }
@@ -20,7 +23,8 @@ export class UIScene extends Phaser.Scene {
         this.virtualJoystick = this.add.ellipse(10, 50, VIRTUAL_JOYSTICK_DIAMETER * GAME_SCALE, VIRTUAL_JOYSTICK_DIAMETER * GAME_SCALE, 0x000000, 1);
         this.hideVirtualJoystick();
 
-        this.menu = this.generateMenu();
+        this.menuLayer = this.generateMenu();
+        this.menuStuffDisplayGroup = this.add.group()
         
         // maybe a hack to clean up duplicate listeners - shouldn't be necessary after fixing issue #26, but leave in case
         this.registry.events.off('changedata', this.updateUI, this);
@@ -28,11 +32,13 @@ export class UIScene extends Phaser.Scene {
     }
 
     generateMenu(): Phaser.GameObjects.Layer {
-        const menuBGWidth = (WORLD_WIDTH >= 768) ? 320 : WORLD_WIDTH;
-        const menuBG = this.add.rectangle(WORLD_WIDTH - menuBGWidth, 0, menuBGWidth, WORLD_HEIGHT, 0x000000);
-        menuBG.setOrigin(0,0);
+        const menuBGWidth = ((WORLD_WIDTH >= 768) ? 320 : WORLD_WIDTH);
+        this.menuBackground = this.add.rectangle(WORLD_WIDTH - menuBGWidth, 0, menuBGWidth, WORLD_HEIGHT, 0x000000);
+        this.menuBackground.setOrigin(0,0);
 
-        const menuLayer = this.add.layer(menuBG);
+        const stuffHeaderText = this.add.text(20, 16, 'Your Stuff: ', {font: `32px '7_12'`, color: `#fff`});
+
+        const menuLayer = this.add.layer([this.menuBackground, stuffHeaderText]);
         menuLayer.setVisible(false);
         
         return menuLayer;
@@ -48,6 +54,7 @@ export class UIScene extends Phaser.Scene {
                 return (points + (stuffConfig.points * s.quantity)); 
             }, 0)
             this.pointsText.setText('Points: ' + totalPoints);
+            this.updateMenuStuff(data);
         } else if (key === TOUCH_MOVEMENT_REGISTRY_KEY) {
             if (data != null) {
                 this.showVirtualJoystick(data);
@@ -73,8 +80,25 @@ export class UIScene extends Phaser.Scene {
 
     showInventory(doShow: boolean) {
         if (doShow === null || doShow === undefined) {
-            doShow = !this.menu.visible;
+            doShow = !this.menuLayer.visible;
         }
-        this.menu.setVisible(doShow)
+        this.menuLayer.setVisible(doShow);
+    }
+
+    updateMenuStuff(currentStuff: StuffInInventory[]) {
+        this.menuStuffDisplayGroup.clear(true, true);
+        currentStuff.forEach((stuff, index) => {
+            const x = this.pointsText.x + (16 * index * GAME_SCALE);
+            const y = this.pointsText.y + this.pointsText.height + 8 * GAME_SCALE;
+            const stuffType = STUFF_CONFIGS.find(sC => sC.stuffName === stuff.stuffConfigId)
+            const stuffImg = this.add.image(x, y, STATIC_TEXTURE_KEY, stuffType.frameIndex).setScale(GAME_SCALE).setTint(STUFF_TINT).setOrigin(0, 0);
+            const stuffQtyText = this.add.text(stuffImg.x + stuffImg.displayWidth - 2 * GAME_SCALE, stuffImg.y + stuffImg.displayHeight - 2 * GAME_SCALE, 'x' + stuff.quantity, {font: `${8 * GAME_SCALE}px '7_12'`, color: '#' + HERO_TINT.toString(16)});
+            // const stuffQtyText = this.add.text(stuffImg.x + stuffImg.displayWidth - 2 * GAME_SCALE, stuffImg.y + stuffImg.displayHeight - 2 * GAME_SCALE, 'x' + stuff.quantity, {font: `22px '7_12'`, color: '#D99E18'});
+            stuffQtyText.setOrigin(.5, .5);
+            this.menuStuffDisplayGroup.add(stuffImg);
+            this.menuStuffDisplayGroup.add(stuffQtyText);
+            this.menuLayer.add(stuffImg);
+            this.menuLayer.add(stuffQtyText);
+        })
     }
 }

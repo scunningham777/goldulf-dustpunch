@@ -48,7 +48,6 @@ export class SiteScene extends Phaser.Scene {
 
     update(): void {
         if (Phaser.Input.Keyboard.JustDown(this.cursors.shift)) {
-            console.log('here');
             this.registry.set(SHOW_MENU_REGISTRY_KEY, !this.registry.get(SHOW_MENU_REGISTRY_KEY));
         }
 
