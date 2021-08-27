@@ -10,6 +10,7 @@ export class UIScene extends Phaser.Scene {
     private menuLayer: Phaser.GameObjects.Layer;
     private menuBackground: Phaser.GameObjects.Rectangle;
     private menuStuffDisplayGroup: Phaser.GameObjects.Group;
+    private stuffHeaderText: Phaser.GameObjects.Text;
 
     preload(): void {
     }
@@ -39,9 +40,9 @@ export class UIScene extends Phaser.Scene {
         this.menuBackground = this.add.rectangle(WORLD_WIDTH - menuBGWidth, 0, menuBGWidth, WORLD_HEIGHT, 0x000000);
         this.menuBackground.setOrigin(0,0);
 
-        const stuffHeaderText = this.add.text(20, 16, 'Your Stuff: ', {font: `32px '7_12'`, color: `#fff`});
+        this.stuffHeaderText = this.add.text(this.menuBackground.x + 20, this.menuBackground.y + 16, 'Your Stuff: ', {font: `32px '7_12'`, color: `#fff`});
 
-        const menuLayer = this.add.layer([this.menuBackground, stuffHeaderText]);
+        const menuLayer = this.add.layer([this.menuBackground, this.stuffHeaderText]);
         menuLayer.setVisible(false);
         
         return menuLayer;
@@ -91,8 +92,8 @@ export class UIScene extends Phaser.Scene {
     updateMenuStuff(currentStuff: StuffInInventory[]) {
         this.menuStuffDisplayGroup.clear(true, true);
         currentStuff.forEach((stuff, index) => {
-            const x = this.pointsText.x + (16 * index * GAME_SCALE);
-            const y = this.pointsText.y + this.pointsText.height + 8 * GAME_SCALE;
+            const x = this.stuffHeaderText.x + (16 * index * GAME_SCALE);
+            const y = this.stuffHeaderText.y + this.stuffHeaderText.height + 8 * GAME_SCALE;
             const stuffType = STUFF_CONFIGS.find(sC => sC.stuffName === stuff.stuffConfigId)
             const stuffImg = this.add.image(x, y, STATIC_TEXTURE_KEY, stuffType.frameIndex).setScale(GAME_SCALE).setTint(STUFF_TINT).setOrigin(0, 0);
             const stuffQtyText = this.add.text(stuffImg.x + stuffImg.displayWidth - 2 * GAME_SCALE, stuffImg.y + stuffImg.displayHeight - 2 * GAME_SCALE, 'x' + stuff.quantity, {font: `${8 * GAME_SCALE}px '7_12'`, color: '#' + HERO_TINT.toString(16)});
