@@ -20,9 +20,17 @@ const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
     parent: 'game',
     backgroundColor: GAME_BG_COLOR,
+    scale: {
+        mode: Phaser.Scale.ENVELOP,
+        parent: 'game',
+        // autoCenter: 1,
+        width: WORLD_WIDTH,
+        height: WORLD_HEIGHT
+    },
     render: {
         pixelArt: true,
         roundPixels: true,
+        antialias: false,
     },
     physics: {
         default: 'arcade',

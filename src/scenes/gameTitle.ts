@@ -71,6 +71,9 @@ export class GameTitleScene extends Phaser.Scene {
             // blink
             this.time.delayedCall(INSTRUCTION_SHOW_PERIOD, this.hideInstructions, [], this);
         }, [], this)
+
+        this.checkOrientation(this.scale.orientation);
+        this.scale.on('orientationchange', this.checkOrientation, this);
     }
 
     showInstructions() {
@@ -85,6 +88,36 @@ export class GameTitleScene extends Phaser.Scene {
             this.instructionText.alpha = 0;
         }
         this.time.delayedCall(INSTRUCTION_BLINK_PERIOD, this.showInstructions, [], this);
+    }
+
+    private checkOrientation(orientation: Phaser.Scale.Orientation) {
+        console.log('orientation: ', orientation);
+        if (orientation === Phaser.Scale.Orientation.PORTRAIT) {
+            this.scale.setGameSize(window.innerWidth, window.innerHeight);
+            this.recenterContents();
+        } else if (orientation === Phaser.Scale.Orientation.LANDSCAPE) {
+            this.scale.setGameSize(window.innerWidth, window.innerHeight);
+            this.recenterContents();
+        }
+    }
+
+    private recenterContents() {
+        if (!!this.titleText) {
+            this.titleText.setX(this.scale.width / 2);
+            this.titleText.setY(this.scale.height * TITLE_PORTION);
+        }
+        if (!!this.subtitleText) {
+            this.subtitleText.setX(this.scale.width / 2);
+            this.subtitleText.setY(this.scale.height * (TITLE_PORTION + SUBTITLE_Y_OFFSET));
+        }
+        if (!!this.dustpunchLogo) {
+            this.dustpunchLogo.setX(this.scale.width / 2);
+            this.dustpunchLogo.setY(this.scale.height * (TITLE_PORTION + SUBTITLE_Y_OFFSET + SUBTITLE_TEXT_PORTION + LOGO_Y_OFFSET));
+        }
+        if (!!this.instructionText) {
+            this.instructionText.setX(this.scale.width / 2);
+            this.instructionText.setY(this.scale.height * (1 - INSTRUCTION_PORTION));
+        }
     }
     
     startGame() {

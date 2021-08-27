@@ -1,6 +1,5 @@
 import { STUFF_CONFIGS } from "../config";
 import { INVENTORY_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, WORLD_WIDTH, WORLD_HEIGHT, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT } from "../constants";
-import Stuff from "../objects/stuff";
 import StuffInInventory from "../objects/stuffInInventory";
 
 const VIRTUAL_JOYSTICK_DIAMETER = 16;
@@ -29,9 +28,13 @@ export class UIScene extends Phaser.Scene {
         // maybe a hack to clean up duplicate listeners - shouldn't be necessary after fixing issue #26, but leave in case
         this.registry.events.off('changedata', this.updateUI, this);
         this.registry.events.on('changedata', this.updateUI, this);
+
+        this.checkOrientation(this.scale.orientation);
+        this.scale.on('orientationchange', this.checkOrientation, this);
     }
 
     generateMenu(): Phaser.GameObjects.Layer {
+        // this.menuBackground = this.add.rectangle(0, 0, WORLD_HEIGHT * WORLD_HEIGHT / WORLD_WIDTH, WORLD_HEIGHT, 0x000000);
         const menuBGWidth = ((WORLD_WIDTH >= 768) ? 320 : WORLD_WIDTH);
         this.menuBackground = this.add.rectangle(WORLD_WIDTH - menuBGWidth, 0, menuBGWidth, WORLD_HEIGHT, 0x000000);
         this.menuBackground.setOrigin(0,0);
@@ -100,5 +103,16 @@ export class UIScene extends Phaser.Scene {
             this.menuLayer.add(stuffImg);
             this.menuLayer.add(stuffQtyText);
         })
+    }
+
+    private checkOrientation(orientation: Phaser.Scale.Orientation) {
+        console.log('orientation: ', orientation);
+        if (orientation === Phaser.Scale.Orientation.PORTRAIT) {
+            this.scale.setGameSize(window.innerWidth, window.innerHeight);
+            this.showInventory(true);
+        } else if (orientation === Phaser.Scale.Orientation.LANDSCAPE) {
+            this.scale.setGameSize(window.innerWidth, window.innerHeight);
+            this.showInventory(false);
+        }
     }
 }

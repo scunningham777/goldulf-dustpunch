@@ -60,4 +60,4 @@ export const enum SITE_TYPES {
 }
 
 // "ENVIRONMENT"
-export const IS_DEBUG = true;
+export const IS_DEBUG = false;
