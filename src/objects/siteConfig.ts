@@ -26,4 +26,8 @@ export interface SiteConfig {
     tileTintOverrides?: {index: number, tintValue: number}[];
     minCountStuff: number;
     maxCountStuff: number;
+    percentProbabilityOfDust: number;
+    dustTypeWeights: {dustTypeName: string, weight: number}[];
+    percentProbabilityOfStuff: number;
+    stuffTypeWeights: {categoryType: 'stuff'|'buff', stuffTypeName: string, weight: number}[];
 }
