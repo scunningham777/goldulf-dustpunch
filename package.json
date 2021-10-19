@@ -31,6 +31,7 @@
     "dev": "webpack && npm run copy && webpack serve --mode development",
     "prod": "webpack && npm run copy && webpack serve --mode production",
     "build": "webpack --mode production && npm run copy && npx cap copy",
-    "fb-deploy": "npm run build && firebase deploy"
+    "fb-deploy": "npm run build && firebase deploy",
+    "start": "npm run dev"
   }
 }

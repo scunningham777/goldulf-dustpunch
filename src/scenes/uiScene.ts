@@ -11,6 +11,9 @@ export class UIScene extends Phaser.Scene {
     private menuBackground: Phaser.GameObjects.Rectangle;
     private menuStuffDisplayGroup: Phaser.GameObjects.Group;
     private stuffHeaderText: Phaser.GameObjects.Text;
+    private menuBtn: Phaser.GameObjects.DOMElement;
+    // private orientationText: Phaser.GameObjects.Text;
+    // private checkOrientation: (orientation: Phaser.Scale.Orientation) => void;
 
     preload(): void {
     }
@@ -30,13 +33,19 @@ export class UIScene extends Phaser.Scene {
         this.registry.events.off('changedata', this.updateUI, this);
         this.registry.events.on('changedata', this.updateUI, this);
 
-        this.checkOrientation(this.scale.orientation);
-        this.scale.on('orientationchange', this.checkOrientation, this);
+        this.menuBtn = this.add.dom((WORLD_WIDTH - 40), 0, 'div', `background-color: #000; width: 40px; height: 40px; color: #fff; font-family: '7_12'; display: flex; text-align: center; align-items: center`, 'O');
+        this.menuBtn.setOrigin(0, 0);
+        this.menuBtn.addListener('click');
+        this.menuBtn.on('click', () => {
+            this.showInventory(null);
+        });
+        this.scale.on('resize', () => {this.menuBtn.setPosition(this.scale.width - 40, 0)});
+
+        // this.initOrientationCheck()
     }
 
     generateMenu(): Phaser.GameObjects.Layer {
-        // this.menuBackground = this.add.rectangle(0, 0, WORLD_HEIGHT * WORLD_HEIGHT / WORLD_WIDTH, WORLD_HEIGHT, 0x000000);
-        const menuBGWidth = ((WORLD_WIDTH >= 768) ? 320 : WORLD_WIDTH);
+        const menuBGWidth = (this.game.device.os.iOS ? WORLD_WIDTH : 320);
         this.menuBackground = this.add.rectangle(WORLD_WIDTH - menuBGWidth, 0, menuBGWidth, WORLD_HEIGHT, 0x000000);
         this.menuBackground.setOrigin(0,0);
 
@@ -106,14 +115,20 @@ export class UIScene extends Phaser.Scene {
         })
     }
 
-    private checkOrientation(orientation: Phaser.Scale.Orientation) {
-        console.log('orientation: ', orientation);
-        if (orientation === Phaser.Scale.Orientation.PORTRAIT) {
-            this.scale.setGameSize(window.innerWidth, window.innerHeight);
-            this.showInventory(true);
-        } else if (orientation === Phaser.Scale.Orientation.LANDSCAPE) {
-            this.scale.setGameSize(window.innerWidth, window.innerHeight);
-            this.showInventory(false);
+    private initOrientationCheck() {
+        const isIOS = this.game.device.os.iOS;
+        if (isIOS) {
+            window.addEventListener('resize', this.checkOrientation.bind(this));
+        } else {
+            this.scale.on('orientationchange', this.checkOrientation, this);
         }
+        
+        this.checkOrientation(isIOS);
     }
+
+    private checkOrientation(isIOS: boolean): void {
+        this.showInventory(isIOS ? window.innerHeight > window.innerWidth : this.scale.orientation === Phaser.Scale.Orientation.PORTRAIT);
+    }
+
+
 }
