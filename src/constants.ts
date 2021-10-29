@@ -6,6 +6,7 @@ export const INVENTORY_REGISTRY_KEY = 'inventory';
 export const DUST_PUNCH_EVENT_KEY = 'dustpunch';
 export const STATIC_TEXTURE_KEY = 'static_images';
 export const TERRAIN_TEXTURE_KEY = 'terrain';
+export const UI_TEXTURE_KEY = 'ui_texture';
 export const EXIT_COLLISION_EVENT_KEY = 'exit_collision';
 export const TOUCH_MOVEMENT_REGISTRY_KEY = 'touch_mvt_coords';
 export const SHOW_MENU_REGISTRY_KEY = 'do_show_menu';
