@@ -1,31 +1,29 @@
 import { STUFF_CONFIGS } from "../config";
-import { INVENTORY_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, WORLD_WIDTH, WORLD_HEIGHT, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY } from "../constants";
+import { INVENTORY_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY } from "../constants";
 import StuffInInventory from "../objects/stuffInInventory";
 
 const VIRTUAL_JOYSTICK_DIAMETER = 16;
+const MENU_BTN_DIMENSION = 20 * GAME_SCALE;
 
 export class UIScene extends Phaser.Scene {
     private pointsText: Phaser.GameObjects.Text;
     private virtualJoystick: Phaser.GameObjects.Ellipse;
     private menuLayer: Phaser.GameObjects.Layer;
     private menuBackground: Phaser.GameObjects.Rectangle;
+    private closeImage: Phaser.GameObjects.Image;
     private menuStuffDisplayGroup: Phaser.GameObjects.Group;
     private menuHeaderText: Phaser.GameObjects.Text;
     private stuffHeaderText: Phaser.GameObjects.Text;
     private menuBtn: Phaser.GameObjects.Rectangle;
+    private menuBtnImage: Phaser.GameObjects.Image;
     // private orientationText: Phaser.GameObjects.Text;
     // private checkOrientation: (orientation: Phaser.Scale.Orientation) => void;
 
     create(): void {
-        const menuBtnDimension = 20 * GAME_SCALE;
-        this.menuBtn = this.add.rectangle(this.scale.width - menuBtnDimension, 0, menuBtnDimension, menuBtnDimension, 0x000000)
+        this.menuBtn = this.add.rectangle(this.scale.width - MENU_BTN_DIMENSION, 0, MENU_BTN_DIMENSION, MENU_BTN_DIMENSION, 0x000000)
             .setOrigin(0,0);
-        const menuBtnImg = this.add.image(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 0)
+        this.menuBtnImage = this.add.image(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 0)
             .setScale(GAME_SCALE);
-        this.scale.on('resize', () => {
-            this.menuBtn.setPosition(this.scale.width - menuBtnDimension, 0);
-            menuBtnImg.setPosition(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2);
-        });
         this.menuBtn.setInteractive();
 
         this.menuBtn.on('pointerdown', () => {
@@ -41,10 +39,14 @@ export class UIScene extends Phaser.Scene {
         // maybe a hack to clean up duplicate listeners - shouldn't be necessary after fixing issue #26, but leave in case
         this.registry.events.off('changedata', this.updateUI, this);
         this.registry.events.on('changedata', this.updateUI, this);
+
+        this.scale.on('resize', () => {
+            this.resizeMenu();
+        });
     }
 
     generateMenu(): Phaser.GameObjects.Layer {
-        let menuBGWidth = (this.game.device.os.iOS ? window.innerWidth : 320);
+        const menuBGWidth = this.calculateMenuBGWidth();
         this.menuBackground = this.add.rectangle(window.innerWidth - menuBGWidth, 0, menuBGWidth, window.innerHeight, 0x000000);
         this.menuBackground.setOrigin(0,0);
 
@@ -55,21 +57,11 @@ export class UIScene extends Phaser.Scene {
         this.pointsText = this.add.text(this.menuBackground.x + 20, this.menuHeaderText.y + this.menuHeaderText.displayHeight + 16, 'Points: ' + gamePoints, {font: `32px '7_12'`, color: '#fff'});
     
         this.stuffHeaderText = this.add.text(this.menuBackground.x + 20, this.pointsText.y + this.pointsText.displayHeight + 8, 'Your Stuff: ', {font: `32px '7_12'`, color: `#fff`});
-        const closeImg = this.add.image(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 1).setScale(GAME_SCALE);
+        this.closeImage = this.add.image(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 1).setScale(GAME_SCALE);
 
-        const menuLayer = this.add.layer([this.menuBackground, this.menuHeaderText, this.pointsText, this.stuffHeaderText, closeImg]);
+        const menuLayer = this.add.layer([this.menuBackground, this.menuHeaderText, this.pointsText, this.stuffHeaderText, this.closeImage]);
         menuLayer.setVisible(false);
 
-        this.scale.on('resize', () => {
-            closeImg.setPosition(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2);
-            menuBGWidth = (this.game.device.os.iOS ? window.innerWidth : 320);
-            this.menuBackground.setPosition(window.innerWidth - menuBGWidth, 0)
-                .setSize(menuBGWidth, window.innerHeight);
-            this.menuHeaderText.setPosition(this.menuBackground.x + this.menuBackground.width / 2, 16);
-            this.pointsText.setPosition(this.menuBackground.x + 20, this.menuHeaderText.y + this.menuHeaderText.displayHeight + 16)
-            this.stuffHeaderText.setPosition(this.menuBackground.x + 20, this.pointsText.y + this.pointsText.displayHeight + 8);
-        });
-        
         return menuLayer;
     }
 
@@ -129,6 +121,22 @@ export class UIScene extends Phaser.Scene {
             this.menuLayer.add(stuffImg);
             this.menuLayer.add(stuffQtyText);
         })
+    }
+
+    private resizeMenu() {
+        this.menuBtn.setPosition(this.scale.width - MENU_BTN_DIMENSION, 0);
+        this.menuBtnImage.setPosition(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2);
+        this.closeImage.setPosition(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2);
+        const menuBGWidth = this.calculateMenuBGWidth();
+        this.menuBackground.setPosition(window.innerWidth - menuBGWidth, 0)
+            .setSize(menuBGWidth, window.innerHeight);
+        this.menuHeaderText.setPosition(this.menuBackground.x + this.menuBackground.width / 2, 16);
+        this.pointsText.setPosition(this.menuBackground.x + 20, this.menuHeaderText.y + this.menuHeaderText.displayHeight + 16)
+        this.stuffHeaderText.setPosition(this.menuBackground.x + 20, this.pointsText.y + this.pointsText.displayHeight + 8);
+    }
+
+    private calculateMenuBGWidth() {
+        return this.game.device.os.iOS ? window.innerWidth : 320;
     }
 
     private initOrientationCheck() {
