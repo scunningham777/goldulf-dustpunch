@@ -18,7 +18,7 @@ export class UIScene extends Phaser.Scene {
     private menuBtnImage: Phaser.GameObjects.Image;
 
     create(): void {
-        this.menuBtn = this.add.rectangle(this.scale.width - MENU_BTN_DIMENSION, 0, MENU_BTN_DIMENSION, MENU_BTN_DIMENSION, 0x000000)
+        this.menuBtn = this.add.rectangle(this.scale.width - MENU_BTN_DIMENSION, this.scale.height - MENU_BTN_DIMENSION, MENU_BTN_DIMENSION, MENU_BTN_DIMENSION, 0x000000)
             .setOrigin(0,0);
         this.menuBtnImage = this.add.image(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 0)
             .setScale(GAME_SCALE);
@@ -122,7 +122,7 @@ export class UIScene extends Phaser.Scene {
     }
 
     private resizeMenu() {
-        this.menuBtn.setPosition(this.scale.width - MENU_BTN_DIMENSION, 0);
+        this.menuBtn.setPosition(this.scale.width - MENU_BTN_DIMENSION, this.scale.height - MENU_BTN_DIMENSION);
         this.menuBtnImage.setPosition(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2);
         this.closeImage.setPosition(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2);
         const menuBGWidth = this.calculateMenuBGWidth();
