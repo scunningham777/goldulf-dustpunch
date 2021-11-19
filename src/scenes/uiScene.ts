@@ -16,8 +16,6 @@ export class UIScene extends Phaser.Scene {
     private stuffHeaderText: Phaser.GameObjects.Text;
     private menuBtn: Phaser.GameObjects.Rectangle;
     private menuBtnImage: Phaser.GameObjects.Image;
-    // private orientationText: Phaser.GameObjects.Text;
-    // private checkOrientation: (orientation: Phaser.Scale.Orientation) => void;
 
     create(): void {
         this.menuBtn = this.add.rectangle(this.scale.width - MENU_BTN_DIMENSION, 0, MENU_BTN_DIMENSION, MENU_BTN_DIMENSION, 0x000000)
@@ -138,21 +136,4 @@ export class UIScene extends Phaser.Scene {
     private calculateMenuBGWidth() {
         return this.game.device.os.iOS ? window.innerWidth : 320;
     }
-
-    private initOrientationCheck() {
-        const isIOS = this.game.device.os.iOS;
-        if (isIOS) {
-            window.addEventListener('resize', this.checkOrientation.bind(this));
-        } else {
-            this.scale.on('orientationchange', this.checkOrientation, this);
-        }
-        
-        this.checkOrientation(isIOS);
-    }
-
-    private checkOrientation(isIOS: boolean): void {
-        this.showInventory(isIOS ? window.innerHeight > window.innerWidth : this.scale.orientation === Phaser.Scale.Orientation.PORTRAIT);
-    }
-
-
 }

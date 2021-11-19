@@ -105,7 +105,9 @@ export class SiteScene extends Phaser.Scene {
         } else if (entranceLocation.y === this.greatestYCoord) {
             heroStartDirection = CARDINAL_DIRECTION.UP;
         }
-        this.hero = new Hero(heroStartXInPixels , heroStartYInPixels, this, IS_DEBUG ? 360 : 180, heroStartDirection);
+        this.hero = new Hero(heroStartXInPixels , heroStartYInPixels, this, /*IS_DEBUG ? 360 :*/ 180, heroStartDirection);
+        this.hero.isPunching = this.mapConfig.mapConfigCategories.some(cat => cat == 'cave')
+        // this.hero.isPunching = true;
     }
 
     addListeners() {
@@ -235,9 +237,9 @@ export class SiteScene extends Phaser.Scene {
     }
 
     exitCollision: ArcadePhysicsCallback = (_heroObj, exitObj) => {
-        if (!this.hero.isPunching) {
+        // if (!this.hero.isPunching) {
             (exitObj as Exit).exitCollision();
-        }
+        // }
     }
 
     getEntranceLocation(): Phaser.Math.Vector2 {

@@ -50,7 +50,7 @@ export class GameTitleScene extends Phaser.Scene {
                 this.scale.width / 2,
                 this.scale.height * (TITLE_PORTION + SUBTITLE_Y_OFFSET + SUBTITLE_TEXT_PORTION + LOGO_Y_OFFSET),
                 'hero',
-                7
+                9
             ).setOrigin(0.5, 0);
             const logoScale = (this.scale.height * LOGO_PORTION) / this.dustpunchLogo.height;
             this.dustpunchLogo.setScale(logoScale);

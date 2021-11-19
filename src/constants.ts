@@ -15,31 +15,40 @@ export const DUNGEON_LAYER_KEYS = {
     STUFF_LAYER: 'stuff-layer',
     DUST_LAYER: 'dust-layer',
 };
-export const HERO_ANIM_FRAME_RATE = 6;
+export const HERO_ANIM_FRAME_RATES = {
+    'walk': 5,
+    'punch': 6,
+};
 export const HERO_FRAMES = {
     standing: {
-        'UP': 1,
-        'RIGHT': 5,
-        'DOWN': 9,
-        'LEFT': 5,
-    },
-    animStart: {
-        'UP': 0,
-        'RIGHT': 4,
-        'DOWN': 8,
-        'LEFT': 4,
-    },
-    animEnd: {
         'UP': 2,
+        'RIGHT': 7,
+        'DOWN': 12,
+        'LEFT': 7,
+    },
+    walkAnimStart: {
+        'UP': 1,
         'RIGHT': 6,
-        'DOWN': 10,
+        'DOWN': 11,
         'LEFT': 6,
     },
-    punch: {
+    walkAnimEnd: {
         'UP': 3,
-        'RIGHT': 7,
-        'DOWN': 11,
-        'LEFT': 7,
+        'RIGHT': 8,
+        'DOWN': 13,
+        'LEFT': 8,
+    },
+    punchAnimStart: {
+        'UP': 0,
+        'RIGHT': 5,
+        'DOWN': 10,
+        'LEFT': 5,
+    },
+    punchAnimEnd: {
+        'UP': 4,
+        'RIGHT': 9,
+        'DOWN': 14,
+        'LEFT': 9,
     }
 };
 export const HERO_TINT = 0xE2DB75;
