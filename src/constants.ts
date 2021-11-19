@@ -10,14 +10,15 @@ export const UI_TEXTURE_KEY = 'ui_texture';
 export const EXIT_COLLISION_EVENT_KEY = 'exit_collision';
 export const TOUCH_MOVEMENT_REGISTRY_KEY = 'touch_mvt_coords';
 export const SHOW_MENU_REGISTRY_KEY = 'do_show_menu';
+export const HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY = 'hero_mvt_ctrl';
 export const DUNGEON_LAYER_KEYS = {
     BG_LAYER: 'bg-layer',
     STUFF_LAYER: 'stuff-layer',
     DUST_LAYER: 'dust-layer',
 };
 export const HERO_ANIM_FRAME_RATES = {
-    'walk': 5,
-    'punch': 6,
+    'walk': 4,
+    'punch': 7,
 };
 export const HERO_FRAMES = {
     standing: {
@@ -71,3 +72,4 @@ export const enum SITE_TYPES {
 
 // "ENVIRONMENT"
 export const IS_DEBUG = false;
+export const HERO_MOVEMENT_CONTROLLER: 'follow' | 'joystick' = 'follow';

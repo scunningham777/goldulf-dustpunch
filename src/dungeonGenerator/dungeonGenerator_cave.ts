@@ -1,8 +1,8 @@
 import { GAME_SCALE, DUNGEON_LAYER_KEYS, STATIC_TEXTURE_KEY } from "../constants";
-import MapArea from "../objects/mapArea";
+import MapArea from "../interfaces/mapArea";
 import { justInsideWall, CARDINAL_DIRECTION } from "../utils";
-import { SiteConfig } from "../objects/siteConfig";
-import { AreaConfig } from "../objects/areaConfig";
+import { SiteConfig } from "../interfaces/siteConfig";
+import { AreaConfig } from "../interfaces/areaConfig";
 import { StuffModel } from "./stuffModel";
 import { DustModel } from "./dustModel";
 import { STUFF_CONFIGS } from "../config";

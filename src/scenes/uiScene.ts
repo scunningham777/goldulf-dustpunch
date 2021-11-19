@@ -1,6 +1,6 @@
 import { STUFF_CONFIGS } from "../config";
 import { INVENTORY_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY } from "../constants";
-import StuffInInventory from "../objects/stuffInInventory";
+import StuffInInventory from "../interfaces/stuffInInventory";
 
 const VIRTUAL_JOYSTICK_DIAMETER = 16;
 const MENU_BTN_DIMENSION = 20 * GAME_SCALE;

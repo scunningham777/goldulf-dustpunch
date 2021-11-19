@@ -1,4 +1,6 @@
-import { STATIC_TEXTURE_KEY, TERRAIN_TEXTURE_KEY, UI_TEXTURE_KEY } from "../constants";
+import { HERO_MOVEMENT_CONTROLLER, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, TERRAIN_TEXTURE_KEY, UI_TEXTURE_KEY } from "../constants";
+import { FOLLOW_HERO_MOVEMENT_CONTROLLER } from "../objects/followHeroMovmentController";
+import { JOYSTICK_HERO_MOVEMENT_CONTROLLER } from "../objects/joystickHeroMovementController";
 
 declare namespace WebFont {
     function load(config: any): any;
@@ -28,7 +30,10 @@ export class PreloadScene extends Phaser.Scene {
             active: () => {
                 this.scene.start('GameTitle');
             }
-        })
+        });
+
+        const heroMvtCtrl = HERO_MOVEMENT_CONTROLLER === 'joystick' ? JOYSTICK_HERO_MOVEMENT_CONTROLLER : FOLLOW_HERO_MOVEMENT_CONTROLLER;
+        this.registry.set(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, heroMvtCtrl);
     }
 
 }

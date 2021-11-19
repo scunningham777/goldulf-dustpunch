@@ -1,10 +1,10 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall } from '../utils';
 import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
-import { SiteConfig } from '../objects/siteConfig';
+import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
-import MapArea from '../objects/mapArea';
+import MapArea from '../interfaces/mapArea';
 import { StuffModel } from '../dungeonGenerator/stuffModel';
 import Stuff from '../objects/stuff';
 import { DustModel } from '../dungeonGenerator/dustModel';
@@ -105,7 +105,8 @@ export class SiteScene extends Phaser.Scene {
         } else if (entranceLocation.y === this.greatestYCoord) {
             heroStartDirection = CARDINAL_DIRECTION.UP;
         }
-        this.hero = new Hero(heroStartXInPixels , heroStartYInPixels, this, /*IS_DEBUG ? 360 :*/ 180, heroStartDirection);
+        const heroMvtCtrl = this.registry.get(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY);
+        this.hero = new Hero(heroStartXInPixels , heroStartYInPixels, this, /*IS_DEBUG ? 360 :*/ 180, heroStartDirection, heroMvtCtrl);
         this.hero.isPunching = this.mapConfig.mapConfigCategories.some(cat => cat == 'cave')
         // this.hero.isPunching = true;
     }
