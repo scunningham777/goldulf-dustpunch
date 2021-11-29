@@ -1,13 +1,14 @@
 import { CARDINAL_DIRECTION } from '../utils';
-import { GAME_SCALE, HERO_ANIM_FRAME_RATE, HERO_FRAMES, HERO_TINT, HERO_OFFSETS, TOUCH_MOVEMENT_REGISTRY_KEY } from '../constants';
+import { GAME_SCALE, HERO_ANIM_FRAME_RATES, HERO_FRAMES, HERO_TINT, HERO_OFFSETS } from '../constants';
+import { HeroMovementController } from '../interfaces/heroMovementController';
+import { FOLLOW_HERO_MOVEMENT_CONTROLLER } from './followHeroMovmentController';
 
 export default class Hero {
 
     private heroSprite: Phaser.Physics.Arcade.Sprite;
-    private touchStartX: number = null;
-    private touchStartY: number = null;
-    private moveThreshold = 30;
-    private doubleTouch = false;
+    public touchStartX: number = null;
+    public touchStartY: number = null;
+    public moveThreshold = 30;
     public isPunching = false;
     public isFrozen = false;
     private set currentDirection(newDir: CARDINAL_DIRECTION) {
@@ -29,10 +30,11 @@ export default class Hero {
         private scene: Phaser.Scene,
         private velocity: number,
         private _currentDirection = CARDINAL_DIRECTION.DOWN,
+        private mvtCtrl: HeroMovementController = FOLLOW_HERO_MOVEMENT_CONTROLLER,
     ) {
         this.addToScene();
         this.addAnimations();
-        this.setUpInput();
+        this.mvtCtrl.init(this);
     }
 
     update(cursors: Phaser.Types.Input.Keyboard.CursorKeys): void {
@@ -41,45 +43,32 @@ export default class Hero {
             this.unfreeze();
         }
         let newDirection: CARDINAL_DIRECTION = null;
-        const activePointer = this.scene.input.activePointer;
+        const pointer = this.scene.input.activePointer;
 
-        if (Phaser.Input.Keyboard.JustDown(cursors.space)) {
-            this.punch();
+        if (cursors.left.isDown || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.LEFT)) {
+            this.heroSprite.setVelocityX(-this.velocity);
+            newDirection = CARDINAL_DIRECTION.LEFT;
+        } else if (cursors.right.isDown || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.RIGHT)) {
+            this.heroSprite.setVelocityX(this.velocity);
+            newDirection = CARDINAL_DIRECTION.RIGHT;
         }
 
-        if (!this.isPunching) {
-            if (cursors.left.isDown || this.touchStartX != null && activePointer.x < this.touchStartX - this.moveThreshold) {
-                this.heroSprite.setVelocityX(-this.velocity);
-                newDirection = CARDINAL_DIRECTION.LEFT;
-            } else if (cursors.right.isDown || this.touchStartX != null && activePointer.x > this.touchStartX + this.moveThreshold) {
-                this.heroSprite.setVelocityX(this.velocity);
-                newDirection = CARDINAL_DIRECTION.RIGHT;
-            }
-
-            if (cursors.up.isDown || this.touchStartY != null && activePointer.y < this.touchStartY - this.moveThreshold) {
-                this.heroSprite.setVelocityY(-this.velocity);
-                newDirection = CARDINAL_DIRECTION.UP;
-            } else if (cursors.down.isDown || this.touchStartY != null && activePointer.y > this.touchStartY + this.moveThreshold) {
-                this.heroSprite.setVelocityY(this.velocity);
-                newDirection = CARDINAL_DIRECTION.DOWN;
-            }
+        if (cursors.up.isDown || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.UP)) {
+            this.heroSprite.setVelocityY(-this.velocity);
+            newDirection = CARDINAL_DIRECTION.UP;
+        } else if (cursors.down.isDown || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.DOWN)) {
+            this.heroSprite.setVelocityY(this.velocity);
+            newDirection = CARDINAL_DIRECTION.DOWN;
         }
 
         if (newDirection != null) {
             this.currentDirection = newDirection;
             const animDirection = newDirection == CARDINAL_DIRECTION.LEFT ? CARDINAL_DIRECTION.RIGHT
                 : newDirection;
-            this.heroSprite.anims.play(animDirection, true);
-        } else {
-            this.heroSprite.anims.stop();
-            this.heroSprite.setFrame(this.isPunching ? HERO_FRAMES.punch[this.currentDirection]
-                : HERO_FRAMES.standing[this.currentDirection]);
+            this.heroSprite.anims.play((this.isPunching ? 'punch' : 'walk') + animDirection, true);
         }
 
-        // event for touch "virtual joystick"
-        if ((this.heroSprite.body.velocity.x != 0 || this.heroSprite.body.velocity.y != 0) && this.touchStartX != null) {
-            this.scene.registry.set(TOUCH_MOVEMENT_REGISTRY_KEY, {startX: this.touchStartX, startY: this.touchStartY});
-        }
+        this.mvtCtrl.update(this);
     }
 
     addToScene(): void {
@@ -90,51 +79,32 @@ export default class Hero {
             .setScale(GAME_SCALE)
             .setFrame(HERO_FRAMES.standing[CARDINAL_DIRECTION.DOWN])
             .setDepth(1)
+            .setTint(HERO_TINT)
             ;
-        this.heroSprite.tint = HERO_TINT;
         // jump-start flipX
         this.currentDirection = this.currentDirection;
     }
 
     addAnimations(): void {
-        [
-            CARDINAL_DIRECTION.UP,
-            CARDINAL_DIRECTION.RIGHT,
-            CARDINAL_DIRECTION.DOWN,
-        ].forEach(direction => {
-            this.scene.anims.create({
-                key: direction,
-                frames: this.scene.anims.generateFrameNumbers('hero', { start: HERO_FRAMES.animStart[direction], end: HERO_FRAMES.animEnd[direction] }),
-                frameRate: HERO_ANIM_FRAME_RATE,
-                repeat: -1,
-                yoyo: true,
+        ['walk', 'punch'].forEach(state => {
+
+            [
+                CARDINAL_DIRECTION.UP,
+                CARDINAL_DIRECTION.RIGHT,
+                CARDINAL_DIRECTION.DOWN,
+            ].forEach(direction => {
+                this.scene.anims.create({
+                    key: state + direction,
+                    frames: this.scene.anims.generateFrameNumbers('hero', { 
+                        start: HERO_FRAMES[state + 'AnimStart'][direction],
+                        end: HERO_FRAMES[state + 'AnimEnd'][direction],
+                    }),
+                    frameRate: HERO_ANIM_FRAME_RATES[state],
+                    repeat: -1,
+                    yoyo: true,
+                });
             });
         })
-    }
-
-    setUpInput() {
-        this.scene.input.on('pointerdown', pointer => {
-            this.touchStartX = pointer.x;
-            this.touchStartY = pointer.y;
-        });
-        this.scene.input.on('pointerup', () => {
-            this.touchStartX = null;
-            this.touchStartY = null;
-            this.scene.registry.set(TOUCH_MOVEMENT_REGISTRY_KEY, null);
-        });
-        this.scene.input.on('pointerdown', pointer => {
-            this.touchStartX = pointer.x;
-
-            if (this.doubleTouch) {
-                this.punch();
-                this.doubleTouch = false;
-            } else {
-                this.doubleTouch = true;
-                setTimeout(() => {
-                    this.doubleTouch = false;
-                }, 500);
-            }
-        });
     }
 
     freeze() {
@@ -146,14 +116,5 @@ export default class Hero {
         (this.entity.body as Phaser.Physics.Arcade.Body).moves = true;
         this.heroSprite.anims.resume();
         this.isFrozen = false;
-    }
-
-    punch() {
-        this.isPunching = true;
-        this.heroSprite.setOffset(HERO_OFFSETS.punching[this.currentDirection].x, HERO_OFFSETS.punching[this.currentDirection].y);
-        this.scene.time.delayedCall(250, () => {
-            this.isPunching = false;
-            this.heroSprite.setOffset(HERO_OFFSETS.standing.x, HERO_OFFSETS.standing.y);
-        }, [], this);
     }
 }

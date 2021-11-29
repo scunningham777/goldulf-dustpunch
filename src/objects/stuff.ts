@@ -1,7 +1,7 @@
 import { STUFF_CONFIGS } from "../config";
 import { GAME_SCALE, INVENTORY_REGISTRY_KEY, DUST_PUNCH_EVENT_KEY, STUFF_TINT } from "../constants";
-import StuffConfig from "./stuffConfig";
-import StuffInInventory from "./stuffInInventory";
+import StuffConfig from "../interfaces/stuffConfig";
+import StuffInInventory from "../interfaces/stuffInInventory";
 
 export default class Stuff extends Phaser.Physics.Arcade.Image {
     private hasBeenScored = false;

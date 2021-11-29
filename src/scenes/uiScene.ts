@@ -1,28 +1,36 @@
 import { STUFF_CONFIGS } from "../config";
-import { INVENTORY_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, WORLD_WIDTH, WORLD_HEIGHT, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT } from "../constants";
-import StuffInInventory from "../objects/stuffInInventory";
+import { INVENTORY_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY } from "../constants";
+import StuffInInventory from "../interfaces/stuffInInventory";
 
 const VIRTUAL_JOYSTICK_DIAMETER = 16;
+const MENU_BTN_DIMENSION = 20 * GAME_SCALE;
 
 export class UIScene extends Phaser.Scene {
     private pointsText: Phaser.GameObjects.Text;
     private virtualJoystick: Phaser.GameObjects.Ellipse;
     private menuLayer: Phaser.GameObjects.Layer;
     private menuBackground: Phaser.GameObjects.Rectangle;
+    private closeImage: Phaser.GameObjects.Image;
     private menuStuffDisplayGroup: Phaser.GameObjects.Group;
+    private menuHeaderText: Phaser.GameObjects.Text;
     private stuffHeaderText: Phaser.GameObjects.Text;
-
-    preload(): void {
-    }
+    private menuBtn: Phaser.GameObjects.Rectangle;
+    private menuBtnImage: Phaser.GameObjects.Image;
 
     create(): void {
-        const gamePoints = this.registry.values[INVENTORY_REGISTRY_KEY] ?? 0;
-        
-        this.pointsText = this.add.text(20, 16, 'Points: ' + gamePoints, {font: `32px '7_12'`, color: '#fff'});
+        this.menuBtn = this.add.rectangle(this.scale.width - MENU_BTN_DIMENSION, this.scale.height - MENU_BTN_DIMENSION, MENU_BTN_DIMENSION, MENU_BTN_DIMENSION, 0x000000)
+            .setOrigin(0,0);
+        this.menuBtnImage = this.add.image(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 0)
+            .setScale(GAME_SCALE);
+        this.menuBtn.setInteractive();
+
+        this.menuBtn.on('pointerdown', () => {
+            this.showInventory(null);
+        });
 
         this.virtualJoystick = this.add.ellipse(10, 50, VIRTUAL_JOYSTICK_DIAMETER * GAME_SCALE, VIRTUAL_JOYSTICK_DIAMETER * GAME_SCALE, 0x000000, 1);
         this.hideVirtualJoystick();
-
+        
         this.menuLayer = this.generateMenu();
         this.menuStuffDisplayGroup = this.add.group()
         
@@ -30,21 +38,28 @@ export class UIScene extends Phaser.Scene {
         this.registry.events.off('changedata', this.updateUI, this);
         this.registry.events.on('changedata', this.updateUI, this);
 
-        this.checkOrientation(this.scale.orientation);
-        this.scale.on('orientationchange', this.checkOrientation, this);
+        this.scale.on('resize', () => {
+            this.resizeMenu();
+        });
     }
 
     generateMenu(): Phaser.GameObjects.Layer {
-        // this.menuBackground = this.add.rectangle(0, 0, WORLD_HEIGHT * WORLD_HEIGHT / WORLD_WIDTH, WORLD_HEIGHT, 0x000000);
-        const menuBGWidth = ((WORLD_WIDTH >= 768) ? 320 : WORLD_WIDTH);
-        this.menuBackground = this.add.rectangle(WORLD_WIDTH - menuBGWidth, 0, menuBGWidth, WORLD_HEIGHT, 0x000000);
+        const menuBGWidth = this.calculateMenuBGWidth();
+        this.menuBackground = this.add.rectangle(window.innerWidth - menuBGWidth, 0, menuBGWidth, window.innerHeight, 0x000000);
         this.menuBackground.setOrigin(0,0);
 
-        this.stuffHeaderText = this.add.text(this.menuBackground.x + 20, this.menuBackground.y + 16, 'Your Stuff: ', {font: `32px '7_12'`, color: `#fff`});
+        this.menuHeaderText = this.add.text(this.menuBackground.x + this.menuBackground.width / 2, 16, "MENU", {font: `${16 * GAME_SCALE}px '7_12'`, color: '#fff'})
+            .setOrigin(.5, 0);
 
-        const menuLayer = this.add.layer([this.menuBackground, this.stuffHeaderText]);
+        const gamePoints = this.registry.values[INVENTORY_REGISTRY_KEY] ?? 0;
+        this.pointsText = this.add.text(this.menuBackground.x + 20, this.menuHeaderText.y + this.menuHeaderText.displayHeight + 16, 'Points: ' + gamePoints, {font: `32px '7_12'`, color: '#fff'});
+    
+        this.stuffHeaderText = this.add.text(this.menuBackground.x + 20, this.pointsText.y + this.pointsText.displayHeight + 8, 'Your Stuff: ', {font: `32px '7_12'`, color: `#fff`});
+        this.closeImage = this.add.image(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 1).setScale(GAME_SCALE);
+
+        const menuLayer = this.add.layer([this.menuBackground, this.menuHeaderText, this.pointsText, this.stuffHeaderText, this.closeImage]);
         menuLayer.setVisible(false);
-        
+
         return menuLayer;
     }
 
@@ -106,14 +121,19 @@ export class UIScene extends Phaser.Scene {
         })
     }
 
-    private checkOrientation(orientation: Phaser.Scale.Orientation) {
-        console.log('orientation: ', orientation);
-        if (orientation === Phaser.Scale.Orientation.PORTRAIT) {
-            this.scale.setGameSize(window.innerWidth, window.innerHeight);
-            this.showInventory(true);
-        } else if (orientation === Phaser.Scale.Orientation.LANDSCAPE) {
-            this.scale.setGameSize(window.innerWidth, window.innerHeight);
-            this.showInventory(false);
-        }
+    private resizeMenu() {
+        this.menuBtn.setPosition(this.scale.width - MENU_BTN_DIMENSION, this.scale.height - MENU_BTN_DIMENSION);
+        this.menuBtnImage.setPosition(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2);
+        this.closeImage.setPosition(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2);
+        const menuBGWidth = this.calculateMenuBGWidth();
+        this.menuBackground.setPosition(window.innerWidth - menuBGWidth, 0)
+            .setSize(menuBGWidth, window.innerHeight);
+        this.menuHeaderText.setPosition(this.menuBackground.x + this.menuBackground.width / 2, 16);
+        this.pointsText.setPosition(this.menuBackground.x + 20, this.menuHeaderText.y + this.menuHeaderText.displayHeight + 16)
+        this.stuffHeaderText.setPosition(this.menuBackground.x + 20, this.pointsText.y + this.pointsText.displayHeight + 8);
+    }
+
+    private calculateMenuBGWidth() {
+        return this.game.device.os.iOS ? window.innerWidth : 320;
     }
 }

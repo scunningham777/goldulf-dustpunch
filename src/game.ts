@@ -21,7 +21,7 @@ const config: Phaser.Types.Core.GameConfig = {
     parent: 'game',
     backgroundColor: GAME_BG_COLOR,
     scale: {
-        mode: Phaser.Scale.ENVELOP,
+        mode: Phaser.Scale.RESIZE,
         parent: 'game',
         // autoCenter: 1,
         width: WORLD_WIDTH,
@@ -42,6 +42,9 @@ const config: Phaser.Types.Core.GameConfig = {
         },
     },
     zoom: 1,
+    dom: {
+        createContainer: true,
+    }
 };
 
 export class Game extends Phaser.Game {

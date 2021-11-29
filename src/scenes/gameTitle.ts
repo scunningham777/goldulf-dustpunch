@@ -50,7 +50,7 @@ export class GameTitleScene extends Phaser.Scene {
                 this.scale.width / 2,
                 this.scale.height * (TITLE_PORTION + SUBTITLE_Y_OFFSET + SUBTITLE_TEXT_PORTION + LOGO_Y_OFFSET),
                 'hero',
-                7
+                9
             ).setOrigin(0.5, 0);
             const logoScale = (this.scale.height * LOGO_PORTION) / this.dustpunchLogo.height;
             this.dustpunchLogo.setScale(logoScale);
@@ -72,8 +72,7 @@ export class GameTitleScene extends Phaser.Scene {
             this.time.delayedCall(INSTRUCTION_SHOW_PERIOD, this.hideInstructions, [], this);
         }, [], this)
 
-        this.checkOrientation(this.scale.orientation);
-        this.scale.on('orientationchange', this.checkOrientation, this);
+        this.scale.on('orientationchange', this.recenterContents, this);
     }
 
     showInstructions() {
@@ -88,17 +87,6 @@ export class GameTitleScene extends Phaser.Scene {
             this.instructionText.alpha = 0;
         }
         this.time.delayedCall(INSTRUCTION_BLINK_PERIOD, this.showInstructions, [], this);
-    }
-
-    private checkOrientation(orientation: Phaser.Scale.Orientation) {
-        console.log('orientation: ', orientation);
-        if (orientation === Phaser.Scale.Orientation.PORTRAIT) {
-            this.scale.setGameSize(window.innerWidth, window.innerHeight);
-            this.recenterContents();
-        } else if (orientation === Phaser.Scale.Orientation.LANDSCAPE) {
-            this.scale.setGameSize(window.innerWidth, window.innerHeight);
-            this.recenterContents();
-        }
     }
 
     private recenterContents() {
@@ -127,6 +115,14 @@ export class GameTitleScene extends Phaser.Scene {
             mapConfigName: 'new_game',
             mapConfigCategory: null,
         };
+        this.cleanup();
+        
         this.scene.start(SITE_TYPES.overworld, initialMapSceneConfig);
+    }
+    
+    cleanup(): void {
+        this.scale.off('orientationchange');
+        this.input.off('pointerdown');
+        this.input.keyboard.off('keydown');
     }
 }
