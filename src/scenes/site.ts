@@ -1,5 +1,5 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, DUST_PUNCH_EVENT_KEY } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall } from '../utils';
 import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
 import { SiteConfig } from '../interfaces/siteConfig';
@@ -23,6 +23,7 @@ export class SiteScene extends Phaser.Scene {
     private dustGroup: Phaser.Physics.Arcade.Group;
     private exitGroup: Phaser.Physics.Arcade.Group;
     private hasHeroReachedExit = false;
+    private dustEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
     private get greatestXCoord(): number {
         return this.map.width - 1;
     }
@@ -39,6 +40,7 @@ export class SiteScene extends Phaser.Scene {
         this.selectMapConfig();
         this.createMap();
         this.createHero();
+        this.createEmitter();
         this.addListeners();
         this.addCollisions();
         this.initInput();
@@ -111,8 +113,28 @@ export class SiteScene extends Phaser.Scene {
         // this.hero.isPunching = true;
     }
 
+    createEmitter() {
+        this.dustEmitter = this.add.particles('__WHITE').createEmitter({
+            name: 'dust_particles',
+            x: 0,
+            y: 0,
+            quantity: -1,
+            speed: {end: 0, start: 50, random: true},
+            angle: {min: 0, max: 360},
+            lifespan: 1200,
+            scale: 1.2
+        });
+        this.dustEmitter.setEmitZone({
+            type: 'random',
+            source: new Phaser.Geom.Rectangle(-8 * GAME_SCALE, -8 * GAME_SCALE, 16 * GAME_SCALE, 16 * GAME_SCALE),
+        })
+    }
+
     addListeners() {
         this.registry.events.on(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
+        this.registry.events.on(DUST_PUNCH_EVENT_KEY, (_punchId: string, dustX: number, dustY: number) => {
+            this.dustEmitter.explode(32, dustX, dustY);
+        })
     }
     clearListeners() {
         this.registry.events.off(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);

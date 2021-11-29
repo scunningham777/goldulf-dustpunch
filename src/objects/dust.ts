@@ -13,7 +13,7 @@ export default class Dust extends Phaser.Physics.Arcade.Image {
     }
 
     clearDust() {
-        this.scene.registry.events.emit(DUST_PUNCH_EVENT_KEY, this.associatedStuffId);
+        this.scene.registry.events.emit(DUST_PUNCH_EVENT_KEY, this.associatedStuffId, this.x, this.y);
         this.destroy();
     }
 }
