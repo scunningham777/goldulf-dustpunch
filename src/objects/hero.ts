@@ -11,6 +11,7 @@ export default class Hero {
     public moveThreshold = 30;
     public isPunching = false;
     public isFrozen = false;
+    public lastAnimationFrame = -1;
     private set currentDirection(newDir: CARDINAL_DIRECTION) {
         this._currentDirection = newDir;
         if (this.heroSprite != null) {
@@ -80,6 +81,17 @@ export default class Hero {
             .setFrame(HERO_FRAMES.standing[CARDINAL_DIRECTION.DOWN])
             .setDepth(1)
             .setTint(HERO_TINT)
+            .on('animationupdate', (animation: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame, heroSprite: Phaser.GameObjects.Sprite) => {
+                // add punching sound effects
+                if (this.isPunching && animation.key.toLocaleLowerCase().includes('punch')) {
+                    if (frame.index % 5 == 1) {
+                        this.scene.sound.play('punch1');
+                    }
+                    if (frame.index % 5 == 0) {
+                        this.scene.sound.play('punch2');
+                    }
+                }
+            })
             ;
         // jump-start flipX
         this.currentDirection = this.currentDirection;
