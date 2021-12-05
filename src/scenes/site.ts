@@ -134,6 +134,7 @@ export class SiteScene extends Phaser.Scene {
         this.registry.events.on(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
         this.registry.events.on(DUST_PUNCH_EVENT_KEY, (_punchId: string, dustX: number, dustY: number) => {
             this.dustEmitter.explode(32, dustX, dustY);
+            this.sound.play('dust');
         })
     }
     clearListeners() {
