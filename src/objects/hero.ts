@@ -40,9 +40,9 @@ export default class Hero {
 
     update(cursors: Phaser.Types.Input.Keyboard.CursorKeys): void {
         this.heroSprite.setVelocity(0);
-        if (this.isFrozen) {
-            this.unfreeze();
-        }
+        // if (this.isFrozen) {
+        //     this.unfreeze();
+        // }
         let newDirection: CARDINAL_DIRECTION = null;
         const pointer = this.scene.input.activePointer;
 
