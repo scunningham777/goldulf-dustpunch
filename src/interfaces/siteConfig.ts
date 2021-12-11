@@ -16,6 +16,8 @@ export interface SiteConfig {
     externalIconTileIndex: number;
     wallTileWeights: {index: number, weight: number}[];
     floorTileWeights: {index: number, weight: number}[];
+    dustWeight: number;
+    stuffTypeWeights: {key: string, weight: number}[];
     entranceAreaConfig: AreaConfig;
     exitAreaConfigs: AreaConfig[];
     maxExitAreaCount: number;
@@ -24,6 +26,4 @@ export interface SiteConfig {
     maxCountAreas: number;
     defaultTileTint: number;
     tileTintOverrides?: {index: number, tintValue: number}[];
-    minCountStuff: number;
-    maxCountStuff: number;
 }

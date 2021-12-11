@@ -6,7 +6,6 @@ export class DustModel {
         public y: number,
         public key: string,
         public frame: number,
-        public associatedStuffId: string,
         index: number,
     ) {
         this.id = `${index}${new Date().getTime()}`;

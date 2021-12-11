@@ -1,6 +1,6 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, DUST_PUNCH_EVENT_KEY } from '../constants';
-import { CARDINAL_DIRECTION, justInsideWall } from '../utils';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, DUST_PUNCH_EVENT_KEY, STATIC_TEXTURE_KEY } from '../constants';
+import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
@@ -34,6 +34,7 @@ export class SiteScene extends Phaser.Scene {
     /* lifecycle methods */
     init(): void {
         this.mapKey = this.scene.key + '-map';
+        this.stuffGroup = this.physics.add.group();
     }
 
     create(): void {
@@ -85,8 +86,7 @@ export class SiteScene extends Phaser.Scene {
         this.mapLayers = mapData.layerMap;
         this.areas = mapData.areas;
         this.exitGroup = this.createExits(mapData.areas.filter(a => a.linkedMapConfigName != null || a.linkedMapConfigCategory != null))
-        if (mapData.stuff.length > 0){
-            this.stuffGroup = this.createStuff(mapData.stuff);
+        if (mapData.dust.length > 0){
             this.dustGroup = this.createDust(mapData.dust);
         }
         this.tintMap();
@@ -122,7 +122,7 @@ export class SiteScene extends Phaser.Scene {
             speed: {end: 0, start: 50, random: true},
             angle: {min: 0, max: 360},
             lifespan: 1200,
-            scale: 1.2
+            // scale: 1.2
         });
         this.dustEmitter.setEmitZone({
             type: 'random',
@@ -132,10 +132,6 @@ export class SiteScene extends Phaser.Scene {
 
     addListeners() {
         this.registry.events.on(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
-        this.registry.events.on(DUST_PUNCH_EVENT_KEY, (_punchId: string, dustX: number, dustY: number) => {
-            this.dustEmitter.explode(32, dustX, dustY);
-            this.sound.play('dust');
-        })
     }
     clearListeners() {
         this.registry.events.off(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
@@ -199,23 +195,19 @@ export class SiteScene extends Phaser.Scene {
         return exitGroup;
     }
 
-    createStuff(stuffData: StuffModel[]): Phaser.Physics.Arcade.Group {
-        const stuffGroup = this.physics.add.group();
-        for (let stuff of stuffData) {
-            const newStuffConfig = STUFF_CONFIGS.find(s => s.stuffName === stuff.stuffConfigId);
-            if (newStuffConfig === undefined) {
-                continue;
-            }
-            const newStuff = new Stuff(this, stuff.x, stuff.y, stuff.textureKey, newStuffConfig, stuff.id);
-            stuffGroup.add(newStuff);
+    createStuff(stuffData: StuffModel): void {
+        const newStuffConfig = STUFF_CONFIGS.find(s => s.stuffName === stuffData.stuffConfigId);
+        if (newStuffConfig === undefined) {
+            return;
         }
-        return stuffGroup;
+        const newStuff = new Stuff(this, stuffData.x, stuffData.y, stuffData.textureKey, newStuffConfig);
+        this.stuffGroup.add(newStuff);
     }
 
     createDust(dustData: DustModel[]): Phaser.Physics.Arcade.Group {
         const dustGroup = this.physics.add.group();
         for (let dust of dustData) {
-            const newDust = new Dust(this, dust.x, dust.y, dust.key, dust.frame, dust.associatedStuffId, dust.id);
+            const newDust = new Dust(this, dust.x, dust.y, dust.key, dust.frame, dust.id);
             dustGroup.add(newDust);
         }
         return dustGroup;
@@ -248,22 +240,28 @@ export class SiteScene extends Phaser.Scene {
         });
     }
 
-    stuffCollision: ArcadePhysicsCallback = (_heroObj, stuffObj) => {
-        if (this.hero.isPunching) {
-            (stuffObj as Stuff).scorePoints();
-        }
-    }
-
-    dustCollision: ArcadePhysicsCallback = (_heroObj, dustObj) => {
+    dustCollision: ArcadePhysicsCallback = (_heroObj, dustObj: Dust) => {
         if (this.hero.isPunching) {
             (dustObj as Dust).clearDust();
+            this.dustEmitter.explode(28, (dustObj as Dust).x, (dustObj as Dust).y);
+            this.sound.play('dust');
+
+            const stuffType = weightedRandomizeAnything(this.mapConfig.stuffTypeWeights);
+
+            if (STUFF_CONFIGS.find(s => s.stuffName == stuffType)) {
+                const newStuff = new StuffModel(
+                        dustObj.x,
+                        dustObj.y,
+                        STATIC_TEXTURE_KEY,
+                        stuffType,  
+                    );
+                this.createStuff(newStuff);
+            }
         }
     }
 
     exitCollision: ArcadePhysicsCallback = (_heroObj, exitObj) => {
-        // if (!this.hero.isPunching) {
-            (exitObj as Exit).exitCollision();
-        // }
+        (exitObj as Exit).exitCollision();
     }
 
     getEntranceLocation(): Phaser.Math.Vector2 {

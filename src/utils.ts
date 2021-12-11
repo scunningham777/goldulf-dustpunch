@@ -22,3 +22,24 @@ export function justInsideWall(location: Phaser.Math.Vector2, maxXCoord: number,
 
     return newLocation;
 }
+
+/**
+ * picks an item from the array based on total weight
+ * weight can be fractional, but should be positive
+ **/  
+export function weightedRandomizeAnything<T>(weightedIndexes: {key: T, weight: number}[]): T {
+    const weightTotal = weightedIndexes.reduce((prev, wI) => prev + wI.weight, 0);
+
+    let rand = Math.random() * weightTotal;
+    let sum = 0;
+
+    for (let weightedIndex of weightedIndexes)
+    {
+        sum += weightedIndex.weight;
+
+        if (rand <= sum)
+        {
+            return weightedIndex.key;
+        }
+    }
+}
