@@ -14,7 +14,7 @@ export default function generateDungeon(
         tileMap: Phaser.Tilemaps.Tilemap,
         layerMap: Map<string, Phaser.Tilemaps.TilemapLayer>,
         areas: MapArea[],
-        stuff: StuffModel[],
+        // stuff: StuffModel[],
         dust: DustModel[],
     }
 {
@@ -35,10 +35,10 @@ export default function generateDungeon(
     connectAreas(bgLayer, newAreas, floorTileIndices);
     drawAreas(bgLayer, newAreas);
 
-    const stuff = generateStuff(newLayerMap, mapConfig);
-    const dust = generateDust(stuff, newLayerMap, mapConfig);
+    // const stuff = generateStuff(newLayerMap, mapConfig);
+    const dust = generateDust(newLayerMap, mapConfig);
 
-    return {tileMap: tileMap, layerMap: newLayerMap, areas: newAreas, stuff: stuff, dust: dust};
+    return {tileMap: tileMap, layerMap: newLayerMap, areas: newAreas, /*stuff: stuff,*/ dust: dust};
 }
 
 function fillMap(layer: Phaser.Tilemaps.TilemapLayer, wallTileWeights: {index: number, weight: number}[]) {
@@ -256,59 +256,56 @@ function drawAreas(mapLayer: Phaser.Tilemaps.TilemapLayer, areas: MapArea[]) {
     }
 }
 
-function generateStuff(mapLayers: Map<string, Phaser.Tilemaps.TilemapLayer>, mapConfig: SiteConfig) : StuffModel[] {
+// function generateStuff(mapLayers: Map<string, Phaser.Tilemaps.TilemapLayer>, mapConfig: SiteConfig) : StuffModel[] {
+//     const bgLayer = mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
+//     const stuffLayer = mapLayers.get(DUNGEON_LAYER_KEYS.STUFF_LAYER);
+//     const stuffableTiles = bgLayer.filterTiles((tile: Phaser.Tilemaps.Tile) => {
+//         return mapConfig.floorTileWeights.some(ftw => ftw.index === tile.index);
+//     })
+//     const newStuffArray: StuffModel[] = [];
+//     stuffableTiles.forEach((tile, index) => {
+//         if (Phaser.Math.RND.integerInRange(1, 100) <= mapConfig.dustWeight) {
+//             const newStuffX = (tile.x + .5) * stuffLayer.tilemap.tileWidth * GAME_SCALE;
+//             const newStuffY = (tile.y + .5) * stuffLayer.tilemap.tileHeight * GAME_SCALE;
+//             const newStuffConfigType = Phaser.Math.RND.pick(STUFF_CONFIGS);
+//             const newStuff = new StuffModel(
+//                     newStuffX,
+//                     newStuffY,
+//                     tile.x,
+//                     tile.y,
+//                     STATIC_TEXTURE_KEY,
+//                     newStuffConfigType.stuffName,  
+//                     index,
+//                 );
+//             newStuffArray.push(newStuff);
+//         }
+//     })
+
+//     return newStuffArray;
+// }
+
+function generateDust(mapLayers: Map<string, Phaser.Tilemaps.TilemapLayer>, mapConfig: SiteConfig): DustModel[] {
     const bgLayer = mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
-    const stuffLayer = mapLayers.get(DUNGEON_LAYER_KEYS.STUFF_LAYER);
-    const startingCountStuff = Phaser.Math.RND.integerInRange(mapConfig.minCountStuff, mapConfig.maxCountStuff);
-    const newStuffArray: StuffModel[] = [];
-    for (let i = 0; i < startingCountStuff; i++) {
-        let newStuffTileX: number;
-        let newStuffTileY: number;
-        let j: number;
-        for (j = 0; j < 30; j++) {
-            newStuffTileX = Phaser.Math.RND.integerInRange(0, bgLayer.tilemap.width - 1);
-            newStuffTileY = Phaser.Math.RND.integerInRange(0, bgLayer.tilemap.height - 1);
-            // confirm that new tile is floor tile, and doesn't overlap with existing stuff
-            const tile = bgLayer.getTileAt(newStuffTileX, newStuffTileY);
-            const isFloorTile = mapConfig.floorTileWeights.some(ftw => ftw.index === tile.index);
-            const isStuffThereAlready = newStuffArray.some(s => s.tileX === newStuffTileX && s.tileY === newStuffTileY);
-            if (isFloorTile && !isStuffThereAlready) {
-                break;
-            }
-        } 
-        if (j < 30){
-            const newStuffX = (newStuffTileX + .5) * stuffLayer.tilemap.tileWidth * GAME_SCALE;
-            const newStuffY = (newStuffTileY + .5) * stuffLayer.tilemap.tileHeight * GAME_SCALE;
-            const newStuffConfigType = Phaser.Math.RND.pick(STUFF_CONFIGS);
-            const newStuff = new StuffModel(
-                    newStuffX,
-                    newStuffY,
-                    newStuffTileX,
-                    newStuffTileY,
-                    STATIC_TEXTURE_KEY,
-                    newStuffConfigType.stuffName,  
-                    i,
-                );
-            newStuffArray.push(newStuff);
-        } else {
-            console.warn('Not enough room to place Stuff');
+    const dustLayer = mapLayers.get(DUNGEON_LAYER_KEYS.DUST_LAYER);
+    const dustableTiles = bgLayer.filterTiles((tile: Phaser.Tilemaps.Tile) => {
+        return mapConfig.floorTileWeights.some(ftw => ftw.index === tile.index);
+    })
+    const newDustArray: DustModel[] = [];
+    dustableTiles.forEach((tile, index) => {
+        if (Phaser.Math.RND.integerInRange(1, 100) <= mapConfig.dustWeight) {
+            const newDustX = (tile.x + .5) * dustLayer.tilemap.tileWidth * GAME_SCALE;
+            const newDustY = (tile.y + .5) * dustLayer.tilemap.tileHeight * GAME_SCALE;
+
+            const newDust = new DustModel(
+                newDustX,
+                newDustY,
+                STATIC_TEXTURE_KEY,
+                0,
+                index,
+            )
+            newDustArray.push(newDust);
         }
-    }
+    })
 
-    return newStuffArray;
-}
-
-function generateDust(stuffArray: StuffModel[], mapLayers: Map<string, Phaser.Tilemaps.TilemapLayer>, mapConfig: SiteConfig): DustModel[] {
-    const newDustArray = stuffArray.map((stuff: StuffModel, index: number) => {
-        const newDust = new DustModel(
-            stuff.x,
-            stuff.y,
-            STATIC_TEXTURE_KEY,
-            0,
-            stuff.id,
-            index,
-        )
-        return newDust;
-    });
     return newDustArray;
 }

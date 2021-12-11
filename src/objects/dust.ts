@@ -1,7 +1,7 @@
 import { GAME_SCALE, DUST_PUNCH_EVENT_KEY } from "../constants";
 
 export default class Dust extends Phaser.Physics.Arcade.Image {
-    constructor(scene: Phaser.Scene, x: number, y: number, key: string, frame: number, private associatedStuffId: string, public id: string) {
+    constructor(scene: Phaser.Scene, x: number, y: number, key: string, frame: number, public id: string) {
         super(scene, x, y, key, frame);
 
         // enable physics
@@ -13,7 +13,7 @@ export default class Dust extends Phaser.Physics.Arcade.Image {
     }
 
     clearDust() {
-        this.scene.registry.events.emit(DUST_PUNCH_EVENT_KEY, this.associatedStuffId, this.x, this.y);
+        this.scene.registry.events.emit(DUST_PUNCH_EVENT_KEY, this.x, this.y);
         this.destroy();
     }
 }

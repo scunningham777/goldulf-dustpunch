@@ -6,7 +6,7 @@ import StuffInInventory from "../interfaces/stuffInInventory";
 export default class Stuff extends Phaser.Physics.Arcade.Image {
     private hasBeenScored = false;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, key: string, private stuffConfig: StuffConfig, public id: string) {
+    constructor(scene: Phaser.Scene, x: number, y: number, key: string, private stuffConfig: StuffConfig) {
         super(scene, x, y, key, stuffConfig.frameIndex);
 
         // enable physics
@@ -18,16 +18,18 @@ export default class Stuff extends Phaser.Physics.Arcade.Image {
         // color - should this be done here??
         this.setTint(STUFF_TINT);
         // listen for dustpunch events
-        this.scene.registry.events.on(DUST_PUNCH_EVENT_KEY, this.dustpunchHandler, this);
+        // this.scene.registry.events.on(DUST_PUNCH_EVENT_KEY, this.dustpunchHandler, this);
         // add the stuff to our existing scene
         this.scene.add.existing(this);
+
+        this.scorePoints()
     }
 
-    dustpunchHandler(punchedId: string) {
-        if (this.id === punchedId) {
-            this.scorePoints();
-        }
-    }
+    // dustpunchHandler(punchedId: string) {
+    //     if (this.id === punchedId) {
+    //         this.scorePoints();
+    //     }
+    // }
 
     scorePoints() {
         if (this.hasBeenScored === false) {

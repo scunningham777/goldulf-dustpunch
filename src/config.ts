@@ -52,8 +52,8 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             minCountAreas: 2,
             maxCountAreas: 4,
             defaultTileTint: 0xD99E18,
-            minCountStuff: 0,
-            maxCountStuff: 0,
+            dustWeight: 0,
+            stuffTypeWeights: [],
         },
         {
             mapConfigName: 'forest_temples',
@@ -103,8 +103,8 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             minCountAreas: 2,
             maxCountAreas: 4,
             defaultTileTint: 0xD99E18,
-            minCountStuff: 0,
-            maxCountStuff: 0,
+            dustWeight: 0,
+            stuffTypeWeights: [],
         }
     ],
     'site': [
@@ -156,8 +156,21 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             minCountAreas: 2,
             maxCountAreas: 4,
             defaultTileTint: 0x8D6981,
-            minCountStuff: 6,
-            maxCountStuff: 10,
+            dustWeight: 8,
+            stuffTypeWeights: [
+                {
+                    key: 'chest',
+                    weight: 2
+                },
+                {
+                    key: 'urn',
+                    weight: 4
+                },
+                {
+                    key: '',
+                    weight: 6
+                }
+            ],
         },
         {
             mapConfigName: 'fire_cave_small',
@@ -207,8 +220,21 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             minCountAreas: 2,
             maxCountAreas: 4,
             defaultTileTint: 0x81102D,
-            minCountStuff: 16,
-            maxCountStuff: 20,
+            dustWeight: 5,
+            stuffTypeWeights: [
+                {
+                    key: 'chest',
+                    weight: 4
+                },
+                {
+                    key: 'urn',
+                    weight: 2
+                },
+                {
+                    key: '',
+                    weight: 6
+                }
+            ],
         },
     ],
 }
