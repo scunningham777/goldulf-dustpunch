@@ -131,19 +131,11 @@ export class SiteScene extends Phaser.Scene {
 
     addListeners() {
         this.registry.events.on(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
-        this.registry.events.on('changedata', (_parent, key: String, data: any) => {
-            if (key === SHOW_MENU_REGISTRY_KEY) {
-                if (data) {
-                    this.hero.freeze();
-                } else {
-                    this.hero.unfreeze();
-                }
-            }
-        });
+        this.registry.events.on('changedata', this.registryChangeHandler, this);
     }
     clearListeners() {
         this.registry.events.off(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
-        this.registry.events.off('changedata');
+        this.registry.events.off('changedata', this.registryChangeHandler);
     }
 
     addCollisions() {
@@ -295,5 +287,15 @@ export class SiteScene extends Phaser.Scene {
     getEntranceLocation(): Phaser.Math.Vector2 {
         const entranceLocation = new Phaser.Math.Vector2(this.areas[0].focusX, this.areas[0].focusY);
         return entranceLocation;
+    }
+
+    registryChangeHandler(_parent, key: String, data: any) {
+        if (key === SHOW_MENU_REGISTRY_KEY) {
+            if (data) {
+                this.hero.freeze();
+            } else {
+                this.hero.unfreeze();
+            }
+        }
     }
 }
