@@ -1,5 +1,5 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
 import { SiteConfig } from '../interfaces/siteConfig';
@@ -10,6 +10,7 @@ import Stuff from '../objects/stuff';
 import { DustModel } from '../dungeonGenerator/dustModel';
 import Dust from '../objects/dust';
 import Exit from '../objects/exit';
+import { SiteCompleteSceneProps } from './siteComplete';
 
 export class SiteScene extends Phaser.Scene {
     private mapKey: string;
@@ -57,9 +58,7 @@ export class SiteScene extends Phaser.Scene {
         }
 
         if (!!this.hero) {
-            if (!this.hasHeroReachedExit && !this.registry.get(SHOW_MENU_REGISTRY_KEY)) {
-                this.hero.update(this.cursors);
-            }
+            this.hero.update(this.cursors);
         }
     }
     /* end lifecycle */
@@ -108,7 +107,7 @@ export class SiteScene extends Phaser.Scene {
             heroStartDirection = CARDINAL_DIRECTION.UP;
         }
         const heroMvtCtrl = this.registry.get(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY);
-        this.hero = new Hero(heroStartXInPixels , heroStartYInPixels, this, /*IS_DEBUG ? 360 :*/ 180, heroStartDirection, heroMvtCtrl);
+        this.hero = new Hero(heroStartXInPixels, heroStartYInPixels, this, IS_DEBUG ? 360 : 180, heroStartDirection, heroMvtCtrl);
         // this.hero.freeze();
         this.hero.isPunching = this.scene.key === SITE_TYPES.site;
     }
@@ -241,6 +240,7 @@ export class SiteScene extends Phaser.Scene {
         }, this);
     }
 
+    // TODO: move this whole thing to siteComplete scene
     nextMap(exitConfig?: {linkedMapSceneType: SITE_TYPES, linkedMapConfigName: string, linkedMapConfigCategory: string}) {
         this.hasHeroReachedExit = true;
         this.hero.freeze();
@@ -266,16 +266,20 @@ export class SiteScene extends Phaser.Scene {
             this.burstEmitter.explode(28, dustObj.x, dustObj.y);
             this.sound.play('dust');
 
-            const stuffType = weightedRandomizeAnything(this.mapConfig.stuffTypeWeights);
-
-            if (STUFF_CONFIGS.find(s => s.stuffName == stuffType)) {
-                const newStuff = new StuffModel(
+            if (this.dustGroup.getChildren().length == 0) {
+                this.completeSite();
+            } else {
+                const stuffType = weightedRandomizeAnything(this.mapConfig.stuffTypeWeights);
+                
+                if (STUFF_CONFIGS.find(s => s.stuffName == stuffType)) {
+                    const newStuff = new StuffModel(
                         dustObj.x,
                         dustObj.y,
                         STATIC_TEXTURE_KEY,
                         stuffType,  
                     );
-                this.createStuff(newStuff);
+                    this.createStuff(newStuff);
+                }
             }
         }
     }
@@ -293,9 +297,22 @@ export class SiteScene extends Phaser.Scene {
         if (key === SHOW_MENU_REGISTRY_KEY) {
             if (data) {
                 this.hero.freeze();
-            } else {
+            } else if (!this.hasHeroReachedExit) {
                 this.hero.unfreeze();
             }
         }
+    }
+
+    completeSite() {
+        this.hasHeroReachedExit = true;
+        this.hero.freeze();
+        const siteCompleteProps: SiteCompleteSceneProps = {
+            heroDisplayX: this.hero.entity.x - this.cameras.main.scrollX,
+            heroDisplayY: this.hero.entity.y - this.cameras.main.scrollY,
+            heroDirection: this.hero.currentDirection,
+        }
+        this.scene.launch(SITE_COMPLETE_SCENE_KEY, siteCompleteProps);
+
+        this.hero.entity.setVisible(false);
     }
 }

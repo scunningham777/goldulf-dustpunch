@@ -7,12 +7,13 @@ import { GameTitleScene } from './scenes/gameTitle';
 import { SiteScene } from './scenes/site';
 import { GameOverScene } from './scenes/gameOver';
 
-import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR, SITE_TYPES, IS_DEBUG } from './constants';
+import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR, SITE_TYPES, IS_DEBUG, SITE_COMPLETE_SCENE_KEY } from './constants';
 
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 import { UIScene } from './scenes/uiScene';
+import { SiteCompleteScene } from './scenes/siteComplete';
 
 const config: Phaser.Types.Core.GameConfig = {
     width: WORLD_WIDTH,
@@ -62,6 +63,7 @@ export class Game extends Phaser.Game {
         this.scene.add(SITE_TYPES.site, SiteScene, false);
         this.scene.add(UI_SCENE_KEY, UIScene, false);
         this.scene.add('GameOver', GameOverScene, false);
+        this.scene.add(SITE_COMPLETE_SCENE_KEY, SiteCompleteScene, false);
 
         this.scene.start('Boot');
 

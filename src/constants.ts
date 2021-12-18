@@ -64,6 +64,7 @@ export const HERO_OFFSETS = {
 }
 export const STUFF_TINT = 0x79A1D2;
 export const UI_SCENE_KEY = 'UIScene';
+export const SITE_COMPLETE_SCENE_KEY = 'SiteComplete';
 export const SITE_SCENE_KEY = 'site';
 export const enum SITE_TYPES {
     overworld = 'overworld',
