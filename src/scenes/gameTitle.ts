@@ -113,11 +113,13 @@ export class GameTitleScene extends Phaser.Scene {
 
         const initialMapSceneConfig = {
             mapConfigName: 'new_game',
+            // mapConfigName: 'cave_small',
             mapConfigCategory: null,
         };
         this.cleanup();
         
         this.scene.start(SITE_TYPES.overworld, initialMapSceneConfig);
+        // this.scene.start(SITE_TYPES.site, initialMapSceneConfig);
     }
     
     cleanup(): void {

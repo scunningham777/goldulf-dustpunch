@@ -136,15 +136,15 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                 focusTileIndex: 3,
             },
             exitAreaConfigs: [
-                {
-                    placement: 'wall',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.overworld,
-                    availableLinkedMapConfigName: ['forest_temples']
-                }
+                // {
+                //     placement: 'wall',
+                //     minSize: 5,
+                //     maxSize: 10,
+                //     linkedMapConfigType: SITE_TYPES.overworld,
+                //     availableLinkedMapConfigName: ['forest_temples']
+                // }
             ],
-            maxExitAreaCount: 1,
+            maxExitAreaCount: 0,
             otherAreaConfigs: [
                 {
                     placement: 'floor',
@@ -200,15 +200,15 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                 focusTileIndex: 3,
             },
             exitAreaConfigs: [
-                {
-                    placement: 'wall',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.overworld,
-                    availableLinkedMapConfigName: ['forest_temples']
-                }
+                // {
+                //     placement: 'wall',
+                //     minSize: 5,
+                //     maxSize: 10,
+                //     linkedMapConfigType: SITE_TYPES.overworld,
+                //     availableLinkedMapConfigName: ['forest_temples']
+                // }
             ],
-            maxExitAreaCount: 1,
+            maxExitAreaCount: 0,
             otherAreaConfigs: [
                 {
                     placement: 'floor',

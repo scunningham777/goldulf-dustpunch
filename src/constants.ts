@@ -70,6 +70,7 @@ export const enum SITE_TYPES {
     overworld = 'overworld',
     site = 'site',
 }
+export const TYPEWRITER_WORD_INTERVAL = 80;
 
 // "ENVIRONMENT"
 export const IS_DEBUG = false;

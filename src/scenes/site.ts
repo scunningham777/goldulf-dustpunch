@@ -1,5 +1,5 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
 import { SiteConfig } from '../interfaces/siteConfig';
@@ -107,7 +107,7 @@ export class SiteScene extends Phaser.Scene {
             heroStartDirection = CARDINAL_DIRECTION.UP;
         }
         const heroMvtCtrl = this.registry.get(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY);
-        this.hero = new Hero(heroStartXInPixels, heroStartYInPixels, this, IS_DEBUG ? 360 : 180, heroStartDirection, heroMvtCtrl);
+        this.hero = new Hero(heroStartXInPixels, heroStartYInPixels, this, IS_DEBUG ? 360 : 220, heroStartDirection, heroMvtCtrl);
         // this.hero.freeze();
         this.hero.isPunching = this.scene.key === SITE_TYPES.site;
     }
@@ -240,7 +240,6 @@ export class SiteScene extends Phaser.Scene {
         }, this);
     }
 
-    // TODO: move this whole thing to siteComplete scene
     nextMap(exitConfig?: {linkedMapSceneType: SITE_TYPES, linkedMapConfigName: string, linkedMapConfigCategory: string}) {
         this.hasHeroReachedExit = true;
         this.hero.freeze();
@@ -267,6 +266,7 @@ export class SiteScene extends Phaser.Scene {
             this.sound.play('dust');
 
             if (this.dustGroup.getChildren().length == 0) {
+            // if (this.dustGroup.getChildren().length >= 0) {
                 this.completeSite();
             } else {
                 const stuffType = weightedRandomizeAnything(this.mapConfig.stuffTypeWeights);
@@ -306,13 +306,20 @@ export class SiteScene extends Phaser.Scene {
     completeSite() {
         this.hasHeroReachedExit = true;
         this.hero.freeze();
-        const siteCompleteProps: SiteCompleteSceneProps = {
-            heroDisplayX: this.hero.entity.x - this.cameras.main.scrollX,
-            heroDisplayY: this.hero.entity.y - this.cameras.main.scrollY,
-            heroDirection: this.hero.currentDirection,
-        }
-        this.scene.launch(SITE_COMPLETE_SCENE_KEY, siteCompleteProps);
-
-        this.hero.entity.setVisible(false);
+        this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection]);
+        this.cameras.main.flash(10)
+        this.time.delayedCall(200, () => {
+            this.cameras.main.flash(100, 255, 255, 255, true);
+        });
+        this.time.delayedCall(1000, () => {
+            const siteCompleteProps: SiteCompleteSceneProps = {
+                heroDisplayX: this.hero.entity.x - this.cameras.main.scrollX,
+                heroDisplayY: this.hero.entity.y - this.cameras.main.scrollY,
+                heroDirection: this.hero.currentDirection,
+            }
+            this.scene.launch(SITE_COMPLETE_SCENE_KEY, siteCompleteProps);
+            
+            this.hero.entity.setVisible(false);
+        })
     }
 }
