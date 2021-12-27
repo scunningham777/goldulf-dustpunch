@@ -186,10 +186,14 @@ export class SiteScene extends Phaser.Scene {
                     const entrance = this.getEntranceLocation();
                     this.burstEmitter.explode(24, (entrance.x + .5) * (this.map.tileWidth * GAME_SCALE), (entrance.y + .5) * (this.map.tileHeight * GAME_SCALE));
                 });
+                this.time.delayedCall(1000, () => {
+                    this.hero.unfreeze();
+                });
+            } else {
+                this.time.delayedCall(200, () => {
+                    this.hero.unfreeze();
+                });
             }
-            this.time.delayedCall(1000, () => {
-                this.hero.unfreeze();
-            });
         });
     }
 

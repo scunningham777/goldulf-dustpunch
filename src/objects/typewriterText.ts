@@ -16,7 +16,7 @@ export class TypewriterText {
             this.scene.cameras.main.displayWidth / 2,
             yPosition,
             this.words[this.printIndex++],
-            {font: `32px '7_12'`, color: '#fff', align: 'center', wordWrap: {width: this.scene.cameras.main.displayWidth * .8}}
+            {font: `32px '7_12'`, color: '#fff', align: 'center', wordWrap: {width: this.scene.cameras.main.displayWidth * .85}}
         );
         this.textObject.setOrigin(.5, 0);
 

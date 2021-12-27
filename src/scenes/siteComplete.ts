@@ -1,4 +1,4 @@
-import { HERO_FRAMES, SITE_COMPLETE_SCENE_KEY, SITE_TYPES, TYPEWRITER_WORD_INTERVAL } from "../constants";
+import { GAME_SCALE, HERO_FRAMES, SITE_COMPLETE_SCENE_KEY, SITE_TYPES, TYPEWRITER_WORD_INTERVAL } from "../constants";
 import { AreaConfig } from "../interfaces/areaConfig";
 import { SiteConfig } from "../interfaces/siteConfig";
 import Hero from "../objects/hero";
@@ -50,9 +50,9 @@ export class SiteCompleteScene extends Phaser.Scene {
         });
         this.time.delayedCall(3 * ALPHA_DELAY + 2 * FLASH_DELAY + SPEECH_DELAY, () => {
             const halfHeight = this.cameras.main.displayHeight / 2
-            const speechTextYOffset = (this.hero.entity.y > halfHeight) ? 0 : halfHeight;
-            const speechTextY = this.cameras.main.displayHeight * .15 + speechTextYOffset;
-            const speechText = 'Trapped here for centuries by the final curse of Goldulf, my spirit has at last been set free by your fastidious fistwork.';
+            const speechTextYOffset = (this.hero.entity.y > halfHeight - (this.hero.entity.height * GAME_SCALE)) ? 0 : halfHeight;
+            const speechTextY = this.cameras.main.displayHeight * .1 + speechTextYOffset;
+            const speechText = 'Trapped here for centuries by the final curse of Goldulf, my spirit has at last been set free by your fastidious fistwork!\n\nPunch on to free the rest of our bodacious bloodline.';
             this.speechText = new TypewriterText(speechText, this, speechTextY, TYPEWRITER_WORD_INTERVAL, () => {
                 this.input.keyboard.on('keydown', this.nextMap, this);
                 this.input.on('pointerdown', this.nextMap, this);
@@ -62,18 +62,20 @@ export class SiteCompleteScene extends Phaser.Scene {
 
     nextMap() {
         const cam = this.cameras.main;
-        cam.fade(250, 0, 0, 0, false, (camera: Phaser.Cameras.Scene2D.Camera, progress: number) => {
-            if (progress >= .5) {
-                
-            }
-        });
-        cam.once('camerafadeoutcomplete', () => {
-            const sceneConfig = {
-                mapConfigName: 'forest_temples',
-            };
-            (this.scene.get(SITE_TYPES.site) as SiteScene).clearListeners();
-            this.scene.stop(SITE_TYPES.site);
-            this.scene.start(SITE_TYPES.overworld, sceneConfig);
+        this.time.delayedCall(1, () => cam.flash(10));
+        this.time.delayedCall(FLASH_DELAY, () => cam.flash(10));
+        this.time.delayedCall(FLASH_DELAY * 2, () => cam.flash(10));
+        this.time.delayedCall(FLASH_DELAY * 3, () => cam.flash(10));
+        this.time.delayedCall(FLASH_DELAY * 6, () => {
+            cam.fade(700, 255, 255, 255, false);
+            cam.once('camerafadeoutcomplete', () => {
+                const sceneConfig = {
+                    mapConfigName: 'forest_temples',
+                };
+                (this.scene.get(SITE_TYPES.site) as SiteScene).clearListeners();
+                this.scene.stop(SITE_TYPES.site);
+                this.scene.start(SITE_TYPES.overworld, sceneConfig);
+            });
         });
     }
 }
