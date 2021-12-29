@@ -239,8 +239,10 @@ export class SiteScene extends Phaser.Scene {
     tintMap() {
         const mapLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
         mapLayer.forEachTile(t => t.tint = this.mapConfig.defaultTileTint);
-        this.exitGroup.children.iterate(exit => {
-            (exit as Exit).setTint((this.mapConfig.defaultTileTint));
+        this.exitGroup.children.iterate((exit: Exit) => {
+            const exitMapConfig: SiteConfig = MAP_CONFIGS.site.find(mc => mc.mapConfigName == exit.linkedMapConfigName);
+            const exitTint = !!exitMapConfig ? exitMapConfig.defaultTileTint : this.mapConfig.defaultTileTint;
+            exit.setTint(exitTint);
         }, this);
     }
 

@@ -149,12 +149,16 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             ],
             minCountAreas: 2,
             maxCountAreas: 4,
-            defaultTileTint: 0x8D6981,
+            defaultTileTint: 0xbD69b1,
             dustWeight: 8,
             availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
                 {
                     key: 'chest',
+                    weight: 2
+                },
+                {
+                    key: 'goblet',
                     weight: 2
                 },
                 {
@@ -206,7 +210,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             ],
             minCountAreas: 2,
             maxCountAreas: 4,
-            defaultTileTint: 0x81102D,
+            defaultTileTint: 0xa1102D,
             dustWeight: 5,
             availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
@@ -217,6 +221,10 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                 {
                     key: 'urn',
                     weight: 2
+                },
+                {
+                    key: 'trophy',
+                    weight: 1
                 },
                 {
                     key: '',
@@ -234,8 +242,18 @@ export const STUFF_CONFIGS: StuffConfig[] = [
         points: 15
     },
     {
-        stuffName: 'urn',
+        stuffName: 'goblet',
         frameIndex: 5,
+        points: 10
+    },
+    {
+        stuffName: 'trophy',
+        frameIndex: 6,
+        points: 10
+    },
+    {
+        stuffName: 'urn',
+        frameIndex: 7,
         points: 10
     }
 ]

@@ -1,7 +1,7 @@
 export const WORLD_WIDTH = window.innerWidth;
 export const WORLD_HEIGHT = window.innerHeight;
 export const GAME_SCALE = 3;
-export const GAME_BG_COLOR = '#517339';
+export const GAME_BG_COLOR = '#000066';
 export const INVENTORY_REGISTRY_KEY = 'inventory';
 export const DUST_PUNCH_EVENT_KEY = 'dustpunch';
 export const STATIC_TEXTURE_KEY = 'static_images';
@@ -54,7 +54,7 @@ export const HERO_FRAMES = {
         'LEFT': 9,
     }
 };
-export const HERO_TINT = 0xE2DB75;
+export const HERO_TINT = 0x41f160;
 export const HERO_OFFSETS = {
     standing: {x: 4, y: 8},
     punching: {
@@ -64,7 +64,7 @@ export const HERO_OFFSETS = {
         'LEFT': {x: -2, y: 2},
     }
 }
-export const STUFF_TINT = 0x79A1D2;
+export const STUFF_TINT = 0xE2DB75;
 export const UI_SCENE_KEY = 'UIScene';
 export const SITE_COMPLETE_SCENE_KEY = 'SiteComplete';
 export const SITE_SCENE_KEY = 'site';
