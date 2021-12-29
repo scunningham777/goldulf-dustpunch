@@ -14,7 +14,7 @@ export class PreloadScene extends Phaser.Scene {
         this.load.maxParallelDownloads = Infinity;
         
         this.load.spritesheet(TERRAIN_TEXTURE_KEY, 'assets/sprites/terrain_16_extruded.png', { frameWidth: 16, frameHeight: 16, margin: 1, spacing: 2 });
-        this.load.spritesheet(STATIC_TEXTURE_KEY, 'assets/sprites/stuff_extruded.png', { frameWidth: 16, frameHeight: 16, margin: 1, spacing: 2 });
+        this.load.spritesheet(STATIC_TEXTURE_KEY, 'assets/sprites/stuff.png', { frameWidth: 16, frameHeight: 16 });
         this.load.spritesheet(UI_TEXTURE_KEY, 'assets/sprites/ui_extruded.png', { frameWidth: 16, frameHeight: 16, margin: 1, spacing: 2 });
         this.load.spritesheet(HERO_TEXTURE_KEY, 'assets/sprites/hero_extruded.png', { frameWidth: 16, frameHeight: 16, margin: 1, spacing: 2 });
         this.load.spritesheet(ANCESTORS_TEXTURE_KEY, 'assets/sprites/ancestors_extruded.png', { frameWidth: 16, frameHeight: 16, margin: 1, spacing: 2 });

@@ -53,6 +53,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             maxCountAreas: 4,
             defaultTileTint: 0xD99E18,
             dustWeight: 0,
+            availableDustFrames: [],
             stuffTypeWeights: [],
         },
         {
@@ -104,6 +105,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             maxCountAreas: 4,
             defaultTileTint: 0xD99E18,
             dustWeight: 0,
+            availableDustFrames: [],
             stuffTypeWeights: [],
         }
     ],
@@ -135,15 +137,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                 maxSize: 8,
                 focusTileIndex: 3,
             },
-            exitAreaConfigs: [
-                // {
-                //     placement: 'wall',
-                //     minSize: 5,
-                //     maxSize: 10,
-                //     linkedMapConfigType: SITE_TYPES.overworld,
-                //     availableLinkedMapConfigName: ['forest_temples']
-                // }
-            ],
+            exitAreaConfigs: [],
             maxExitAreaCount: 0,
             otherAreaConfigs: [
                 {
@@ -157,6 +151,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             maxCountAreas: 4,
             defaultTileTint: 0x8D6981,
             dustWeight: 8,
+            availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
                 {
                     key: 'chest',
@@ -199,15 +194,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                 maxSize: 8,
                 focusTileIndex: 3,
             },
-            exitAreaConfigs: [
-                // {
-                //     placement: 'wall',
-                //     minSize: 5,
-                //     maxSize: 10,
-                //     linkedMapConfigType: SITE_TYPES.overworld,
-                //     availableLinkedMapConfigName: ['forest_temples']
-                // }
-            ],
+            exitAreaConfigs: [],
             maxExitAreaCount: 0,
             otherAreaConfigs: [
                 {
@@ -221,6 +208,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             maxCountAreas: 4,
             defaultTileTint: 0x81102D,
             dustWeight: 5,
+            availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
                 {
                     key: 'chest',
