@@ -1,5 +1,5 @@
 import { CARDINAL_DIRECTION } from '../utils';
-import { GAME_SCALE, HERO_ANIM_FRAME_RATES, HERO_FRAMES, HERO_TINT, HERO_OFFSETS } from '../constants';
+import { GAME_SCALE, HERO_ANIM_FRAME_RATES, HERO_FRAMES, HERO_TINT, HERO_OFFSETS, HERO_TEXTURE_KEY } from '../constants';
 import { HeroMovementController } from '../interfaces/heroMovementController';
 import { FOLLOW_HERO_MOVEMENT_CONTROLLER } from './followHeroMovmentController';
 
@@ -77,7 +77,7 @@ export default class Hero {
 
     addToScene(startingDirection: CARDINAL_DIRECTION): void {
         this.heroSprite = this.scene.physics.add
-            .sprite(this.x, this.y, 'hero')
+            .sprite(this.x, this.y, HERO_TEXTURE_KEY)
             .setSize(8, 8)
             .setOffset(HERO_OFFSETS.standing.x, HERO_OFFSETS.standing.y)
             .setScale(GAME_SCALE)
@@ -110,7 +110,7 @@ export default class Hero {
             ].forEach(direction => {
                 this.scene.anims.create({
                     key: state + direction,
-                    frames: this.scene.anims.generateFrameNumbers('hero', { 
+                    frames: this.scene.anims.generateFrameNumbers(HERO_TEXTURE_KEY, { 
                         start: HERO_FRAMES[state + 'AnimStart'][direction],
                         end: HERO_FRAMES[state + 'AnimEnd'][direction],
                     }),

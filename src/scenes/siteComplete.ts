@@ -1,4 +1,4 @@
-import { GAME_SCALE, HERO_FRAMES, SITE_COMPLETE_SCENE_KEY, SITE_TYPES, TYPEWRITER_WORD_INTERVAL } from "../constants";
+import { ANCESTORS_TEXTURE_KEY, GAME_SCALE, HERO_FRAMES, SITE_COMPLETE_SCENE_KEY, SITE_TYPES, TYPEWRITER_WORD_INTERVAL } from "../constants";
 import { AreaConfig } from "../interfaces/areaConfig";
 import { SiteConfig } from "../interfaces/siteConfig";
 import Hero from "../objects/hero";
@@ -19,7 +19,7 @@ const SPEECH_DELAY = 600;
 
 export class SiteCompleteScene extends Phaser.Scene {
     private hero: Hero;
-    private ancestorSpirit: Hero;
+    private ancestorSpirit: Phaser.GameObjects.Image;
     private background: Phaser.GameObjects.Rectangle;
     private speechText: TypewriterText;
     
@@ -45,8 +45,8 @@ export class SiteCompleteScene extends Phaser.Scene {
             }
             
             this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection] + 2);
-            this.ancestorSpirit = new Hero(ancestorPlacementX, this.hero.entity.y, this, 0, CARDINAL_DIRECTION.DOWN);
-            this.ancestorSpirit.entity.setTint(0xffffff);
+            this.ancestorSpirit = this.add.image(ancestorPlacementX, this.hero.entity.y, ANCESTORS_TEXTURE_KEY, 0);
+            this.ancestorSpirit.setScale(GAME_SCALE);
         });
         this.time.delayedCall(3 * ALPHA_DELAY + 2 * FLASH_DELAY + SPEECH_DELAY, () => {
             const halfHeight = this.cameras.main.displayHeight / 2

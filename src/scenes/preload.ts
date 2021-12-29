@@ -1,4 +1,4 @@
-import { HERO_MOVEMENT_CONTROLLER, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, TERRAIN_TEXTURE_KEY, UI_TEXTURE_KEY } from "../constants";
+import { ANCESTORS_TEXTURE_KEY, HERO_MOVEMENT_CONTROLLER, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, HERO_TEXTURE_KEY, STATIC_TEXTURE_KEY, TERRAIN_TEXTURE_KEY, UI_TEXTURE_KEY } from "../constants";
 import { FOLLOW_HERO_MOVEMENT_CONTROLLER } from "../objects/followHeroMovmentController";
 import { JOYSTICK_HERO_MOVEMENT_CONTROLLER } from "../objects/joystickHeroMovementController";
 
@@ -16,7 +16,8 @@ export class PreloadScene extends Phaser.Scene {
         this.load.spritesheet(TERRAIN_TEXTURE_KEY, 'assets/sprites/terrain_16_extruded.png', { frameWidth: 16, frameHeight: 16, margin: 1, spacing: 2 });
         this.load.spritesheet(STATIC_TEXTURE_KEY, 'assets/sprites/stuff_extruded.png', { frameWidth: 16, frameHeight: 16, margin: 1, spacing: 2 });
         this.load.spritesheet(UI_TEXTURE_KEY, 'assets/sprites/ui_extruded.png', { frameWidth: 16, frameHeight: 16, margin: 1, spacing: 2 });
-        this.load.spritesheet('hero', 'assets/sprites/hero_extruded.png', { frameWidth: 16, frameHeight: 16, margin: 1, spacing: 2 });
+        this.load.spritesheet(HERO_TEXTURE_KEY, 'assets/sprites/hero_extruded.png', { frameWidth: 16, frameHeight: 16, margin: 1, spacing: 2 });
+        this.load.spritesheet(ANCESTORS_TEXTURE_KEY, 'assets/sprites/ancestors_extruded.png', { frameWidth: 16, frameHeight: 16, margin: 1, spacing: 2 });
 
         this.load.audio('dust', 'assets/sounds/dust1.wav');
         this.load.audio('punch1', 'assets/sounds/punch1.wav');
