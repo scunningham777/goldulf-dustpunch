@@ -52,7 +52,7 @@ export class SiteCompleteScene extends Phaser.Scene {
             const halfHeight = this.cameras.main.displayHeight / 2
             const speechTextYOffset = (this.hero.entity.y > halfHeight - (this.hero.entity.height * GAME_SCALE)) ? 0 : halfHeight;
             const speechTextY = this.cameras.main.displayHeight * .1 + speechTextYOffset;
-            const speechText = 'Trapped here for centuries by the final curse of Goldulf, my spirit has at last been set free by your fastidious fistwork!\n\nPunch on to free the rest of our bodacious bloodline.';
+            const speechText = 'Trapped here for centuries by the final curse of Goldulf, my spirit has at last been set free by your fastidious fistwork!\n\nPunch on to free the rest of our bodacious bloodline!';
             this.speechText = new TypewriterText(speechText, this, speechTextY, TYPEWRITER_WORD_INTERVAL, () => {
                 this.input.keyboard.on('keydown', this.nextMap, this);
                 this.input.on('pointerdown', this.nextMap, this);

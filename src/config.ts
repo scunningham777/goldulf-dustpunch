@@ -29,7 +29,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                 placement: 'floor',
                 minSize: 5,
                 maxSize: 10,
-                focusTileIndex: 3,
+                focusTileIndex: -1,
             },
             exitAreaConfigs: [
                 {
@@ -81,7 +81,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                 placement: 'floor',
                 minSize: 5,
                 maxSize: 10,
-                focusTileIndex: 3,
+                focusTileIndex: 4,
             },
             exitAreaConfigs: [
                 {
@@ -123,7 +123,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             minMapHeight: 40,
             maxMapWidth: 30,
             maxMapHeight: 40,
-            externalIconTileIndex: 4,
+            externalIconTileIndex: 5,
             wallTileWeights: [
                 {index: 0, weight: 5},
                 {index: 1, weight: 1},
@@ -184,7 +184,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             minMapHeight: 30,
             maxMapWidth: 140,
             maxMapHeight: 40,
-            externalIconTileIndex: 5,
+            externalIconTileIndex: 6,
             wallTileWeights: [
                 {index: 0, weight: 5},
                 {index: 1, weight: 1},
