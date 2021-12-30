@@ -94,6 +94,13 @@ export default class Hero {
                     if (frame.index % 5 == 0) {
                         this.scene.sound.play('punch2');
                     }
+                } else {
+                    if (frame.index % 3 == 1) {
+                        this.scene.sound.play('step', {rate: 1.8});
+                    }
+                    if (frame.index % 3 == 0) {
+                        this.scene.sound.play('step', {rate: 1.4});
+                    }
                 }
             })
             ;

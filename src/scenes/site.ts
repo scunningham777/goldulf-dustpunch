@@ -58,7 +58,7 @@ export class SiteScene extends Phaser.Scene {
         }
 
         if (!!this.hero) {
-            this.hero.update(this.cursors, this.input.gamepad.getPad(0));
+            this.hero.update(this.cursors/*, this.input.gamepad.getPad(0)*/);
         }
     }
     /* end lifecycle */
@@ -181,6 +181,9 @@ export class SiteScene extends Phaser.Scene {
         cam.fadeIn(500)
         cam.once('camerafadeincomplete', () => {
             if (this.mapConfig.mapConfigName != 'new_game') {
+                this.sound.play('dust', {rate: .2});
+                this.sound.play('dust', {delay: .5, rate: .4});
+                // this.sound.play('dust', {delay: .8, rate: .9});
                 cam.shake(1000, .025);
                 this.time.delayedCall(300, () => {
                     const entrance = this.getEntranceLocation();
@@ -269,12 +272,14 @@ export class SiteScene extends Phaser.Scene {
         if (this.hero.isPunching) {
             dustObj.clearDust();
             this.burstEmitter.explode(28, dustObj.x, dustObj.y);
-            this.sound.play('dust');
-
+            
             if (this.dustGroup.getChildren().length == 0) {
             // if (this.dustGroup.getChildren().length >= 0) {
+                this.sound.play('dust', {rate: .4});
+                this.sound.play('dust', {delay: .5, rate: .5});
                 this.completeSite();
             } else {
+                this.sound.play('dust');
                 const stuffType = weightedRandomizeAnything(this.mapConfig.stuffTypeWeights);
                 
                 if (STUFF_CONFIGS.find(s => s.stuffName == stuffType)) {

@@ -7,10 +7,11 @@ export class TypewriterText {
     private printIndex = 0;
     private printIntervalId: number;
     private textObject: Phaser.GameObjects.Text;
+    private completedCallback: Function | null;
 
-    constructor (private baseText: string, private scene: Phaser.Scene, yPosition: number, wordInterval: number = TYPEWRITER_WORD_INTERVAL, completeCallback?: Function, completeCallbackContext?: any) {
+    constructor (private baseText: string, private scene: Phaser.Scene, yPosition: number, wordInterval: number = TYPEWRITER_WORD_INTERVAL, completedCallback?: Function, completedCallbackContext?: any) {
         this.words = this.baseText.split(DIVIDER);
-
+        this.completedCallback = completedCallback.bind(completedCallbackContext);
 
         this.textObject = this.scene.add.text(
             this.scene.cameras.main.displayWidth / 2,
@@ -22,15 +23,30 @@ export class TypewriterText {
 
         this.printIntervalId = window.setInterval(() => {
             this.textObject.setText(this.words.slice(0, this.printIndex + 1).join(DIVIDER));
+            if (this.words[this.printIndex].match(/./)) {
+                this.scene.sound.play('type');
+            }
 
             this.printIndex += 1;
             if (this.printIndex >= this.words.length) {
-                window.clearInterval(this.printIntervalId);
-                if (!!completeCallback) {
-                    completeCallback.apply(completeCallbackContext);
-                }
+                this.finish();
             }
         }, wordInterval)
+
+        this.scene.input.keyboard.on('keydown', this.shortCircuit, this);
+        this.scene.input.on('pointerdown', this.shortCircuit, this);
+    }
+
+    shortCircuit() {
+        this.textObject.setText(this.words.join(DIVIDER));
+        this.finish();
+    }
+
+    finish() {
+        window.clearInterval(this.printIntervalId);
+        if (!!this.completedCallback) {
+            this.completedCallback();
+        }
     }
 
 }

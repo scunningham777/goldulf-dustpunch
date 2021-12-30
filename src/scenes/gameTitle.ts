@@ -29,6 +29,7 @@ export class GameTitleScene extends Phaser.Scene {
                 {font: `${this.scale.height * TITLE_TEXT_PORTION}px '7_12'`, color: '#fff'}
             );
             this.titleText.setOrigin(0.5, 1);
+            this.sound.play('punch1');
         }, [], this);
         
         this.time.delayedCall(TITLE_DELAY + DUSTPUNCH_DELAY, () => {
@@ -54,6 +55,8 @@ export class GameTitleScene extends Phaser.Scene {
             ).setOrigin(0.5, 0);
             const logoScale = (this.scale.height * LOGO_PORTION) / this.dustpunchLogo.height;
             this.dustpunchLogo.setScale(logoScale);
+
+            this.sound.play('punch1');
         }, [], this);
         
         this.time.delayedCall(TITLE_DELAY + DUSTPUNCH_DELAY + INSTRUCTION_DELAY, () => {
@@ -65,9 +68,11 @@ export class GameTitleScene extends Phaser.Scene {
             )
             .setOrigin(0.5, 0);
 
+            this.sound.play('punch2', {rate: 1});
+
             this.input.keyboard.on('keydown', this.startGame, this);
             this.input.on('pointerdown', this.startGame, this);
-            this.input.gamepad.on('down', this.startGame, this);
+            // this.input.gamepad.on('down', this.startGame, this);
 
             // blink
             this.time.delayedCall(INSTRUCTION_SHOW_PERIOD, this.hideInstructions, [], this);
@@ -127,6 +132,6 @@ export class GameTitleScene extends Phaser.Scene {
         this.scale.off('orientationchange');
         this.input.off('pointerdown');
         this.input.keyboard.off('keydown');
-        this.input.gamepad.off('down');
+        // this.input.gamepad.off('down');
     }
 }

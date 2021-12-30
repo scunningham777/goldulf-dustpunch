@@ -20,8 +20,10 @@ export class PreloadScene extends Phaser.Scene {
         this.load.spritesheet(ANCESTORS_TEXTURE_KEY, 'assets/sprites/ancestors_extruded.png', { frameWidth: 16, frameHeight: 16, margin: 1, spacing: 2 });
 
         this.load.audio('dust', 'assets/sounds/dust1.wav');
+        this.load.audio('step', 'assets/sounds/step1.wav');
         this.load.audio('punch1', 'assets/sounds/punch1.wav');
         this.load.audio('punch2', 'assets/sounds/punch2.wav');
+        this.load.audio('type', 'assets/sounds/type.wav');
 
         this.load.script('webfont', 'https://cdnjs.cloudflare.com/ajax/libs/webfont/1.6.28/webfontloader.js');
     }
