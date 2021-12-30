@@ -45,7 +45,10 @@ const config: Phaser.Types.Core.GameConfig = {
     zoom: 1,
     dom: {
         createContainer: true,
-    }
+    },
+    // input: {
+    //     gamepad: true,
+    // }
 };
 
 export class Game extends Phaser.Game {

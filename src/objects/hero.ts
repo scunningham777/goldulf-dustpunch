@@ -39,7 +39,7 @@ export default class Hero {
         this.mvtCtrl.init(this);
     }
 
-    update(cursors: Phaser.Types.Input.Keyboard.CursorKeys): void {
+    update(cursors: Phaser.Types.Input.Keyboard.CursorKeys, gamepad?: Phaser.Input.Gamepad.Gamepad): void {
         if (this.isFrozen) {
             return;
         }
@@ -48,19 +48,20 @@ export default class Hero {
 
         let newDirection: CARDINAL_DIRECTION = null;
         const pointer = this.scene.input.activePointer;
+        const gamepadDirections = this.calculateGamepad(gamepad);
 
-        if (cursors.left.isDown || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.LEFT)) {
+        if (cursors.left.isDown || gamepadDirections.left || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.LEFT)) {
             this.heroSprite.setVelocityX(-this.velocity);
             newDirection = CARDINAL_DIRECTION.LEFT;
-        } else if (cursors.right.isDown || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.RIGHT)) {
+        } else if (cursors.right.isDown || gamepadDirections.right || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.RIGHT)) {
             this.heroSprite.setVelocityX(this.velocity);
             newDirection = CARDINAL_DIRECTION.RIGHT;
         }
 
-        if (cursors.up.isDown || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.UP)) {
+        if (cursors.up.isDown || gamepadDirections.up || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.UP)) {
             this.heroSprite.setVelocityY(-this.velocity);
             newDirection = CARDINAL_DIRECTION.UP;
-        } else if (cursors.down.isDown || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.DOWN)) {
+        } else if (cursors.down.isDown || gamepadDirections.down || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.DOWN)) {
             this.heroSprite.setVelocityY(this.velocity);
             newDirection = CARDINAL_DIRECTION.DOWN;
         }
@@ -92,6 +93,13 @@ export default class Hero {
                     }
                     if (frame.index % 5 == 0) {
                         this.scene.sound.play('punch2');
+                    }
+                } else {
+                    if (frame.index % 3 == 1) {
+                        this.scene.sound.play('step', {rate: 1.8});
+                    }
+                    if (frame.index % 3 == 0) {
+                        this.scene.sound.play('step', {rate: 1.4});
                     }
                 }
             })
@@ -131,5 +139,34 @@ export default class Hero {
         (this.entity.body as Phaser.Physics.Arcade.Body).moves = true;
         this.heroSprite.anims.resume();
         this.isFrozen = false;
+    }
+
+    calculateGamepad(gamepad: Phaser.Input.Gamepad.Gamepad): {up: boolean, down: boolean, left: boolean, right: boolean} {
+        const directions = {
+            up: false,
+            down: false,
+            left: false,
+            right: false,
+        }
+
+        
+        if (!!gamepad) {
+            const axisH = gamepad.axes[0].getValue();
+            const axisV = gamepad.axes[1].getValue();
+            if (gamepad.up || axisV < 0) {
+                directions.up = true;
+            }
+            if (gamepad.down || axisV > 0) {
+                directions.down = true;
+            }
+            if (gamepad.left || axisH < 0) {
+                directions.left = true;
+            }
+            if (gamepad.right || axisH > 0) {
+                directions.right = true;
+            }
+        }
+
+        return directions;
     }
 }
