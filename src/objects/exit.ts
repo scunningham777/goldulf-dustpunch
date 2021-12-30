@@ -7,7 +7,7 @@ export default class Exit extends Phaser.Physics.Arcade.Image {
         key: string, frame: number,
         public id: string,
         private linkedMapSceneType?: SITE_TYPES,
-        private linkedMapConfigName?: string,
+        public linkedMapConfigName?: string,
         private linkedMapConfigCategory?: string,
     ) {
         super(scene, x, y, key, frame);
@@ -15,7 +15,7 @@ export default class Exit extends Phaser.Physics.Arcade.Image {
         // enable physics
         this.scene.physics.world.enable(this);
         // TODO #8: shrink the hit box to require more overlap
-        this.setSize(4, 4);
+        this.setSize(8, 8);
         // scale the exit
         this.setScale(GAME_SCALE);
         // add the exit to our existing scene

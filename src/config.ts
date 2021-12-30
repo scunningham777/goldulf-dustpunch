@@ -29,7 +29,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                 placement: 'floor',
                 minSize: 5,
                 maxSize: 10,
-                focusTileIndex: 3,
+                focusTileIndex: -1,
             },
             exitAreaConfigs: [
                 {
@@ -53,6 +53,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             maxCountAreas: 4,
             defaultTileTint: 0xD99E18,
             dustWeight: 0,
+            availableDustFrames: [],
             stuffTypeWeights: [],
         },
         {
@@ -80,7 +81,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                 placement: 'floor',
                 minSize: 5,
                 maxSize: 10,
-                focusTileIndex: 3,
+                focusTileIndex: 4,
             },
             exitAreaConfigs: [
                 {
@@ -104,6 +105,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             maxCountAreas: 4,
             defaultTileTint: 0xD99E18,
             dustWeight: 0,
+            availableDustFrames: [],
             stuffTypeWeights: [],
         }
     ],
@@ -121,7 +123,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             minMapHeight: 40,
             maxMapWidth: 30,
             maxMapHeight: 40,
-            externalIconTileIndex: 4,
+            externalIconTileIndex: 5,
             wallTileWeights: [
                 {index: 0, weight: 5},
                 {index: 1, weight: 1},
@@ -135,16 +137,8 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                 maxSize: 8,
                 focusTileIndex: 3,
             },
-            exitAreaConfigs: [
-                {
-                    placement: 'wall',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.overworld,
-                    availableLinkedMapConfigName: ['forest_temples']
-                }
-            ],
-            maxExitAreaCount: 1,
+            exitAreaConfigs: [],
+            maxExitAreaCount: 0,
             otherAreaConfigs: [
                 {
                     placement: 'floor',
@@ -155,11 +149,16 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             ],
             minCountAreas: 2,
             maxCountAreas: 4,
-            defaultTileTint: 0x8D6981,
+            defaultTileTint: 0xbD69b1,
             dustWeight: 8,
+            availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
                 {
                     key: 'chest',
+                    weight: 2
+                },
+                {
+                    key: 'goblet',
                     weight: 2
                 },
                 {
@@ -185,7 +184,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             minMapHeight: 30,
             maxMapWidth: 140,
             maxMapHeight: 40,
-            externalIconTileIndex: 5,
+            externalIconTileIndex: 6,
             wallTileWeights: [
                 {index: 0, weight: 5},
                 {index: 1, weight: 1},
@@ -199,16 +198,8 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                 maxSize: 8,
                 focusTileIndex: 3,
             },
-            exitAreaConfigs: [
-                {
-                    placement: 'wall',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.overworld,
-                    availableLinkedMapConfigName: ['forest_temples']
-                }
-            ],
-            maxExitAreaCount: 1,
+            exitAreaConfigs: [],
+            maxExitAreaCount: 0,
             otherAreaConfigs: [
                 {
                     placement: 'floor',
@@ -219,8 +210,9 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             ],
             minCountAreas: 2,
             maxCountAreas: 4,
-            defaultTileTint: 0x81102D,
+            defaultTileTint: 0xa1102D,
             dustWeight: 5,
+            availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
                 {
                     key: 'chest',
@@ -229,6 +221,10 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                 {
                     key: 'urn',
                     weight: 2
+                },
+                {
+                    key: 'trophy',
+                    weight: 1
                 },
                 {
                     key: '',
@@ -246,8 +242,18 @@ export const STUFF_CONFIGS: StuffConfig[] = [
         points: 15
     },
     {
-        stuffName: 'urn',
+        stuffName: 'goblet',
         frameIndex: 5,
+        points: 10
+    },
+    {
+        stuffName: 'trophy',
+        frameIndex: 6,
+        points: 10
+    },
+    {
+        stuffName: 'urn',
+        frameIndex: 7,
         points: 10
     }
 ]

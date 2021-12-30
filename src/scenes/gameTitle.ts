@@ -1,4 +1,4 @@
-import { UI_SCENE_KEY, SITE_TYPES } from "../constants";
+import { UI_SCENE_KEY, SITE_TYPES, HERO_TEXTURE_KEY } from "../constants";
 
 const TITLE_PORTION = .25;
 const TITLE_TEXT_PORTION = .08;
@@ -49,7 +49,7 @@ export class GameTitleScene extends Phaser.Scene {
             this.dustpunchLogo = this.add.image(
                 this.scale.width / 2,
                 this.scale.height * (TITLE_PORTION + SUBTITLE_Y_OFFSET + SUBTITLE_TEXT_PORTION + LOGO_Y_OFFSET),
-                'hero',
+                HERO_TEXTURE_KEY,
                 9
             ).setOrigin(0.5, 0);
             const logoScale = (this.scale.height * LOGO_PORTION) / this.dustpunchLogo.height;
@@ -113,11 +113,13 @@ export class GameTitleScene extends Phaser.Scene {
 
         const initialMapSceneConfig = {
             mapConfigName: 'new_game',
+            // mapConfigName: 'cave_small',
             mapConfigCategory: null,
         };
         this.cleanup();
         
         this.scene.start(SITE_TYPES.overworld, initialMapSceneConfig);
+        // this.scene.start(SITE_TYPES.site, initialMapSceneConfig);
     }
     
     cleanup(): void {

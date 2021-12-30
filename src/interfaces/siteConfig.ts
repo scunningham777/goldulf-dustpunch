@@ -17,6 +17,7 @@ export interface SiteConfig {
     wallTileWeights: {index: number, weight: number}[];
     floorTileWeights: {index: number, weight: number}[];
     dustWeight: number;
+    availableDustFrames: number[];
     stuffTypeWeights: {key: string, weight: number}[];
     entranceAreaConfig: AreaConfig;
     exitAreaConfigs: AreaConfig[];

@@ -1,5 +1,5 @@
 import { CARDINAL_DIRECTION } from '../utils';
-import { GAME_SCALE, HERO_ANIM_FRAME_RATES, HERO_FRAMES, HERO_TINT, HERO_OFFSETS } from '../constants';
+import { GAME_SCALE, HERO_ANIM_FRAME_RATES, HERO_FRAMES, HERO_TINT, HERO_OFFSETS, HERO_TEXTURE_KEY } from '../constants';
 import { HeroMovementController } from '../interfaces/heroMovementController';
 import { FOLLOW_HERO_MOVEMENT_CONTROLLER } from './followHeroMovmentController';
 
@@ -12,13 +12,14 @@ export default class Hero {
     public isPunching = false;
     public isFrozen = false;
     public lastAnimationFrame = -1;
-    private set currentDirection(newDir: CARDINAL_DIRECTION) {
+    private _currentDirection = CARDINAL_DIRECTION.DOWN;
+    public set currentDirection(newDir: CARDINAL_DIRECTION) {
         this._currentDirection = newDir;
         if (this.heroSprite != null) {
             this.heroSprite.flipX = newDir === CARDINAL_DIRECTION.LEFT ? true : false;
         }
     }
-    private get currentDirection(): CARDINAL_DIRECTION {
+    public get currentDirection(): CARDINAL_DIRECTION {
         return this._currentDirection;
     }
     public get entity() {
@@ -30,19 +31,21 @@ export default class Hero {
         private y: number,
         private scene: Phaser.Scene,
         private velocity: number,
-        private _currentDirection = CARDINAL_DIRECTION.DOWN,
+        startingDirection: CARDINAL_DIRECTION,
         private mvtCtrl: HeroMovementController = FOLLOW_HERO_MOVEMENT_CONTROLLER,
     ) {
-        this.addToScene();
+        this.addToScene(startingDirection);
         this.addAnimations();
         this.mvtCtrl.init(this);
     }
 
     update(cursors: Phaser.Types.Input.Keyboard.CursorKeys): void {
-        this.heroSprite.setVelocity(0);
         if (this.isFrozen) {
-            this.unfreeze();
+            return;
         }
+
+        this.heroSprite.setVelocity(0);
+
         let newDirection: CARDINAL_DIRECTION = null;
         const pointer = this.scene.input.activePointer;
 
@@ -72,13 +75,13 @@ export default class Hero {
         this.mvtCtrl.update(this);
     }
 
-    addToScene(): void {
+    addToScene(startingDirection: CARDINAL_DIRECTION): void {
         this.heroSprite = this.scene.physics.add
-            .sprite(this.x, this.y, 'hero')
+            .sprite(this.x, this.y, HERO_TEXTURE_KEY)
             .setSize(8, 8)
             .setOffset(HERO_OFFSETS.standing.x, HERO_OFFSETS.standing.y)
             .setScale(GAME_SCALE)
-            .setFrame(HERO_FRAMES.standing[CARDINAL_DIRECTION.DOWN])
+            .setFrame(HERO_FRAMES.standing[startingDirection])
             .setDepth(1)
             .setTint(HERO_TINT)
             .on('animationupdate', (animation: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame, heroSprite: Phaser.GameObjects.Sprite) => {
@@ -93,8 +96,8 @@ export default class Hero {
                 }
             })
             ;
-        // jump-start flipX
-        this.currentDirection = this.currentDirection;
+        // jump-start flipX & currentDirection
+        this.currentDirection = startingDirection;
     }
 
     addAnimations(): void {
@@ -107,7 +110,7 @@ export default class Hero {
             ].forEach(direction => {
                 this.scene.anims.create({
                     key: state + direction,
-                    frames: this.scene.anims.generateFrameNumbers('hero', { 
+                    frames: this.scene.anims.generateFrameNumbers(HERO_TEXTURE_KEY, { 
                         start: HERO_FRAMES[state + 'AnimStart'][direction],
                         end: HERO_FRAMES[state + 'AnimEnd'][direction],
                     }),

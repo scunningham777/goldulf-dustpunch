@@ -25,7 +25,7 @@ export class UIScene extends Phaser.Scene {
         this.menuBtn.setInteractive();
 
         this.menuBtn.on('pointerdown', () => {
-            this.showInventory(null);
+            this.registry.set(SHOW_MENU_REGISTRY_KEY, !this.registry.get(SHOW_MENU_REGISTRY_KEY));
         });
 
         this.virtualJoystick = this.add.ellipse(10, 50, VIRTUAL_JOYSTICK_DIAMETER * GAME_SCALE, VIRTUAL_JOYSTICK_DIAMETER * GAME_SCALE, 0x000000, 1);

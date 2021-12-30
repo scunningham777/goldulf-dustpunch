@@ -1,5 +1,5 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, DUST_PUNCH_EVENT_KEY, STATIC_TEXTURE_KEY } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
 import { SiteConfig } from '../interfaces/siteConfig';
@@ -10,6 +10,7 @@ import Stuff from '../objects/stuff';
 import { DustModel } from '../dungeonGenerator/dustModel';
 import Dust from '../objects/dust';
 import Exit from '../objects/exit';
+import { SiteCompleteSceneProps } from './siteComplete';
 
 export class SiteScene extends Phaser.Scene {
     private mapKey: string;
@@ -23,7 +24,7 @@ export class SiteScene extends Phaser.Scene {
     private dustGroup: Phaser.Physics.Arcade.Group;
     private exitGroup: Phaser.Physics.Arcade.Group;
     private hasHeroReachedExit = false;
-    private dustEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
+    private burstEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
     private get greatestXCoord(): number {
         return this.map.width - 1;
     }
@@ -47,6 +48,8 @@ export class SiteScene extends Phaser.Scene {
         this.initInput();
         this.initCamera();
         this.initRegistry();
+
+        this.begin();
     }
 
     update(): void {
@@ -55,11 +58,7 @@ export class SiteScene extends Phaser.Scene {
         }
 
         if (!!this.hero) {
-            if (this.registry.get(SHOW_MENU_REGISTRY_KEY)) {
-                this.hero.freeze();
-            } else if (!this.hasHeroReachedExit) {
-                this.hero.update(this.cursors);
-            }
+            this.hero.update(this.cursors);
         }
     }
     /* end lifecycle */
@@ -108,13 +107,13 @@ export class SiteScene extends Phaser.Scene {
             heroStartDirection = CARDINAL_DIRECTION.UP;
         }
         const heroMvtCtrl = this.registry.get(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY);
-        this.hero = new Hero(heroStartXInPixels , heroStartYInPixels, this, /*IS_DEBUG ? 360 :*/ 180, heroStartDirection, heroMvtCtrl);
-        this.hero.isPunching = this.mapConfig.mapConfigCategories.some(cat => cat == 'cave')
-        // this.hero.isPunching = true;
+        this.hero = new Hero(heroStartXInPixels, heroStartYInPixels, this, IS_DEBUG ? 360 : 220, heroStartDirection, heroMvtCtrl);
+        // this.hero.freeze();
+        this.hero.isPunching = this.scene.key === SITE_TYPES.site;
     }
 
     createEmitter() {
-        this.dustEmitter = this.add.particles('__WHITE').createEmitter({
+        this.burstEmitter = this.add.particles('__WHITE').createEmitter({
             name: 'dust_particles',
             x: 0,
             y: 0,
@@ -122,9 +121,8 @@ export class SiteScene extends Phaser.Scene {
             speed: {end: 0, start: 50, random: true},
             angle: {min: 0, max: 360},
             lifespan: 1200,
-            // scale: 1.2
         });
-        this.dustEmitter.setEmitZone({
+        this.burstEmitter.setEmitZone({
             type: 'random',
             source: new Phaser.Geom.Rectangle(-8 * GAME_SCALE, -8 * GAME_SCALE, 16 * GAME_SCALE, 16 * GAME_SCALE),
         })
@@ -132,9 +130,11 @@ export class SiteScene extends Phaser.Scene {
 
     addListeners() {
         this.registry.events.on(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
+        this.registry.events.on('changedata', this.registryChangeHandler, this);
     }
     clearListeners() {
         this.registry.events.off(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
+        this.registry.events.off('changedata', this.registryChangeHandler);
     }
 
     addCollisions() {
@@ -174,6 +174,29 @@ export class SiteScene extends Phaser.Scene {
     initRegistry() {
         this.registry.set(SHOW_MENU_REGISTRY_KEY, false);
     }
+
+    begin() {
+        this.hero.freeze();
+        const cam = this.cameras.main;
+        cam.fadeIn(500)
+        cam.once('camerafadeincomplete', () => {
+            if (this.mapConfig.mapConfigName != 'new_game') {
+                cam.shake(1000, .025);
+                this.time.delayedCall(300, () => {
+                    const entrance = this.getEntranceLocation();
+                    this.burstEmitter.explode(24, (entrance.x + .5) * (this.map.tileWidth * GAME_SCALE), (entrance.y + .5) * (this.map.tileHeight * GAME_SCALE));
+                });
+                this.time.delayedCall(1000, () => {
+                    this.hero.unfreeze();
+                });
+            } else {
+                this.time.delayedCall(200, () => {
+                    this.hero.unfreeze();
+                });
+            }
+        });
+    }
+
 
     createExits(exitData: MapArea[]): Phaser.Physics.Arcade.Group {
         const exitGroup = this.physics.add.group();
@@ -216,8 +239,10 @@ export class SiteScene extends Phaser.Scene {
     tintMap() {
         const mapLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
         mapLayer.forEachTile(t => t.tint = this.mapConfig.defaultTileTint);
-        this.exitGroup.children.iterate(exit => {
-            (exit as Exit).setTint((this.mapConfig.defaultTileTint));
+        this.exitGroup.children.iterate((exit: Exit) => {
+            const exitMapConfig: SiteConfig = MAP_CONFIGS.site.find(mc => mc.mapConfigName == exit.linkedMapConfigName);
+            const exitTint = !!exitMapConfig ? exitMapConfig.defaultTileTint : this.mapConfig.defaultTileTint;
+            exit.setTint(exitTint);
         }, this);
     }
 
@@ -242,20 +267,25 @@ export class SiteScene extends Phaser.Scene {
 
     dustCollision: ArcadePhysicsCallback = (_heroObj, dustObj: Dust) => {
         if (this.hero.isPunching) {
-            (dustObj as Dust).clearDust();
-            this.dustEmitter.explode(28, (dustObj as Dust).x, (dustObj as Dust).y);
+            dustObj.clearDust();
+            this.burstEmitter.explode(28, dustObj.x, dustObj.y);
             this.sound.play('dust');
 
-            const stuffType = weightedRandomizeAnything(this.mapConfig.stuffTypeWeights);
-
-            if (STUFF_CONFIGS.find(s => s.stuffName == stuffType)) {
-                const newStuff = new StuffModel(
+            if (this.dustGroup.getChildren().length == 0) {
+            // if (this.dustGroup.getChildren().length >= 0) {
+                this.completeSite();
+            } else {
+                const stuffType = weightedRandomizeAnything(this.mapConfig.stuffTypeWeights);
+                
+                if (STUFF_CONFIGS.find(s => s.stuffName == stuffType)) {
+                    const newStuff = new StuffModel(
                         dustObj.x,
                         dustObj.y,
                         STATIC_TEXTURE_KEY,
                         stuffType,  
                     );
-                this.createStuff(newStuff);
+                    this.createStuff(newStuff);
+                }
             }
         }
     }
@@ -267,5 +297,35 @@ export class SiteScene extends Phaser.Scene {
     getEntranceLocation(): Phaser.Math.Vector2 {
         const entranceLocation = new Phaser.Math.Vector2(this.areas[0].focusX, this.areas[0].focusY);
         return entranceLocation;
+    }
+
+    registryChangeHandler(_parent, key: String, data: any) {
+        if (key === SHOW_MENU_REGISTRY_KEY) {
+            if (data) {
+                this.hero.freeze();
+            } else if (!this.hasHeroReachedExit) {
+                this.hero.unfreeze();
+            }
+        }
+    }
+
+    completeSite() {
+        this.hasHeroReachedExit = true;
+        this.hero.freeze();
+        this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection]);
+        this.cameras.main.flash(10)
+        this.time.delayedCall(200, () => {
+            this.cameras.main.flash(100, 255, 255, 255, true);
+        });
+        this.time.delayedCall(1000, () => {
+            const siteCompleteProps: SiteCompleteSceneProps = {
+                heroDisplayX: this.hero.entity.x - this.cameras.main.scrollX,
+                heroDisplayY: this.hero.entity.y - this.cameras.main.scrollY,
+                heroDirection: this.hero.currentDirection,
+            }
+            this.scene.launch(SITE_COMPLETE_SCENE_KEY, siteCompleteProps);
+            
+            this.hero.entity.setVisible(false);
+        })
     }
 }

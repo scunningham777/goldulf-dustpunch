@@ -62,14 +62,16 @@ function generateDoorAreas(mapConfig: SiteConfig, maxXCoord: number, maxYCoord: 
     entranceArea.isAccessible = true;
     areas.unshift(entranceArea);
 
-    const countExits = Phaser.Math.RND.integerInRange(1, mapConfig.maxExitAreaCount);
-    for (let i = 0; i< countExits; i++) {
-        let exitArea: MapArea;
-        do {
-            const exitAreaConfig = Phaser.Math.RND.pick(mapConfig.exitAreaConfigs ?? []);
-            exitArea = generateRandomArea(exitAreaConfig, mapConfig, maxXCoord, maxYCoord);
-        } while (isAreaCollision(areas, exitArea))
-        areas.push(exitArea);
+    if (mapConfig.maxExitAreaCount > 0) {
+        const countExits = Phaser.Math.RND.integerInRange(1, mapConfig.maxExitAreaCount);
+        for (let i = 0; i< countExits; i++) {
+            let exitArea: MapArea;
+            do {
+                const exitAreaConfig = Phaser.Math.RND.pick(mapConfig.exitAreaConfigs ?? []);
+                exitArea = generateRandomArea(exitAreaConfig, mapConfig, maxXCoord, maxYCoord);
+            } while (isAreaCollision(areas, exitArea))
+            areas.push(exitArea);
+        }
     }
 
     return areas;
@@ -292,6 +294,7 @@ function generateDust(mapLayers: Map<string, Phaser.Tilemaps.TilemapLayer>, mapC
     })
     const newDustArray: DustModel[] = [];
     dustableTiles.forEach((tile, index) => {
+        const dustFrame = Phaser.Math.RND.pick(mapConfig.availableDustFrames);
         if (Phaser.Math.RND.integerInRange(1, 100) <= mapConfig.dustWeight) {
             const newDustX = (tile.x + .5) * dustLayer.tilemap.tileWidth * GAME_SCALE;
             const newDustY = (tile.y + .5) * dustLayer.tilemap.tileHeight * GAME_SCALE;
@@ -300,7 +303,7 @@ function generateDust(mapLayers: Map<string, Phaser.Tilemaps.TilemapLayer>, mapC
                 newDustX,
                 newDustY,
                 STATIC_TEXTURE_KEY,
-                0,
+                dustFrame,
                 index,
             )
             newDustArray.push(newDust);
