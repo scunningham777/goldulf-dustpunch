@@ -23,8 +23,8 @@ export class TypewriterText {
 
         this.printIntervalId = window.setInterval(() => {
             this.textObject.setText(this.words.slice(0, this.printIndex + 1).join(DIVIDER));
-            if (this.words[this.printIndex].match(/./)) {
-                this.scene.sound.play('type');
+            if (this.words[this.printIndex].match(/\w/)) {
+                this.scene.sound.play('type', {volume: .4});
             }
 
             this.printIndex += 1;
