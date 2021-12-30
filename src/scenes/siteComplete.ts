@@ -56,6 +56,7 @@ export class SiteCompleteScene extends Phaser.Scene {
             this.speechText = new TypewriterText(speechText, this, speechTextY, TYPEWRITER_WORD_INTERVAL, () => {
                 this.input.keyboard.on('keydown', this.nextMap, this);
                 this.input.on('pointerdown', this.nextMap, this);
+                this.input.gamepad.on('down', this.nextMap, this);
             });
         });
     }

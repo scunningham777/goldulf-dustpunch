@@ -58,7 +58,7 @@ export class SiteScene extends Phaser.Scene {
         }
 
         if (!!this.hero) {
-            this.hero.update(this.cursors);
+            this.hero.update(this.cursors, this.input.gamepad.getPad(0));
         }
     }
     /* end lifecycle */
