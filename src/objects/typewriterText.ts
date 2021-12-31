@@ -44,6 +44,8 @@ export class TypewriterText {
 
     finish() {
         window.clearInterval(this.printIntervalId);
+        this.scene.input.keyboard.off('keydown', this.shortCircuit);
+        this.scene.input.off('pointerdown', this.shortCircuit);
         if (!!this.completedCallback) {
             this.completedCallback();
         }

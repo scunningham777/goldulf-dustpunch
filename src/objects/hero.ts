@@ -89,17 +89,17 @@ export default class Hero {
                 // add punching sound effects
                 if (this.isPunching && animation.key.toLocaleLowerCase().includes('punch')) {
                     if (frame.index % 5 == 1) {
-                        this.scene.sound.play('punch1');
+                        this.scene.sound.play('punch2');
                     }
                     if (frame.index % 5 == 0) {
-                        this.scene.sound.play('punch2');
+                        this.scene.sound.play('punch1');
                     }
                 } else {
                     if (frame.index % 3 == 1) {
-                        this.scene.sound.play('step', {rate: 1.8});
+                        this.scene.sound.play('step', {rate: 2.6});
                     }
                     if (frame.index % 3 == 0) {
-                        this.scene.sound.play('step', {rate: 1.4});
+                        this.scene.sound.play('step', {rate: 2});
                     }
                 }
             })

@@ -273,8 +273,8 @@ export class SiteScene extends Phaser.Scene {
             dustObj.clearDust();
             this.burstEmitter.explode(28, dustObj.x, dustObj.y);
             
-            if (this.dustGroup.getChildren().length == 0) {
-            // if (this.dustGroup.getChildren().length >= 0) {
+            // if (this.dustGroup.getChildren().length == 0) {
+            if (this.dustGroup.getChildren().length >= 0) {
                 this.sound.play('dust', {rate: .4});
                 this.sound.play('dust', {delay: .5, rate: .5});
                 this.completeSite();
