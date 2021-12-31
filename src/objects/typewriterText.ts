@@ -23,8 +23,8 @@ export class TypewriterText {
 
         this.printIntervalId = window.setInterval(() => {
             this.textObject.setText(this.words.slice(0, this.printIndex + 1).join(DIVIDER));
-            if (this.words[this.printIndex].match(/./)) {
-                this.scene.sound.play('type');
+            if (this.words[this.printIndex].match(/\w/)) {
+                this.scene.sound.play('type', {volume: .4});
             }
 
             this.printIndex += 1;
@@ -35,6 +35,7 @@ export class TypewriterText {
 
         this.scene.input.keyboard.on('keydown', this.shortCircuit, this);
         this.scene.input.on('pointerdown', this.shortCircuit, this);
+        this.scene.input.gamepad.on('down', this.shortCircuit, this);
     }
 
     shortCircuit() {
@@ -44,6 +45,9 @@ export class TypewriterText {
 
     finish() {
         window.clearInterval(this.printIntervalId);
+        this.scene.input.keyboard.off('keydown', this.shortCircuit);
+        this.scene.input.off('pointerdown', this.shortCircuit);
+        this.scene.input.gamepad.off('down', this.shortCircuit);
         if (!!this.completedCallback) {
             this.completedCallback();
         }

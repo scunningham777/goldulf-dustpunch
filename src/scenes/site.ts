@@ -58,7 +58,7 @@ export class SiteScene extends Phaser.Scene {
         }
 
         if (!!this.hero) {
-            this.hero.update(this.cursors/*, this.input.gamepad.getPad(0)*/);
+            this.hero.update(this.cursors, this.input.gamepad.gamepads[0]);
         }
     }
     /* end lifecycle */
@@ -131,10 +131,12 @@ export class SiteScene extends Phaser.Scene {
     addListeners() {
         this.registry.events.on(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
         this.registry.events.on('changedata', this.registryChangeHandler, this);
+        this.input.gamepad.on('down', this.gamepadDownHandler, this);
     }
     clearListeners() {
         this.registry.events.off(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
         this.registry.events.off('changedata', this.registryChangeHandler);
+        this.input.gamepad.off('down', this.gamepadDownHandler);
     }
 
     addCollisions() {
@@ -183,7 +185,6 @@ export class SiteScene extends Phaser.Scene {
             if (this.mapConfig.mapConfigName != 'new_game') {
                 this.sound.play('dust', {rate: .2});
                 this.sound.play('dust', {delay: .5, rate: .4});
-                // this.sound.play('dust', {delay: .8, rate: .9});
                 cam.shake(1000, .025);
                 this.time.delayedCall(300, () => {
                     const entrance = this.getEntranceLocation();
@@ -311,6 +312,12 @@ export class SiteScene extends Phaser.Scene {
             } else if (!this.hasHeroReachedExit) {
                 this.hero.unfreeze();
             }
+        }
+    }
+
+    gamepadDownHandler(pad: Phaser.Input.Gamepad.Gamepad, button: Phaser.Input.Gamepad.Button, value: number) {
+        if (button.index == 8 || button.index == 9 && button.pressed && !this.hasHeroReachedExit) {
+            this.registry.set(SHOW_MENU_REGISTRY_KEY, !this.registry.get(SHOW_MENU_REGISTRY_KEY));
         }
     }
 

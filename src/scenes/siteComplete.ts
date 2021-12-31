@@ -54,14 +54,17 @@ export class SiteCompleteScene extends Phaser.Scene {
             const speechTextY = this.cameras.main.displayHeight * .1 + speechTextYOffset;
             const speechText = 'Trapped here for centuries by the final curse of Goldulf, my spirit has at last been set free by your fastidious fistwork!\n\nPunch on to free the rest of our bodacious bloodline!';
             this.speechText = new TypewriterText(speechText, this, speechTextY, TYPEWRITER_WORD_INTERVAL, () => {
+                this.sound.play('glory');
                 this.input.keyboard.on('keydown', this.nextMap, this);
                 this.input.on('pointerdown', this.nextMap, this);
-                // this.input.gamepad.on('down', this.nextMap, this);
+                this.input.gamepad.on('down', this.nextMap, this);
             });
         });
     }
 
     nextMap() {
+        this.sound.play('spirit', {rate: 1.2});
+
         const cam = this.cameras.main;
         this.time.delayedCall(1, () => cam.flash(10));
         this.time.delayedCall(FLASH_DELAY, () => cam.flash(10));
