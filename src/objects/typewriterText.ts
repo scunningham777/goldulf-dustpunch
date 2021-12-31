@@ -35,6 +35,7 @@ export class TypewriterText {
 
         this.scene.input.keyboard.on('keydown', this.shortCircuit, this);
         this.scene.input.on('pointerdown', this.shortCircuit, this);
+        this.scene.input.gamepad.on('down', this.shortCircuit, this);
     }
 
     shortCircuit() {
@@ -46,6 +47,7 @@ export class TypewriterText {
         window.clearInterval(this.printIntervalId);
         this.scene.input.keyboard.off('keydown', this.shortCircuit);
         this.scene.input.off('pointerdown', this.shortCircuit);
+        this.scene.input.gamepad.off('down', this.shortCircuit);
         if (!!this.completedCallback) {
             this.completedCallback();
         }

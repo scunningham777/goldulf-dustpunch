@@ -72,7 +72,7 @@ export class GameTitleScene extends Phaser.Scene {
 
             this.input.keyboard.on('keydown', this.startGame, this);
             this.input.on('pointerdown', this.startGame, this);
-            // this.input.gamepad.on('down', this.startGame, this);
+            this.input.gamepad.on('down', this.startGame, this);
 
             // blink
             this.time.delayedCall(INSTRUCTION_SHOW_PERIOD, this.hideInstructions, [], this);
@@ -132,6 +132,6 @@ export class GameTitleScene extends Phaser.Scene {
         this.scale.off('orientationchange');
         this.input.off('pointerdown');
         this.input.keyboard.off('keydown');
-        // this.input.gamepad.off('down');
+        this.input.gamepad.off('down');
     }
 }

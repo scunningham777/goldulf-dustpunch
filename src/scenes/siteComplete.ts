@@ -57,7 +57,7 @@ export class SiteCompleteScene extends Phaser.Scene {
                 this.sound.play('glory');
                 this.input.keyboard.on('keydown', this.nextMap, this);
                 this.input.on('pointerdown', this.nextMap, this);
-                // this.input.gamepad.on('down', this.nextMap, this);
+                this.input.gamepad.on('down', this.nextMap, this);
             });
         });
     }
