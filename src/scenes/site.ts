@@ -185,7 +185,6 @@ export class SiteScene extends Phaser.Scene {
             if (this.mapConfig.mapConfigName != 'new_game') {
                 this.sound.play('dust', {rate: .2});
                 this.sound.play('dust', {delay: .5, rate: .4});
-                // this.sound.play('dust', {delay: .8, rate: .9});
                 cam.shake(1000, .025);
                 this.time.delayedCall(300, () => {
                     const entrance = this.getEntranceLocation();
@@ -275,8 +274,8 @@ export class SiteScene extends Phaser.Scene {
             dustObj.clearDust();
             this.burstEmitter.explode(28, dustObj.x, dustObj.y);
             
-            // if (this.dustGroup.getChildren().length == 0) {
-            if (this.dustGroup.getChildren().length >= 0) {
+            if (this.dustGroup.getChildren().length == 0) {
+            // if (this.dustGroup.getChildren().length >= 0) {
                 this.sound.play('dust', {rate: .4});
                 this.sound.play('dust', {delay: .5, rate: .5});
                 this.completeSite();
