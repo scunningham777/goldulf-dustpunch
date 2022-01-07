@@ -19,8 +19,9 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             maxMapHeight: 40,
             externalIconTileIndex: 2,
             wallTileWeights: [
-                {index: 0, weight: 5},
-                {index: 1, weight: 1},
+                {index: 7, weight: 10},
+                {index: 8, weight: 4},
+                {index: 9, weight: 1},
             ],
             floorTileWeights: [
                 {index: 59, weight: 1},
@@ -71,8 +72,9 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             maxMapHeight: 40,
             externalIconTileIndex: 2,
             wallTileWeights: [
-                {index: 0, weight: 5},
-                {index: 1, weight: 1},
+                {index: 7, weight: 10},
+                {index: 8, weight: 4},
+                {index: 9, weight: 1},
             ],
             floorTileWeights: [
                 {index: 59, weight: 1},
