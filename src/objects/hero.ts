@@ -73,6 +73,12 @@ export default class Hero {
             this.heroSprite.anims.play((this.isPunching ? 'punch' : 'walk') + animDirection, true);
         }
 
+        // fix #17 - cap lineara velocity at 1 x this.velocity
+        if (this.heroSprite.body.velocity.x != 0 && this.heroSprite.body.velocity.y != 0) {
+            this.heroSprite.body.velocity.x *= Math.SQRT2 / 2;
+            this.heroSprite.body.velocity.y *= Math.SQRT2 / 2;
+        }
+
         this.mvtCtrl.update(this);
     }
 

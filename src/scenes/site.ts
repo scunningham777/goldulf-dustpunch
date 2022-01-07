@@ -1,5 +1,5 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
 import { SiteConfig } from '../interfaces/siteConfig';
@@ -107,8 +107,14 @@ export class SiteScene extends Phaser.Scene {
             heroStartDirection = CARDINAL_DIRECTION.UP;
         }
         const heroMvtCtrl = this.registry.get(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY);
-        this.hero = new Hero(heroStartXInPixels, heroStartYInPixels, this, IS_DEBUG ? 360 : 220, heroStartDirection, heroMvtCtrl);
-        // this.hero.freeze();
+        this.hero = new Hero(
+            heroStartXInPixels,
+            heroStartYInPixels,
+            this,
+            HERO_VELOCITY * (IS_DEBUG ? HERO_DEBUG_VELOCITY_MULTIPLIER : 1),
+            heroStartDirection,
+            heroMvtCtrl
+        );
         this.hero.isPunching = this.scene.key === SITE_TYPES.site;
     }
 
