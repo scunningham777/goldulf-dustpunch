@@ -7,7 +7,7 @@ import { GameTitleScene } from './scenes/gameTitle';
 import { SiteScene } from './scenes/site';
 import { GameOverScene } from './scenes/gameOver';
 
-import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR, SITE_TYPES, IS_DEBUG, SITE_COMPLETE_SCENE_KEY } from './constants';
+import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR_HEX_STRING, SITE_TYPES, IS_DEBUG, SITE_COMPLETE_SCENE_KEY } from './constants';
 
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar } from '@capacitor/status-bar';
@@ -20,7 +20,7 @@ const config: Phaser.Types.Core.GameConfig = {
     height: WORLD_HEIGHT,
     type: Phaser.AUTO,
     parent: 'game',
-    backgroundColor: GAME_BG_COLOR,
+    backgroundColor: GAME_BG_COLOR_HEX_STRING,
     scale: {
         mode: Phaser.Scale.RESIZE,
         parent: 'game',

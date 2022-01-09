@@ -1,4 +1,5 @@
-import { UI_SCENE_KEY, SITE_TYPES, HERO_TEXTURE_KEY } from "../constants";
+import { UI_SCENE_KEY, SITE_TYPES, HERO_TEXTURE_KEY, GAME_BG_COLOR } from "../constants";
+import { TEXT_TITLE_TUTORIAL_BODY, TEXT_TITLE_TUTORIAL_CALL_TO_ACTION } from "../text";
 
 const TITLE_PORTION = .25;
 const TITLE_TEXT_PORTION = .08;
@@ -6,11 +7,13 @@ const SUBTITLE_Y_OFFSET = .04;
 const SUBTITLE_TEXT_PORTION = .12;
 const LOGO_Y_OFFSET = .04;
 const LOGO_PORTION = .3;
-const INSTRUCTION_PORTION = .15;
-const INSTRUCTION_TEXT_POTION = .04;
+const INSTRUCTION_PORTION = .12;
+const INSTRUCTION_TEXT_PORTION = .04;
+const TUTORIAL_TEXT_PORTION = .04;
 const TITLE_DELAY = 200;
 const DUSTPUNCH_DELAY = 500;
 const INSTRUCTION_DELAY = 1000;
+const TUTORIAL_DELAY = 2000;
 const INSTRUCTION_SHOW_PERIOD = 900;
 const INSTRUCTION_BLINK_PERIOD = 500;
 
@@ -19,6 +22,8 @@ export class GameTitleScene extends Phaser.Scene {
     private subtitleText: Phaser.GameObjects.Text;
     private dustpunchLogo: Phaser.GameObjects.Image;
     private instructionText: Phaser.GameObjects.Text;
+    private tutorialText: Phaser.GameObjects.Text;
+    private tutorialCTAText: Phaser.GameObjects.Text;
 
     create(): void {
         this.time.delayedCall(TITLE_DELAY, () => {
@@ -60,13 +65,26 @@ export class GameTitleScene extends Phaser.Scene {
         }, [], this);
         
         this.time.delayedCall(TITLE_DELAY + DUSTPUNCH_DELAY + INSTRUCTION_DELAY, () => {
+            this.add.rectangle(
+                this.scale.width / 2,
+                this.scale.height * (1 - INSTRUCTION_PORTION - INSTRUCTION_TEXT_PORTION),
+                this.scale.width,
+                this.scale.height * (INSTRUCTION_PORTION + INSTRUCTION_TEXT_PORTION),
+                GAME_BG_COLOR,
+            )
+            .setOrigin(.5, 0)
+            .setScrollFactor(0)
+            .setDepth(1);
+
             this.instructionText = this.add.text(
                 this.scale.width / 2,
                 this.scale.height * (1 - INSTRUCTION_PORTION),
                 'Tap or press any key to begin',
-                {font: `${this.scale.height * INSTRUCTION_TEXT_POTION}px '7_12'`, color: '#fff', align: 'center', wordWrap: {width: this.scale.width - 16}},
+                {font: `${this.scale.height * INSTRUCTION_TEXT_PORTION}px '7_12'`, color: '#fff', align: 'center', wordWrap: {width: this.scale.width - 16}},
             )
-            .setOrigin(0.5, 0);
+            .setOrigin(0.5, 0)
+            .setScrollFactor(0)
+            .setDepth(2);
 
             this.sound.play('punch2', {rate: 1});
 
@@ -77,6 +95,30 @@ export class GameTitleScene extends Phaser.Scene {
             // blink
             this.time.delayedCall(INSTRUCTION_SHOW_PERIOD, this.hideInstructions, [], this);
         }, [], this)
+
+        this.time.delayedCall(TITLE_DELAY + DUSTPUNCH_DELAY + INSTRUCTION_DELAY + TUTORIAL_DELAY, () => {
+            const tutorialTextStyle = {font: `${this.scale.height * TUTORIAL_TEXT_PORTION}px '7_12'`, color: '#fff', align: 'justify', wordWrap: {width: this.scale.width * .85}, padding: {bottom: this.scale.height * TUTORIAL_TEXT_PORTION / 2}};
+            this.tutorialText = this.add.text(
+                this.scale.width / 2,
+                this.scale.height,
+                TEXT_TITLE_TUTORIAL_BODY,
+                tutorialTextStyle,
+            )
+            .setOrigin(.5, 0)
+            .setLineSpacing(this.scale.height * TUTORIAL_TEXT_PORTION / 2);
+
+            this.tutorialCTAText = this.add.text(
+                this.scale.width / 2,
+                this.scale.height + this.tutorialText.height,
+                TEXT_TITLE_TUTORIAL_CALL_TO_ACTION,
+                {...tutorialTextStyle, align: 'center'},
+            )
+            .setOrigin(.5, 0)
+            .setLineSpacing(this.scale.height * TUTORIAL_TEXT_PORTION / 2);
+
+            const panDuration = 1000 * ((this.tutorialText.displayHeight + this.tutorialCTAText.displayHeight) / (this.scale.height * TUTORIAL_TEXT_PORTION * 1.5))
+            this.cameras.main.pan(this.scale.width / 2, this.scale.height * (.6 + INSTRUCTION_PORTION) + this.tutorialText.displayHeight + this.tutorialCTAText.displayHeight, panDuration);
+        })
 
         this.scale.on('orientationchange', this.recenterContents, this);
     }
