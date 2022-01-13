@@ -21,7 +21,7 @@ export default class Stuff extends Phaser.GameObjects.Image {
         timeline.add({
             targets: this,
             y: y - this.displayHeight,
-            duration: 2000,
+            duration: 1000,
             onComplete: () => {
                 this.blinkState = 1;
                 this.setTint(STUFF_TINT);
@@ -35,7 +35,7 @@ export default class Stuff extends Phaser.GameObjects.Image {
             x: {value: () => this.scene.cameras.main.scrollX + this.scene.scale.width, ease: 'Quad.easeIn'},
             y: {value: () => this.scene.cameras.main.scrollY + this.scene.scale.height, ease: 'Back.easeIn'},
             scale: {value: 1, ease: 'Quad.easeIn'},
-            duration: 2000,
+            duration: 1500,
             onComplete: () => {
                 this.cleanUp();
             }
