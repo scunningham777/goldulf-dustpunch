@@ -79,4 +79,5 @@ export const TYPEWRITER_WORD_INTERVAL = 80;
 
 // "ENVIRONMENT"
 export const IS_DEBUG = false;
+export const SKIP_OVERWORLD = false;
 export const HERO_MOVEMENT_CONTROLLER: 'follow' | 'joystick' = 'follow';
