@@ -1,4 +1,4 @@
-import { UI_SCENE_KEY, SITE_TYPES, HERO_TEXTURE_KEY, GAME_BG_COLOR } from "../constants";
+import { UI_SCENE_KEY, SITE_TYPES, HERO_TEXTURE_KEY, GAME_BG_COLOR, IS_DEBUG, SKIP_OVERWORLD } from "../constants";
 import { TEXT_TITLE_TUTORIAL_BODY, TEXT_TITLE_TUTORIAL_CALL_TO_ACTION } from "../text";
 
 const TITLE_PORTION = .25;
@@ -160,14 +160,12 @@ export class GameTitleScene extends Phaser.Scene {
         this.scene.launch(UI_SCENE_KEY);
 
         const initialMapSceneConfig = {
-            mapConfigName: 'new_game',
-            // mapConfigName: 'cave_small',
+            mapConfigName: SKIP_OVERWORLD ? 'cave_small' : 'new_game',
             mapConfigCategory: null,
         };
         this.cleanup();
         
-        this.scene.start(SITE_TYPES.overworld, initialMapSceneConfig);
-        // this.scene.start(SITE_TYPES.site, initialMapSceneConfig);
+        this.scene.start(SKIP_OVERWORLD ? SITE_TYPES.site : SITE_TYPES.overworld, initialMapSceneConfig);
     }
     
     cleanup(): void {

@@ -36,6 +36,7 @@ export class SiteScene extends Phaser.Scene {
     init(): void {
         this.mapKey = this.scene.key + '-map';
         this.stuffGroup = this.physics.add.group();
+        this.stuffGroup.runChildUpdate = true;
     }
 
     create(): void {
