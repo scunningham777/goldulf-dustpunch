@@ -14,6 +14,8 @@ import { StatusBar } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 import { UIScene } from './scenes/uiScene';
 import { SiteCompleteScene } from './scenes/siteComplete';
+import { Storage } from './objects/storage';
+import StuffInInventory from './interfaces/stuffInInventory';
 
 const config: Phaser.Types.Core.GameConfig = {
     width: WORLD_WIDTH,
@@ -52,12 +54,11 @@ const config: Phaser.Types.Core.GameConfig = {
 };
 
 export class Game extends Phaser.Game {
+    private dataStore = new Storage();
 
     constructor(config: Phaser.Types.Core.GameConfig) {
 
         super(config);
-
-        this.registry.set(INVENTORY_REGISTRY_KEY, 0);
 
         this.scene.add('Boot', BootScene, false);
         this.scene.add('Preload', PreloadScene, false);
@@ -68,12 +69,26 @@ export class Game extends Phaser.Game {
         this.scene.add('GameOver', GameOverScene, false);
         this.scene.add(SITE_COMPLETE_SCENE_KEY, SiteCompleteScene, false);
 
-        this.scene.start('Boot');
+        this.dataStore.get(INVENTORY_REGISTRY_KEY).then((inventory: StuffInInventory[] | null) => {
+            this.registry.set(INVENTORY_REGISTRY_KEY, inventory || []);
+    
+            this.registry.events.on('changedata', this.updateInventory, this);
+
+            this.scene.start('Boot');
+        })
+        
 
         if (Capacitor.isNativePlatform()) {
             StatusBar.hide()
                 .catch(console.log);
             SplashScreen.hide();
+        }
+
+    }
+
+    private updateInventory(_parent: any, key: string, data: any) {
+        if (key === INVENTORY_REGISTRY_KEY) {
+            this.dataStore.set(INVENTORY_REGISTRY_KEY, data);
         }
     }
 

@@ -33,6 +33,7 @@ export class UIScene extends Phaser.Scene {
         
         this.menuLayer = this.generateMenu();
         this.menuStuffDisplayGroup = this.add.group()
+        this.updateUI(null, INVENTORY_REGISTRY_KEY, this.registry.values[INVENTORY_REGISTRY_KEY]);
         
         // maybe a hack to clean up duplicate listeners - shouldn't be necessary after fixing issue #26, but leave in case
         this.registry.events.off('changedata', this.updateUI, this);
@@ -51,8 +52,7 @@ export class UIScene extends Phaser.Scene {
         this.menuHeaderText = this.add.text(this.menuBackground.x + this.menuBackground.width / 2, 16, "MENU", {font: `${16 * GAME_SCALE}px '7_12'`, color: '#fff'})
             .setOrigin(.5, 0);
 
-        const gamePoints = this.registry.values[INVENTORY_REGISTRY_KEY] ?? 0;
-        this.pointsText = this.add.text(this.menuBackground.x + 20, this.menuHeaderText.y + this.menuHeaderText.displayHeight + 16, 'Points: ' + gamePoints, {font: `32px '7_12'`, color: '#fff'});
+        this.pointsText = this.add.text(this.menuBackground.x + 20, this.menuHeaderText.y + this.menuHeaderText.displayHeight + 16, 'Points: 0', {font: `32px '7_12'`, color: '#fff'});
     
         this.stuffHeaderText = this.add.text(this.menuBackground.x + 20, this.pointsText.y + this.pointsText.displayHeight + 8, 'Your Stuff: ', {font: `32px '7_12'`, color: `#fff`});
         this.closeImage = this.add.image(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 1).setScale(GAME_SCALE);
