@@ -18,7 +18,7 @@ export class SiteScene extends Phaser.Scene {
     private hero: Hero;
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
     private map: Phaser.Tilemaps.Tilemap;
-    private mapLayers = new Map<string, Phaser.Tilemaps.TilemapLayer>();
+    private mapLayer: Phaser.Tilemaps.TilemapLayer;
     private areas: MapArea[] = [];
     private stuffGroup: Phaser.Physics.Arcade.Group;
     private dustGroup: Phaser.Physics.Arcade.Group;
@@ -71,19 +71,33 @@ export class SiteScene extends Phaser.Scene {
     }
 
     createMap() {
+        const siteWidth = Phaser.Math.RND.integerInRange(this.mapConfig.minMapWidth, this.mapConfig.maxMapWidth);
+        const siteHeight = Phaser.Math.RND.integerInRange(this.mapConfig.minMapHeight, this.mapConfig.maxMapHeight)
         this.map = this.make.tilemap({
             tileWidth: this.mapConfig.tileWidth,
             tileHeight: this.mapConfig.tileHeight,
-            width: Phaser.Math.RND.integerInRange(this.mapConfig.minMapWidth, this.mapConfig.maxMapWidth),
-            height: Phaser.Math.RND.integerInRange(this.mapConfig.minMapHeight, this.mapConfig.maxMapHeight),
+            width: siteWidth,
+            height: siteHeight,
             key: this.mapKey,
         });
         const mapData = generateDungeon(
             this.mapConfig,
-            this.map,
+            siteWidth,
+            siteHeight,
         );
-        this.map = mapData.tileMap;
-        this.mapLayers = mapData.layerMap;
+        
+        const newTileset = this.map.addTilesetImage(
+            this.mapConfig.tilesetKey,
+            this.mapConfig.tilesetKey,
+            this.mapConfig.tileWidth,
+            this.mapConfig.tileHeight,
+            this.mapConfig.tilesetMargin ?? 0,
+            this.mapConfig.tileSpacing ?? 0
+        );
+        this.mapLayer = this.map.createBlankLayer(DUNGEON_LAYER_KEYS.BG_LAYER, newTileset);
+        this.mapLayer.putTilesAt(mapData.tileIndexData, 0, 0);
+        this.mapLayer.setScale(GAME_SCALE);
+
         this.areas = mapData.areas;
         this.exitGroup = this.createExits(mapData.areas.filter(a => a.linkedMapConfigName != null || a.linkedMapConfigCategory != null))
         if (mapData.dust.length > 0){
@@ -152,15 +166,14 @@ export class SiteScene extends Phaser.Scene {
         this.hero.entity.setCollideWorldBounds(true);
 
         // collisions between hero and walls, and "broken" entrance if it's wall-placed
-        const bgLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
         const collisionIndices = this.mapConfig.wallTileWeights.map(wtw => wtw.index);
         const entranceLoc = this.getEntranceLocation();
         if (entranceLoc.x === 0 || entranceLoc.x === this.greatestXCoord || entranceLoc.y === 0 || entranceLoc.y === this.greatestYCoord) {
             collisionIndices.push(this.mapConfig.entranceAreaConfig.focusTileIndex);
         }
 
-        bgLayer.setCollision(collisionIndices);
-        this.physics.add.collider(this.hero.entity, bgLayer);
+        this.mapLayer.setCollision(collisionIndices);
+        this.physics.add.collider(this.hero.entity, this.mapLayer);
         this.physics.add.overlap(this.hero.entity, this.exitGroup, this.exitCollision, null, this);
         if (this.dustGroup != null) {
             this.physics.add.overlap(this.hero.entity, this.dustGroup, this.dustCollision, null, this);
@@ -248,8 +261,7 @@ export class SiteScene extends Phaser.Scene {
     }
 
     tintMap() {
-        const mapLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
-        mapLayer.forEachTile(t => t.tint = this.mapConfig.defaultTileTint);
+        this.mapLayer.forEachTile(t => t.tint = this.mapConfig.defaultTileTint);
         this.exitGroup.children.iterate((exit: Exit) => {
             const exitMapConfig: SiteConfig = MAP_CONFIGS.site.find(mc => mc.mapConfigName == exit.linkedMapConfigName);
             const exitTint = !!exitMapConfig ? exitMapConfig.defaultTileTint : this.mapConfig.defaultTileTint;

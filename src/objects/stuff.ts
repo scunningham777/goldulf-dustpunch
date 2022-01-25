@@ -42,8 +42,6 @@ export default class Stuff extends Phaser.GameObjects.Image {
         })
         timeline.queue(this.addToInventoryTween);
 
-        console.log(this.scene.scale.height);
-
         timeline.play();
 
         this.blink();

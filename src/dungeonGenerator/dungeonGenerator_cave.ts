@@ -1,53 +1,48 @@
 import { GAME_SCALE, DUNGEON_LAYER_KEYS, STATIC_TEXTURE_KEY } from "../constants";
 import MapArea from "../interfaces/mapArea";
-import { justInsideWall, CARDINAL_DIRECTION } from "../utils";
+import { justInsideWall, CARDINAL_DIRECTION, weightedRandomizeAnything } from "../utils";
 import { SiteConfig } from "../interfaces/siteConfig";
 import { AreaConfig } from "../interfaces/areaConfig";
-import { StuffModel } from "./stuffModel";
 import { DustModel } from "./dustModel";
-import { STUFF_CONFIGS } from "../config";
 
 export default function generateDungeon(
-        mapConfig: SiteConfig,
-        tileMap: Phaser.Tilemaps.Tilemap,
+        siteConfig: SiteConfig,
+        siteWidth: number,
+        siteHeight: number,
     ): {
-        tileMap: Phaser.Tilemaps.Tilemap,
-        layerMap: Map<string, Phaser.Tilemaps.TilemapLayer>,
+        tileIndexData: number[][],
         areas: MapArea[],
-        // stuff: StuffModel[],
         dust: DustModel[],
     }
 {
-    const newLayerMap = new Map<string, Phaser.Tilemaps.TilemapLayer>();
-    const newTileset = tileMap.addTilesetImage(mapConfig.tilesetKey, mapConfig.tilesetKey, mapConfig.tileWidth, mapConfig.tileHeight, mapConfig.tilesetMargin ?? 0, mapConfig.tileSpacing ?? 0);
-    for (let keyIndex in DUNGEON_LAYER_KEYS) {
-        newLayerMap.set(DUNGEON_LAYER_KEYS[keyIndex], tileMap.createBlankLayer(DUNGEON_LAYER_KEYS[keyIndex], newTileset));
-        newLayerMap.get(DUNGEON_LAYER_KEYS[keyIndex]).setScale(GAME_SCALE);
-    }
+    const tileIndexData = generateTileIndexData(siteConfig.wallTileWeights.map(wTW => ({key: wTW.index, weight: wTW.weight})), siteWidth, siteHeight);
 
-    const bgLayer = newLayerMap.get(DUNGEON_LAYER_KEYS.BG_LAYER);
-    fillMap(bgLayer, mapConfig.wallTileWeights);
-
-    const floorTileIndices = mapConfig.floorTileWeights.map(ftw => ftw.index);
+    const floorTileIndices = siteConfig.floorTileWeights.map(ftw => ftw.index);
 
     const newAreas: MapArea[] = [];
-    generateAreas(bgLayer, newAreas, mapConfig);
-    connectAreas(bgLayer, newAreas, floorTileIndices);
-    drawAreas(bgLayer, newAreas);
+    generateAreas(siteWidth, siteHeight, newAreas, siteConfig);
+    connectAreas(tileIndexData, newAreas, floorTileIndices, siteWidth, siteHeight);
+    drawAreas(tileIndexData, newAreas);
 
-    // const stuff = generateStuff(newLayerMap, mapConfig);
-    const dust = generateDust(newLayerMap, mapConfig);
+    const dust = generateDust(tileIndexData, siteConfig);
 
-    return {tileMap: tileMap, layerMap: newLayerMap, areas: newAreas, /*stuff: stuff,*/ dust: dust};
+    return {tileIndexData: tileIndexData, areas: newAreas, dust: dust};
 }
 
-function fillMap(layer: Phaser.Tilemaps.TilemapLayer, wallTileWeights: {index: number, weight: number}[]) {
-    layer.weightedRandomize(wallTileWeights, 0, 0, layer.tilemap.width, layer.tilemap.height);
+function generateTileIndexData(wallTileWeights: {key: number, weight: number}[], siteWidth: number, siteHeight: number): number[][] {
+    const tileIndexData: number[][] = [];
+    for(let y = 0; y < siteHeight; y++) {
+        tileIndexData[y] = [];
+        for(let x = 0; x < siteWidth; x++) {
+            tileIndexData[y][x] = weightedRandomizeAnything(wallTileWeights);
+        }
+    }
+    return tileIndexData;
 }
 
-function generateAreas(layer: Phaser.Tilemaps.TilemapLayer, areas: MapArea[], mapConfig: SiteConfig): MapArea[] {
-    const maxXCoord = layer.tilemap.width-1;
-    const maxYCoord = layer.tilemap.height-1;
+function generateAreas(siteWidth: number, siteHeight: number, areas: MapArea[], mapConfig: SiteConfig): MapArea[] {
+    const maxXCoord = siteWidth - 1;
+    const maxYCoord = siteHeight - 1;
     const startingCountAreas = Phaser.Math.RND.integerInRange(mapConfig.minCountAreas, mapConfig.maxCountAreas);
 
     areas.unshift(...generateDoorAreas(mapConfig, maxXCoord, maxYCoord));
@@ -56,19 +51,19 @@ function generateAreas(layer: Phaser.Tilemaps.TilemapLayer, areas: MapArea[], ma
     return areas;
 }
 
-function generateDoorAreas(mapConfig: SiteConfig, maxXCoord: number, maxYCoord: number): MapArea[] {
+function generateDoorAreas(siteConfig: SiteConfig, maxXCoord: number, maxYCoord: number): MapArea[] {
     const areas: MapArea[] = [];
-    const entranceArea = generateRandomArea(mapConfig.entranceAreaConfig, mapConfig, maxXCoord, maxYCoord);
+    const entranceArea = generateRandomArea(siteConfig.entranceAreaConfig, maxXCoord, maxYCoord);
     entranceArea.isAccessible = true;
     areas.unshift(entranceArea);
 
-    if (mapConfig.maxExitAreaCount > 0) {
-        const countExits = Phaser.Math.RND.integerInRange(1, mapConfig.maxExitAreaCount);
+    if (siteConfig.maxExitAreaCount > 0) {
+        const countExits = Phaser.Math.RND.integerInRange(1, siteConfig.maxExitAreaCount);
         for (let i = 0; i< countExits; i++) {
             let exitArea: MapArea;
             do {
-                const exitAreaConfig = Phaser.Math.RND.pick(mapConfig.exitAreaConfigs ?? []);
-                exitArea = generateRandomArea(exitAreaConfig, mapConfig, maxXCoord, maxYCoord);
+                const exitAreaConfig = Phaser.Math.RND.pick(siteConfig.exitAreaConfigs ?? []);
+                exitArea = generateRandomArea(exitAreaConfig, maxXCoord, maxYCoord);
             } while (isAreaCollision(areas, exitArea))
             areas.push(exitArea);
         }
@@ -77,12 +72,12 @@ function generateDoorAreas(mapConfig: SiteConfig, maxXCoord: number, maxYCoord: 
     return areas;
 }
 
-function generateOtherAreas(numAreas: number, mapConfig: SiteConfig, maxXCoord: number, maxYCoord: number): MapArea[] {
+function generateOtherAreas(numAreas: number, siteConfig: SiteConfig, maxXCoord: number, maxYCoord: number): MapArea[] {
     const areas: MapArea[] = [];
     for (let i = 0; i < numAreas; i++) {
-        for (let ii = 0; ii < 30; ii++) {
-            const newAreaConfig: AreaConfig = Phaser.Math.RND.pick(mapConfig.otherAreaConfigs ?? []);
-            const newArea = generateRandomArea(newAreaConfig, mapConfig, maxXCoord, maxYCoord);
+        for (let j = 0; j < 30; j++) {
+            const newAreaConfig: AreaConfig = Phaser.Math.RND.pick(siteConfig.otherAreaConfigs ?? []);
+            const newArea = generateRandomArea(newAreaConfig, maxXCoord, maxYCoord);
             if (!isAreaCollision(areas, newArea)) {
                 areas.push(newArea);
                 break;
@@ -95,7 +90,7 @@ function generateOtherAreas(numAreas: number, mapConfig: SiteConfig, maxXCoord: 
     return areas;
 }
 
-function generateRandomArea(areaConfig: AreaConfig, mapConfig: SiteConfig, maxXCoord: number, maxYCoord: number): MapArea {
+function generateRandomArea(areaConfig: AreaConfig, maxXCoord: number, maxYCoord: number): MapArea {
     const focusTileIndex = areaConfig.focusTileIndex;
     const newArea: MapArea = {
         size: Phaser.Math.RND.integerInRange(areaConfig.minSize, areaConfig.maxSize),
@@ -145,9 +140,9 @@ function isAreaCollision(existingAreas: MapArea[], potentialArea: MapArea): bool
     return false;
 }
 
-function connectAreas(mapLayer: Phaser.Tilemaps.TilemapLayer, areas: MapArea[], floorTileIndices: number[]) {
-    const maxXCoord = mapLayer.tilemap.width-1;
-    const maxYCoord = mapLayer.tilemap.height-1;
+function connectAreas(tileIndexData: number[][], areas: MapArea[], floorTileIndices: number[], siteWidth: number, siteHeight: number) {
+    const maxXCoord = siteWidth - 1;
+    const maxYCoord = siteHeight - 1;
     while(areas.filter(a => !a.isAccessible).length) {
         // pick an accessible area as the starting point
         const startArea: MapArea = Phaser.Math.RND.pick(areas.filter(a => a.isAccessible));
@@ -162,42 +157,42 @@ function connectAreas(mapLayer: Phaser.Tilemaps.TilemapLayer, areas: MapArea[], 
         endLocation = justInsideWall(endLocation, maxXCoord, maxYCoord);
 
         // create random path between them
-        createFloorPath(mapLayer, startLocation, endLocation, floorTileIndices);
+        createFloorPath(tileIndexData, startLocation, endLocation, floorTileIndices, siteWidth, siteHeight);
 
         // set destination as accessible
         endArea.isAccessible = true;
     }
 }
 
-function createFloorPath(mapLayer: Phaser.Tilemaps.TilemapLayer, startLocation: Phaser.Math.Vector2, endLocation: Phaser.Math.Vector2, floorTileIndices: number[]) {
+function createFloorPath(tileIndexData: number[][], startLocation: Phaser.Math.Vector2, endLocation: Phaser.Math.Vector2, floorTileIndices: number[], siteWidth: number, siteHeight: number) {
     let currentLocation = startLocation.clone();
     do {
         const seedMod = 7;
         const chanceTangent = 20;
         let randomSeed = seedMod + Phaser.Math.RND.integerInRange(0, 3);
-        mapLayer.putTileAt(Phaser.Math.RND.weightedPick(floorTileIndices), currentLocation.x, currentLocation.y);
+        tileIndexData[currentLocation.y][currentLocation.x] = Phaser.Math.RND.weightedPick(floorTileIndices);
 
         // chance of creating "tangent" path
         if (chanceTangent > 0 && Phaser.Math.RND.integerInRange(0, chanceTangent-1) === 0) {
             let newStart = currentLocation.clone();
-            const newEnd = new Phaser.Math.Vector2(((mapLayer.tilemap.width - 3) * Phaser.Math.RND.integerInRange(0, 1)), ((mapLayer.tilemap.height - 3) * Phaser.Math.RND.integerInRange(0, 1)));
-            for (let i = 0; i < mapLayer.tilemap.height / 3; i++) {
-                newStart = stepPathRandom(newStart, newEnd, randomSeed, mapLayer.tilemap.width-1, mapLayer.tilemap.height-1);
+            const newEnd = new Phaser.Math.Vector2(((siteWidth - 3) * Phaser.Math.RND.integerInRange(0, 1)), ((siteHeight - 3) * Phaser.Math.RND.integerInRange(0, 1)));
+            for (let i = 0; i < siteHeight / 3; i++) {
+                newStart = stepPathRandom(newStart, newEnd, randomSeed, siteWidth - 1, siteHeight - 1);
                 if (newStart == null) {
                     break;
                 } else {
-                    mapLayer.putTileAt(Phaser.Math.RND.weightedPick(floorTileIndices), newStart.x, newStart.y);
+                    tileIndexData[newStart.y][newStart.x] = Phaser.Math.RND.weightedPick(floorTileIndices);
                 }
             }
             randomSeed = seedMod + Phaser.Math.RND.integerInRange(0, 3);
         }
 
-        currentLocation = stepPathRandom(currentLocation, endLocation, randomSeed, mapLayer.tilemap.width-1, mapLayer.tilemap.height-1);
+        currentLocation = stepPathRandom(currentLocation, endLocation, randomSeed, siteWidth - 1, siteHeight - 1);
         // TODO: handle situation where stepPathRandom() returns null!
     } while (!currentLocation.equals(endLocation))
 
     // set tile at end location
-    mapLayer.putTileAt(Phaser.Math.RND.weightedPick(floorTileIndices), endLocation.x, endLocation.y);
+    tileIndexData[endLocation.y][endLocation.x] = Phaser.Math.RND.weightedPick(floorTileIndices);
 }
 
 function stepPathRandom(startLocation: Phaser.Math.Vector2, endLocation: Phaser.Math.Vector2, randomSeed: number, maxXCoord: number, maxYCoord: number): Phaser.Math.Vector2 {
@@ -252,63 +247,37 @@ function stepPathRandom(startLocation: Phaser.Math.Vector2, endLocation: Phaser.
     }
 }
 
-function drawAreas(mapLayer: Phaser.Tilemaps.TilemapLayer, areas: MapArea[]) {
+function drawAreas(tileIndexData: number[][], areas: MapArea[]) {
     for (let area of areas) {
-        mapLayer.putTileAt(area.focusTileIndex, area.focusX, area.focusY);
+        tileIndexData[area.focusY][area.focusX] = area.focusTileIndex;
     }
 }
 
-// function generateStuff(mapLayers: Map<string, Phaser.Tilemaps.TilemapLayer>, mapConfig: SiteConfig) : StuffModel[] {
-//     const bgLayer = mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
-//     const stuffLayer = mapLayers.get(DUNGEON_LAYER_KEYS.STUFF_LAYER);
-//     const stuffableTiles = bgLayer.filterTiles((tile: Phaser.Tilemaps.Tile) => {
-//         return mapConfig.floorTileWeights.some(ftw => ftw.index === tile.index);
-//     })
-//     const newStuffArray: StuffModel[] = [];
-//     stuffableTiles.forEach((tile, index) => {
-//         if (Phaser.Math.RND.integerInRange(1, 100) <= mapConfig.dustWeight) {
-//             const newStuffX = (tile.x + .5) * stuffLayer.tilemap.tileWidth * GAME_SCALE;
-//             const newStuffY = (tile.y + .5) * stuffLayer.tilemap.tileHeight * GAME_SCALE;
-//             const newStuffConfigType = Phaser.Math.RND.pick(STUFF_CONFIGS);
-//             const newStuff = new StuffModel(
-//                     newStuffX,
-//                     newStuffY,
-//                     tile.x,
-//                     tile.y,
-//                     STATIC_TEXTURE_KEY,
-//                     newStuffConfigType.stuffName,  
-//                     index,
-//                 );
-//             newStuffArray.push(newStuff);
-//         }
-//     })
-
-//     return newStuffArray;
-// }
-
-function generateDust(mapLayers: Map<string, Phaser.Tilemaps.TilemapLayer>, mapConfig: SiteConfig): DustModel[] {
-    const bgLayer = mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
-    const dustLayer = mapLayers.get(DUNGEON_LAYER_KEYS.DUST_LAYER);
-    const dustableTiles = bgLayer.filterTiles((tile: Phaser.Tilemaps.Tile) => {
-        return mapConfig.floorTileWeights.some(ftw => ftw.index === tile.index);
-    })
+function generateDust(tileIndexData: number[][], siteConfig: SiteConfig): DustModel[] {
     const newDustArray: DustModel[] = [];
-    dustableTiles.forEach((tile, index) => {
-        const dustFrame = Phaser.Math.RND.pick(mapConfig.availableDustFrames);
-        if (Phaser.Math.RND.integerInRange(1, 100) <= mapConfig.dustWeight) {
-            const newDustX = (tile.x + .5) * dustLayer.tilemap.tileWidth * GAME_SCALE;
-            const newDustY = (tile.y + .5) * dustLayer.tilemap.tileHeight * GAME_SCALE;
+    for (let y = 0; y < tileIndexData.length; y++) {
+        for (let x = 0; x < tileIndexData[y].length; x++) {
+            const isDustableTile = siteConfig.floorTileWeights.some(fTW => fTW.index == tileIndexData[y][x]);
+            if (isDustableTile) {
 
-            const newDust = new DustModel(
-                newDustX,
-                newDustY,
-                STATIC_TEXTURE_KEY,
-                dustFrame,
-                index,
-            )
-            newDustArray.push(newDust);
+                const doAddDust = Phaser.Math.RND.integerInRange(1, 100) <= siteConfig.dustWeight;
+                if (doAddDust) {
+                    const dustFrame = Phaser.Math.RND.pick(siteConfig.availableDustFrames);
+                    const newDustX = (x + .5) * siteConfig.tileWidth * GAME_SCALE;
+                    const newDustY = (y + .5) * siteConfig.tileHeight * GAME_SCALE;
+        
+                    const newDust = new DustModel(
+                        newDustX,
+                        newDustY,
+                        STATIC_TEXTURE_KEY,
+                        dustFrame,
+                        y * tileIndexData[y].length + x,
+                    );
+                    newDustArray.push(newDust);
+                }
+            }
         }
-    })
+    }
 
     return newDustArray;
 }
