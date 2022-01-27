@@ -306,7 +306,7 @@ export class SiteScene extends Phaser.Scene {
             const savedSiteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
             const destroyedDustCoords = this.map.worldToTileXY(dustObj.x, dustObj.y);
             const destroyedDustIndex = savedSiteData?.dust?.findIndex(d => d.id == dustObj.id) ?? -1;
-            if (destroyedDustIndex > -1) {
+            if (destroyedDustIndex > -1 && this.dustGroup.getChildren().length > 0) {
                 savedSiteData.dust.splice(destroyedDustIndex, 1);
                 this.registry.set(SITE_DATA_REGISTRY_KEY, {...savedSiteData, heroSpawnCoords: destroyedDustCoords});
             }
