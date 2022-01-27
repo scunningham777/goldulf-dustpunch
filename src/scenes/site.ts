@@ -299,6 +299,14 @@ export class SiteScene extends Phaser.Scene {
     dustCollision: ArcadePhysicsCallback = (_heroObj, dustObj: Dust) => {
         if (this.hero.isPunching) {
             dustObj.clearDust();
+            // update saved Dust list
+            const savedSiteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
+            const destroyedDustIndex = savedSiteData?.dust?.findIndex(d => d.id == dustObj.id) ?? -1;
+            if (destroyedDustIndex > -1) {
+                savedSiteData.dust.splice(destroyedDustIndex, 1);
+                this.registry.set(SITE_DATA_REGISTRY_KEY, savedSiteData);
+            }
+
             this.burstEmitter.explode(28, dustObj.x, dustObj.y);
             
             if (this.dustGroup.getChildren().length == 0) {
