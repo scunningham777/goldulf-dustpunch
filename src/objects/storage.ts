@@ -12,8 +12,8 @@ export class Storage {
             let db: LocalForage;
  
             let config = {
-                name: '_selecqueststorage',
-                storeName: '_selecquestkv',
+                name: '_dustpunchstorage',
+                storeName: '_dustpunchkv',
                 driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
             }
  

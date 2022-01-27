@@ -1,5 +1,5 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import { generateDungeon } from '../siteGenerator/siteGenerator_cave';
 import { SiteConfig } from '../interfaces/siteConfig';
@@ -11,6 +11,7 @@ import { DustModel } from '../siteGenerator/dustModel';
 import Dust from '../objects/dust';
 import Exit from '../objects/exit';
 import { SiteCompleteSceneProps } from './siteComplete';
+import { SiteGenerationData } from '../interfaces/siteGenerationData';
 
 export class SiteScene extends Phaser.Scene {
     private mapKey: string;
@@ -71,8 +72,10 @@ export class SiteScene extends Phaser.Scene {
     }
 
     createMap() {
-        const siteWidth = Phaser.Math.RND.integerInRange(this.mapConfig.minMapWidth, this.mapConfig.maxMapWidth);
-        const siteHeight = Phaser.Math.RND.integerInRange(this.mapConfig.minMapHeight, this.mapConfig.maxMapHeight)
+        const savedSiteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
+        const useSavedSite: boolean = !!savedSiteData && savedSiteData.siteType == this.mapConfig.siteType && savedSiteData.siteConfigName == this.mapConfig.mapConfigName;
+        const siteWidth = useSavedSite ? savedSiteData.siteWidth : Phaser.Math.RND.integerInRange(this.mapConfig.minMapWidth, this.mapConfig.maxMapWidth);
+        const siteHeight = useSavedSite ? savedSiteData.siteHeight : Phaser.Math.RND.integerInRange(this.mapConfig.minMapHeight, this.mapConfig.maxMapHeight)
         this.map = this.make.tilemap({
             tileWidth: this.mapConfig.tileWidth,
             tileHeight: this.mapConfig.tileHeight,
@@ -80,11 +83,16 @@ export class SiteScene extends Phaser.Scene {
             height: siteHeight,
             key: this.mapKey,
         });
-        const mapData = generateDungeon(
+        const siteData: SiteGenerationData = useSavedSite ? savedSiteData : generateDungeon(
             this.mapConfig,
             siteWidth,
             siteHeight,
         );
+
+        if (!useSavedSite) {
+            // persist mapData
+            this.registry.set(SITE_DATA_REGISTRY_KEY, siteData);
+        }
         
         const newTileset = this.map.addTilesetImage(
             this.mapConfig.tilesetKey,
@@ -95,13 +103,13 @@ export class SiteScene extends Phaser.Scene {
             this.mapConfig.tileSpacing ?? 0
         );
         this.mapLayer = this.map.createBlankLayer(DUNGEON_LAYER_KEYS.BG_LAYER, newTileset);
-        this.mapLayer.putTilesAt(mapData.tileIndexData, 0, 0);
+        this.mapLayer.putTilesAt(siteData.tileIndexData, 0, 0);
         this.mapLayer.setScale(GAME_SCALE);
 
-        this.areas = mapData.areas;
-        this.exitGroup = this.createExits(mapData.areas.filter(a => a.linkedMapConfigName != null || a.linkedMapConfigCategory != null))
-        if (mapData.dust.length > 0){
-            this.dustGroup = this.createDust(mapData.dust);
+        this.areas = siteData.areas;
+        this.exitGroup = this.createExits(siteData.areas.filter(a => a.linkedMapConfigName != null || a.linkedMapConfigCategory != null))
+        if (siteData.dust.length > 0){
+            this.dustGroup = this.createDust(siteData.dust);
         }
         this.tintMap();
     }

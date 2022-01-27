@@ -1,6 +1,8 @@
+import { SITE_TYPES } from "../constants";
 import { AreaConfig } from "./areaConfig";
 
 export interface SiteConfig {
+    siteType: SITE_TYPES;
     mapConfigName: string;
     mapConfigCategories: string[];
     isRandomlySelectable: boolean;

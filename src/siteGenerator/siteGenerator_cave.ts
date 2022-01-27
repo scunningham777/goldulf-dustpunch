@@ -4,16 +4,13 @@ import { justInsideWall, CARDINAL_DIRECTION, weightedRandomizeAnything } from ".
 import { SiteConfig } from "../interfaces/siteConfig";
 import { AreaConfig } from "../interfaces/areaConfig";
 import { DustModel } from "./dustModel";
+import { SiteGenerationData } from "../interfaces/siteGenerationData";
 
 export function generateDungeon(
         siteConfig: SiteConfig,
         siteWidth: number,
         siteHeight: number,
-    ): {
-        tileIndexData: number[][],
-        areas: MapArea[],
-        dust: DustModel[],
-    }
+    ): SiteGenerationData
 {
     
     const tileIndexData = generateTileIndexData(siteConfig.wallTileWeights.map(wTW => ({key: wTW.index, weight: wTW.weight})));
@@ -25,7 +22,7 @@ export function generateDungeon(
     
     const dust = generateDust(tileIndexData);
     
-    return {tileIndexData: tileIndexData, areas: newAreas, dust: dust};
+    return {tileIndexData: tileIndexData, areas: newAreas, dust: dust, siteType: siteConfig.siteType, siteConfigName: siteConfig.mapConfigName, siteWidth: siteWidth, siteHeight: siteHeight};
 
     function generateTileIndexData(wallTileWeights: {key: number, weight: number}[]): number[][] {
         const tileIndexData: number[][] = [];

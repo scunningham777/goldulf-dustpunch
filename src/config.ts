@@ -5,6 +5,7 @@ import StuffConfig from "./interfaces/stuffConfig";
 export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
     'overworld': [
         {
+            siteType: SITE_TYPES.overworld,
             mapConfigName: 'new_game',
             mapConfigCategories: [],
             isRandomlySelectable: false,
@@ -58,6 +59,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             stuffTypeWeights: [],
         },
         {
+            siteType: SITE_TYPES.overworld,
             mapConfigName: 'forest_temples',
             mapConfigCategories: [],
             isRandomlySelectable: true,
@@ -113,6 +115,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
     ],
     'site': [
         {
+            siteType: SITE_TYPES.site,
             mapConfigName: 'cave_small',
             mapConfigCategories: ['cave'],
             isRandomlySelectable: true,
@@ -174,6 +177,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             ],
         },
         {
+            siteType: SITE_TYPES.site,
             mapConfigName: 'fire_cave_small',
             mapConfigCategories: ['cave'],
             isRandomlySelectable: true,
