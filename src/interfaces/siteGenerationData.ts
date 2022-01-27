@@ -10,4 +10,5 @@ export interface SiteGenerationData {
     siteConfigName: string,
     siteWidth: number,
     siteHeight: number,
+    heroSpawnCoords: Phaser.Math.Vector2,
 }

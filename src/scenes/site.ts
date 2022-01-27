@@ -116,7 +116,9 @@ export class SiteScene extends Phaser.Scene {
     
     createHero() {
         this.hasHeroReachedExit = false;
-        const entranceLocation = this.getEntranceLocation() || new Phaser.Math.Vector2(1,1);
+
+        const savedSiteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
+        const entranceLocation = new Phaser.Math.Vector2(savedSiteData.heroSpawnCoords) || this.getEntranceLocation() || new Phaser.Math.Vector2(1,1);
         const heroStartLocation = justInsideWall(entranceLocation, this.greatestXCoord, this.greatestYCoord);
         const heroStartXInPixels = (heroStartLocation.x + .5) * (this.map.tileWidth * GAME_SCALE);
         const heroStartYInPixels = (heroStartLocation.y + .5) * (this.map.tileHeight * GAME_SCALE);
@@ -299,12 +301,14 @@ export class SiteScene extends Phaser.Scene {
     dustCollision: ArcadePhysicsCallback = (_heroObj, dustObj: Dust) => {
         if (this.hero.isPunching) {
             dustObj.clearDust();
-            // update saved Dust list
+
+            // update saved Dust list and Hero respawn point
             const savedSiteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
+            const destroyedDustCoords = this.map.worldToTileXY(dustObj.x, dustObj.y);
             const destroyedDustIndex = savedSiteData?.dust?.findIndex(d => d.id == dustObj.id) ?? -1;
             if (destroyedDustIndex > -1) {
                 savedSiteData.dust.splice(destroyedDustIndex, 1);
-                this.registry.set(SITE_DATA_REGISTRY_KEY, savedSiteData);
+                this.registry.set(SITE_DATA_REGISTRY_KEY, {...savedSiteData, heroSpawnCoords: destroyedDustCoords});
             }
 
             this.burstEmitter.explode(28, dustObj.x, dustObj.y);

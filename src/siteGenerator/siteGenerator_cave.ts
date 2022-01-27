@@ -21,8 +21,19 @@ export function generateDungeon(
     drawAreas(tileIndexData, newAreas);
     
     const dust = generateDust(tileIndexData);
+
+    const heroSpawnCoords = new Phaser.Math.Vector2(newAreas[0].focusX, newAreas[0].focusY)
     
-    return {tileIndexData: tileIndexData, areas: newAreas, dust: dust, siteType: siteConfig.siteType, siteConfigName: siteConfig.mapConfigName, siteWidth: siteWidth, siteHeight: siteHeight};
+    return {
+        tileIndexData,
+        areas: newAreas,
+        dust,
+        siteType: siteConfig.siteType,
+        siteConfigName: siteConfig.mapConfigName,
+        siteWidth,
+        siteHeight,
+        heroSpawnCoords,
+    };
 
     function generateTileIndexData(wallTileWeights: {key: number, weight: number}[]): number[][] {
         const tileIndexData: number[][] = [];
