@@ -1,6 +1,7 @@
 import { STUFF_CONFIGS } from "../config";
 import { INVENTORY_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY } from "../constants";
 import StuffInInventory from "../interfaces/stuffInInventory";
+import { TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT } from "../text";
 
 const VIRTUAL_JOYSTICK_DIAMETER = 16;
 const MENU_BTN_DIMENSION = 20 * GAME_SCALE;
@@ -49,12 +50,13 @@ export class UIScene extends Phaser.Scene {
         this.menuBackground = this.add.rectangle(window.innerWidth - menuBGWidth, 0, menuBGWidth, window.innerHeight, 0x000000);
         this.menuBackground.setOrigin(0,0);
 
-        this.menuHeaderText = this.add.text(this.menuBackground.x + this.menuBackground.width / 2, 16, "MENU", {font: `${16 * GAME_SCALE}px '7_12'`, color: '#fff'})
+        this.menuHeaderText = this.add.text(this.menuBackground.x + this.menuBackground.width / 2, 16, TEXT_INVENTORY_HEADER_TEXT, {font: `${16 * GAME_SCALE}px '7_12'`, color: '#fff'})
             .setOrigin(.5, 0);
 
-        this.pointsText = this.add.text(this.menuBackground.x + 20, this.menuHeaderText.y + this.menuHeaderText.displayHeight + 16, 'Points: 0', {font: `32px '7_12'`, color: '#fff'});
+        const menuBodyOffsetX = menuBGWidth * .06;
+        this.pointsText = this.add.text(menuBodyOffsetX, this.menuHeaderText.y + this.menuHeaderText.displayHeight + 16, 'Points: 0', {font: `32px '7_12'`, color: '#fff'});
     
-        this.stuffHeaderText = this.add.text(this.menuBackground.x + 20, this.pointsText.y + this.pointsText.displayHeight + 8, 'Your Stuff: ', {font: `32px '7_12'`, color: `#fff`});
+        this.stuffHeaderText = this.add.text(menuBodyOffsetX, this.pointsText.y + this.pointsText.displayHeight + 8, 'Your Stuff: ', {font: `32px '7_12'`, color: `#fff`});
         this.closeImage = this.add.image(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 1).setScale(GAME_SCALE);
 
         const menuLayer = this.add.layer([this.menuBackground, this.menuHeaderText, this.pointsText, this.stuffHeaderText, this.closeImage]);
@@ -134,6 +136,7 @@ export class UIScene extends Phaser.Scene {
     }
 
     private calculateMenuBGWidth() {
-        return this.game.device.os.iOS ? window.innerWidth : 320;
+        // return this.game.device.os.iOS ? window.innerWidth : 320;
+        return window.innerWidth;
     }
 }
