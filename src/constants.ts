@@ -4,6 +4,7 @@ export const GAME_SCALE = 3;
 export const GAME_BG_COLOR = 0x000066;
 export const GAME_BG_COLOR_HEX_STRING = '#000066';
 export const INVENTORY_REGISTRY_KEY = 'inventory';
+export const SITE_DATA_REGISTRY_KEY = 'site_data';
 export const DUST_PUNCH_EVENT_KEY = 'dustpunch';
 export const STATIC_TEXTURE_KEY = 'static_images';
 export const TERRAIN_TEXTURE_KEY = 'terrain';

@@ -1,4 +1,5 @@
-import { ANCESTORS_TEXTURE_KEY, HERO_MOVEMENT_CONTROLLER, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, HERO_TEXTURE_KEY, SITE_TYPES, SKIP_OVERWORLD, STATIC_TEXTURE_KEY, TERRAIN_TEXTURE_KEY, UI_SCENE_KEY, UI_TEXTURE_KEY } from "../constants";
+import { ANCESTORS_TEXTURE_KEY, HERO_MOVEMENT_CONTROLLER, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, HERO_TEXTURE_KEY, SITE_DATA_REGISTRY_KEY, SITE_TYPES, SKIP_OVERWORLD, STATIC_TEXTURE_KEY, TERRAIN_TEXTURE_KEY, UI_SCENE_KEY, UI_TEXTURE_KEY } from "../constants";
+import { SiteGenerationData } from "../interfaces/siteGenerationData";
 import { FOLLOW_HERO_MOVEMENT_CONTROLLER } from "../objects/followHeroMovmentController";
 import { JOYSTICK_HERO_MOVEMENT_CONTROLLER } from "../objects/joystickHeroMovementController";
 
@@ -36,9 +37,10 @@ export class PreloadScene extends Phaser.Scene {
                 families: [ '7_12' ]
             },
             active: () => {
-                if (SKIP_OVERWORLD) {
+                const siteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
+                if (!!siteData) {
                     this.scene.launch(UI_SCENE_KEY);
-                    this.scene.start(SITE_TYPES.site, {mapConfigName: 'cave_small', mapConfigCategory: null});
+                    this.scene.start(siteData.siteType, {mapConfigName: siteData.siteConfigName, mapConfigCategory: null});
                 } else {
                     this.scene.start('GameTitle');
                 }

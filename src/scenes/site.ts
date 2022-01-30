@@ -1,16 +1,17 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
-import generateDungeon from '../dungeonGenerator/dungeonGenerator_cave';
+import { generateDungeon } from '../siteGenerator/siteGenerator_cave';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
 import MapArea from '../interfaces/mapArea';
-import { StuffModel } from '../dungeonGenerator/stuffModel';
+import { StuffModel } from '../siteGenerator/stuffModel';
 import Stuff from '../objects/stuff';
-import { DustModel } from '../dungeonGenerator/dustModel';
+import { DustModel } from '../siteGenerator/dustModel';
 import Dust from '../objects/dust';
 import Exit from '../objects/exit';
 import { SiteCompleteSceneProps } from './siteComplete';
+import { SiteGenerationData } from '../interfaces/siteGenerationData';
 
 export class SiteScene extends Phaser.Scene {
     private mapKey: string;
@@ -18,7 +19,7 @@ export class SiteScene extends Phaser.Scene {
     private hero: Hero;
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
     private map: Phaser.Tilemaps.Tilemap;
-    private mapLayers = new Map<string, Phaser.Tilemaps.TilemapLayer>();
+    private mapLayer: Phaser.Tilemaps.TilemapLayer;
     private areas: MapArea[] = [];
     private stuffGroup: Phaser.Physics.Arcade.Group;
     private dustGroup: Phaser.Physics.Arcade.Group;
@@ -71,30 +72,53 @@ export class SiteScene extends Phaser.Scene {
     }
 
     createMap() {
+        const savedSiteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
+        const useSavedSite: boolean = !!savedSiteData && savedSiteData.siteType == this.mapConfig.siteType && savedSiteData.siteConfigName == this.mapConfig.mapConfigName;
+        const siteWidth = useSavedSite ? savedSiteData.siteWidth : Phaser.Math.RND.integerInRange(this.mapConfig.minMapWidth, this.mapConfig.maxMapWidth);
+        const siteHeight = useSavedSite ? savedSiteData.siteHeight : Phaser.Math.RND.integerInRange(this.mapConfig.minMapHeight, this.mapConfig.maxMapHeight)
         this.map = this.make.tilemap({
             tileWidth: this.mapConfig.tileWidth,
             tileHeight: this.mapConfig.tileHeight,
-            width: Phaser.Math.RND.integerInRange(this.mapConfig.minMapWidth, this.mapConfig.maxMapWidth),
-            height: Phaser.Math.RND.integerInRange(this.mapConfig.minMapHeight, this.mapConfig.maxMapHeight),
+            width: siteWidth,
+            height: siteHeight,
             key: this.mapKey,
         });
-        const mapData = generateDungeon(
+        const siteData: SiteGenerationData = useSavedSite ? savedSiteData : generateDungeon(
             this.mapConfig,
-            this.map,
+            siteWidth,
+            siteHeight,
         );
-        this.map = mapData.tileMap;
-        this.mapLayers = mapData.layerMap;
-        this.areas = mapData.areas;
-        this.exitGroup = this.createExits(mapData.areas.filter(a => a.linkedMapConfigName != null || a.linkedMapConfigCategory != null))
-        if (mapData.dust.length > 0){
-            this.dustGroup = this.createDust(mapData.dust);
+
+        if (!useSavedSite) {
+            // persist mapData
+            this.registry.set(SITE_DATA_REGISTRY_KEY, siteData);
+        }
+        
+        const newTileset = this.map.addTilesetImage(
+            this.mapConfig.tilesetKey,
+            this.mapConfig.tilesetKey,
+            this.mapConfig.tileWidth,
+            this.mapConfig.tileHeight,
+            this.mapConfig.tilesetMargin ?? 0,
+            this.mapConfig.tileSpacing ?? 0
+        );
+        this.mapLayer = this.map.createBlankLayer(DUNGEON_LAYER_KEYS.BG_LAYER, newTileset);
+        this.mapLayer.putTilesAt(siteData.tileIndexData, 0, 0);
+        this.mapLayer.setScale(GAME_SCALE);
+
+        this.areas = siteData.areas;
+        this.exitGroup = this.createExits(siteData.areas.filter(a => a.linkedMapConfigName != null || a.linkedMapConfigCategory != null))
+        if (siteData.dust.length > 0){
+            this.dustGroup = this.createDust(siteData.dust);
         }
         this.tintMap();
     }
     
     createHero() {
         this.hasHeroReachedExit = false;
-        const entranceLocation = this.getEntranceLocation() || new Phaser.Math.Vector2(1,1);
+
+        const savedSiteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
+        const entranceLocation = new Phaser.Math.Vector2(savedSiteData.heroSpawnCoords) || this.getEntranceLocation() || new Phaser.Math.Vector2(1,1);
         const heroStartLocation = justInsideWall(entranceLocation, this.greatestXCoord, this.greatestYCoord);
         const heroStartXInPixels = (heroStartLocation.x + .5) * (this.map.tileWidth * GAME_SCALE);
         const heroStartYInPixels = (heroStartLocation.y + .5) * (this.map.tileHeight * GAME_SCALE);
@@ -152,15 +176,14 @@ export class SiteScene extends Phaser.Scene {
         this.hero.entity.setCollideWorldBounds(true);
 
         // collisions between hero and walls, and "broken" entrance if it's wall-placed
-        const bgLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
         const collisionIndices = this.mapConfig.wallTileWeights.map(wtw => wtw.index);
         const entranceLoc = this.getEntranceLocation();
         if (entranceLoc.x === 0 || entranceLoc.x === this.greatestXCoord || entranceLoc.y === 0 || entranceLoc.y === this.greatestYCoord) {
             collisionIndices.push(this.mapConfig.entranceAreaConfig.focusTileIndex);
         }
 
-        bgLayer.setCollision(collisionIndices);
-        this.physics.add.collider(this.hero.entity, bgLayer);
+        this.mapLayer.setCollision(collisionIndices);
+        this.physics.add.collider(this.hero.entity, this.mapLayer);
         this.physics.add.overlap(this.hero.entity, this.exitGroup, this.exitCollision, null, this);
         if (this.dustGroup != null) {
             this.physics.add.overlap(this.hero.entity, this.dustGroup, this.dustCollision, null, this);
@@ -248,8 +271,7 @@ export class SiteScene extends Phaser.Scene {
     }
 
     tintMap() {
-        const mapLayer = this.mapLayers.get(DUNGEON_LAYER_KEYS.BG_LAYER);
-        mapLayer.forEachTile(t => t.tint = this.mapConfig.defaultTileTint);
+        this.mapLayer.forEachTile(t => t.tint = this.mapConfig.defaultTileTint);
         this.exitGroup.children.iterate((exit: Exit) => {
             const exitMapConfig: SiteConfig = MAP_CONFIGS.site.find(mc => mc.mapConfigName == exit.linkedMapConfigName);
             const exitTint = !!exitMapConfig ? exitMapConfig.defaultTileTint : this.mapConfig.defaultTileTint;
@@ -279,6 +301,16 @@ export class SiteScene extends Phaser.Scene {
     dustCollision: ArcadePhysicsCallback = (_heroObj, dustObj: Dust) => {
         if (this.hero.isPunching) {
             dustObj.clearDust();
+
+            // update saved Dust list and Hero respawn point
+            const savedSiteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
+            const destroyedDustCoords = this.map.worldToTileXY(dustObj.x, dustObj.y);
+            const destroyedDustIndex = savedSiteData?.dust?.findIndex(d => d.id == dustObj.id) ?? -1;
+            if (destroyedDustIndex > -1 && this.dustGroup.getChildren().length > 0) {
+                savedSiteData.dust.splice(destroyedDustIndex, 1);
+                this.registry.set(SITE_DATA_REGISTRY_KEY, {...savedSiteData, heroSpawnCoords: destroyedDustCoords});
+            }
+
             this.burstEmitter.explode(28, dustObj.x, dustObj.y);
             
             if (this.dustGroup.getChildren().length == 0) {

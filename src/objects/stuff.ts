@@ -1,5 +1,4 @@
-import { STUFF_CONFIGS } from "../config";
-import { GAME_SCALE, INVENTORY_REGISTRY_KEY, DUST_PUNCH_EVENT_KEY, STUFF_TINT } from "../constants";
+import { GAME_SCALE, INVENTORY_REGISTRY_KEY, STUFF_TINT } from "../constants";
 import StuffConfig from "../interfaces/stuffConfig";
 import StuffInInventory from "../interfaces/stuffInInventory";
 
@@ -21,7 +20,7 @@ export default class Stuff extends Phaser.GameObjects.Image {
         timeline.add({
             targets: this,
             y: y - this.displayHeight,
-            duration: 2000,
+            duration: 1000,
             onComplete: () => {
                 this.blinkState = 1;
                 this.setTint(STUFF_TINT);
@@ -35,14 +34,12 @@ export default class Stuff extends Phaser.GameObjects.Image {
             x: {value: () => this.scene.cameras.main.scrollX + this.scene.scale.width, ease: 'Quad.easeIn'},
             y: {value: () => this.scene.cameras.main.scrollY + this.scene.scale.height, ease: 'Back.easeIn'},
             scale: {value: 1, ease: 'Quad.easeIn'},
-            duration: 2000,
+            duration: 1500,
             onComplete: () => {
                 this.cleanUp();
             }
         })
         timeline.queue(this.addToInventoryTween);
-
-        console.log(this.scene.scale.height);
 
         timeline.play();
 
