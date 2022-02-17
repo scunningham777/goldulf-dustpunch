@@ -22,9 +22,15 @@ export const DUNGEON_LAYER_KEYS = {
     STUFF_LAYER: 'stuff-layer',
     DUST_LAYER: 'dust-layer',
 };
+export enum HERO_STATES {
+    WALK = 'walk',
+    PUNCH = 'punch',
+    GRAB = 'grab',
+}
 export const HERO_ANIM_FRAME_RATES = {
     'walk': 4,
     'punch': 7,
+    'grab': 4,
 };
 export const HERO_FRAMES = {
     standing: {
@@ -56,7 +62,19 @@ export const HERO_FRAMES = {
         'RIGHT': 9,
         'DOWN': 14,
         'LEFT': 9,
-    }
+    },
+    grabAnimStart: {
+        'UP': 1,
+        'RIGHT': 6,
+        'DOWN': 11,
+        'LEFT': 6,
+    },
+    grabAnimEnd: {
+        'UP': 3,
+        'RIGHT': 8,
+        'DOWN': 13,
+        'LEFT': 8,
+    },
 };
 export const HERO_TINT = 0x41f160;
 export const HERO_OFFSETS = {
@@ -81,4 +99,4 @@ export const TYPEWRITER_WORD_INTERVAL = 80;
 // "ENVIRONMENT"
 export const IS_DEBUG = false;
 export const SKIP_OVERWORLD = false;
-export const HERO_MOVEMENT_CONTROLLER: 'follow' | 'joystick' = 'follow';
+export const HERO_MOVEMENT_CONTROLLER: 'follow' | 'joystick' = 'joystick';

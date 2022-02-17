@@ -1,5 +1,5 @@
 import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, HERO_STATES } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import { generateDungeon } from '../siteGenerator/siteGenerator_cave';
 import { SiteConfig } from '../interfaces/siteConfig';
@@ -15,7 +15,7 @@ import { SiteGenerationData } from '../interfaces/siteGenerationData';
 
 export class SiteScene extends Phaser.Scene {
     private mapKey: string;
-    private mapConfig: SiteConfig;
+    private siteConfig: SiteConfig;
     private hero: Hero;
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
     private map: Phaser.Tilemaps.Tilemap;
@@ -41,7 +41,7 @@ export class SiteScene extends Phaser.Scene {
     }
 
     create(): void {
-        this.selectMapConfig();
+        this.selectSiteConfig();
         this.createMap();
         this.createHero();
         this.createEmitter();
@@ -60,31 +60,34 @@ export class SiteScene extends Phaser.Scene {
         }
 
         if (!!this.hero) {
+            if (Phaser.Input.Keyboard.JustDown(this.cursors.space)) {
+                this.hero.entity.setState(this.hero.entity.state == HERO_STATES.PUNCH ? HERO_STATES.GRAB : HERO_STATES.PUNCH);
+            }
             this.hero.update(this.cursors, this.input.gamepad.gamepads[0]);
         }
     }
     /* end lifecycle */
 
-    selectMapConfig() {
-        this.mapConfig = MAP_CONFIGS[this.scene.key].find(mc => mc.mapConfigName == this.scene.settings.data['mapConfigName'])
+    selectSiteConfig() {
+        this.siteConfig = MAP_CONFIGS[this.scene.key].find(mc => mc.mapConfigName == this.scene.settings.data['mapConfigName'])
             ?? Phaser.Math.RND.pick(MAP_CONFIGS[this.scene.key].filter(mc => mc.mapConfigCategories.some(mcc => mcc == this.scene.settings.data['mapConfigCategory'])) ?? [])
             ?? Phaser.Math.RND.pick(MAP_CONFIGS[this.scene.key].filter(mc => mc.isRandomlySelectable) ?? []);
     }
 
     createMap() {
         const savedSiteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
-        const useSavedSite: boolean = !!savedSiteData && savedSiteData.siteType == this.mapConfig.siteType && savedSiteData.siteConfigName == this.mapConfig.mapConfigName;
-        const siteWidth = useSavedSite ? savedSiteData.siteWidth : Phaser.Math.RND.integerInRange(this.mapConfig.minMapWidth, this.mapConfig.maxMapWidth);
-        const siteHeight = useSavedSite ? savedSiteData.siteHeight : Phaser.Math.RND.integerInRange(this.mapConfig.minMapHeight, this.mapConfig.maxMapHeight)
+        const useSavedSite: boolean = !!savedSiteData && savedSiteData.siteType == this.siteConfig.siteType && savedSiteData.siteConfigName == this.siteConfig.mapConfigName;
+        const siteWidth = useSavedSite ? savedSiteData.siteWidth : Phaser.Math.RND.integerInRange(this.siteConfig.minMapWidth, this.siteConfig.maxMapWidth);
+        const siteHeight = useSavedSite ? savedSiteData.siteHeight : Phaser.Math.RND.integerInRange(this.siteConfig.minMapHeight, this.siteConfig.maxMapHeight)
         this.map = this.make.tilemap({
-            tileWidth: this.mapConfig.tileWidth,
-            tileHeight: this.mapConfig.tileHeight,
+            tileWidth: this.siteConfig.tileWidth,
+            tileHeight: this.siteConfig.tileHeight,
             width: siteWidth,
             height: siteHeight,
             key: this.mapKey,
         });
         const siteData: SiteGenerationData = useSavedSite ? savedSiteData : generateDungeon(
-            this.mapConfig,
+            this.siteConfig,
             siteWidth,
             siteHeight,
         );
@@ -95,12 +98,12 @@ export class SiteScene extends Phaser.Scene {
         }
         
         const newTileset = this.map.addTilesetImage(
-            this.mapConfig.tilesetKey,
-            this.mapConfig.tilesetKey,
-            this.mapConfig.tileWidth,
-            this.mapConfig.tileHeight,
-            this.mapConfig.tilesetMargin ?? 0,
-            this.mapConfig.tileSpacing ?? 0
+            this.siteConfig.tilesetKey,
+            this.siteConfig.tilesetKey,
+            this.siteConfig.tileWidth,
+            this.siteConfig.tileHeight,
+            this.siteConfig.tilesetMargin ?? 0,
+            this.siteConfig.tileSpacing ?? 0
         );
         this.mapLayer = this.map.createBlankLayer(DUNGEON_LAYER_KEYS.BG_LAYER, newTileset);
         this.mapLayer.putTilesAt(siteData.tileIndexData, 0, 0);
@@ -140,7 +143,9 @@ export class SiteScene extends Phaser.Scene {
             heroStartDirection,
             heroMvtCtrl
         );
-        this.hero.isPunching = this.scene.key === SITE_TYPES.site;
+        if (this.scene.key === SITE_TYPES.site) {
+            this.hero.entity.setState(HERO_STATES.PUNCH) 
+        }
     }
 
     createEmitter() {
@@ -176,10 +181,10 @@ export class SiteScene extends Phaser.Scene {
         this.hero.entity.setCollideWorldBounds(true);
 
         // collisions between hero and walls, and "broken" entrance if it's wall-placed
-        const collisionIndices = this.mapConfig.wallTileWeights.map(wtw => wtw.index);
+        const collisionIndices = this.siteConfig.wallTileWeights.map(wtw => wtw.index);
         const entranceLoc = this.getEntranceLocation();
         if (entranceLoc.x === 0 || entranceLoc.x === this.greatestXCoord || entranceLoc.y === 0 || entranceLoc.y === this.greatestYCoord) {
-            collisionIndices.push(this.mapConfig.entranceAreaConfig.focusTileIndex);
+            collisionIndices.push(this.siteConfig.entranceAreaConfig.focusTileIndex);
         }
 
         this.mapLayer.setCollision(collisionIndices);
@@ -212,7 +217,7 @@ export class SiteScene extends Phaser.Scene {
         const cam = this.cameras.main;
         cam.fadeIn(500)
         cam.once('camerafadeincomplete', () => {
-            if (this.mapConfig.mapConfigName != 'new_game') {
+            if (this.siteConfig.mapConfigName != 'new_game') {
                 this.sound.play('dust', {rate: .2});
                 this.sound.play('dust', {delay: .5, rate: .4});
                 cam.shake(1000, .025);
@@ -243,7 +248,7 @@ export class SiteScene extends Phaser.Scene {
             const newExit = new Exit(
                 this,
                 exitX, exitY,
-                this.mapConfig.tilesetKey, imageIndex,
+                this.siteConfig.tilesetKey, imageIndex,
                 '' + new Date().getTime(),
                 exit.linkedMapConfigType, exit.linkedMapConfigName, exit.linkedMapConfigCategory
             );
@@ -271,10 +276,10 @@ export class SiteScene extends Phaser.Scene {
     }
 
     tintMap() {
-        this.mapLayer.forEachTile(t => t.tint = this.mapConfig.defaultTileTint);
+        this.mapLayer.forEachTile(t => t.tint = this.siteConfig.defaultTileTint);
         this.exitGroup.children.iterate((exit: Exit) => {
             const exitMapConfig: SiteConfig = MAP_CONFIGS.site.find(mc => mc.mapConfigName == exit.linkedMapConfigName);
-            const exitTint = !!exitMapConfig ? exitMapConfig.defaultTileTint : this.mapConfig.defaultTileTint;
+            const exitTint = !!exitMapConfig ? exitMapConfig.defaultTileTint : this.siteConfig.defaultTileTint;
             exit.setTint(exitTint);
         }, this);
     }
@@ -299,7 +304,7 @@ export class SiteScene extends Phaser.Scene {
     }
 
     dustCollision: ArcadePhysicsCallback = (_heroObj, dustObj: Dust) => {
-        if (this.hero.isPunching) {
+        if (this.hero.entity.state == HERO_STATES.PUNCH) {
             dustObj.clearDust();
 
             // update saved Dust list and Hero respawn point
@@ -320,7 +325,7 @@ export class SiteScene extends Phaser.Scene {
                 this.completeSite();
             } else {
                 this.sound.play('dust');
-                const stuffType = weightedRandomizeAnything(this.mapConfig.stuffTypeWeights);
+                const stuffType = weightedRandomizeAnything(this.siteConfig.stuffTypeWeights);
                 
                 if (STUFF_CONFIGS.find(s => s.stuffName == stuffType)) {
                     const newStuff = new StuffModel(

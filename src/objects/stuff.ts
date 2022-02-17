@@ -6,18 +6,21 @@ export default class Stuff extends Phaser.GameObjects.Image {
     private blinkState: 0 | 1 | 2 | 3 = 0;
     private blinkTimer: Phaser.Time.TimerEvent;
     private addToInventoryTween: Phaser.Tweens.Tween;
+    private pickupTimeline: Phaser.Tweens.Timeline;
 
     constructor(scene: Phaser.Scene, x: number, y: number, key: string, private stuffConfig: StuffConfig) {
         super(scene, x, y, key, stuffConfig.frameIndex);
 
-        // scale the stuff
+        // scale & tint the stuff
         this.setScale(GAME_SCALE);
+        this.setTint(STUFF_TINT);
+
         // add the stuff to our existing scene
         this.scene.add.existing(this);
 
-        const timeline = this.scene.tweens.createTimeline();
+        this.pickupTimeline = this.scene.tweens.createTimeline();
 
-        timeline.add({
+        this.pickupTimeline.add({
             targets: this,
             y: y - this.displayHeight,
             duration: 1000,
@@ -39,13 +42,7 @@ export default class Stuff extends Phaser.GameObjects.Image {
                 this.cleanUp();
             }
         })
-        timeline.queue(this.addToInventoryTween);
-
-        timeline.play();
-
-        this.blink();
-
-        this.scorePoints();
+        this.pickupTimeline.queue(this.addToInventoryTween);
     }
 
     update() {
@@ -55,7 +52,11 @@ export default class Stuff extends Phaser.GameObjects.Image {
         }
     }
 
-    scorePoints() {
+    acquire() {
+        this.pickupTimeline.play();
+
+        this.blink();
+
         const inventory: StuffInInventory[] = this.scene.registry.get(INVENTORY_REGISTRY_KEY) || [];
         const currentStuffType = inventory.find(i => i.stuffConfigId == this.stuffConfig.stuffName);
         if (currentStuffType === undefined) {

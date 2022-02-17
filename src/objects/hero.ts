@@ -1,5 +1,5 @@
 import { CARDINAL_DIRECTION } from '../utils';
-import { GAME_SCALE, HERO_ANIM_FRAME_RATES, HERO_FRAMES, HERO_TINT, HERO_OFFSETS, HERO_TEXTURE_KEY } from '../constants';
+import { GAME_SCALE, HERO_ANIM_FRAME_RATES, HERO_FRAMES, HERO_TINT, HERO_OFFSETS, HERO_TEXTURE_KEY, HERO_STATES } from '../constants';
 import { HeroMovementController } from '../interfaces/heroMovementController';
 import { FOLLOW_HERO_MOVEMENT_CONTROLLER } from './followHeroMovmentController';
 
@@ -9,7 +9,6 @@ export default class Hero {
     public touchStartX: number = null;
     public touchStartY: number = null;
     public moveThreshold = 30;
-    public isPunching = false;
     public isFrozen = false;
     public lastAnimationFrame = -1;
     private _currentDirection = CARDINAL_DIRECTION.DOWN;
@@ -40,6 +39,7 @@ export default class Hero {
     }
 
     update(cursors: Phaser.Types.Input.Keyboard.CursorKeys, gamepad?: Phaser.Input.Gamepad.Gamepad): void {
+        this.heroSprite.flipY = this.heroSprite.state === HERO_STATES.GRAB;
         if (this.isFrozen) {
             return;
         }
@@ -70,10 +70,10 @@ export default class Hero {
             this.currentDirection = newDirection;
             const animDirection = newDirection == CARDINAL_DIRECTION.LEFT ? CARDINAL_DIRECTION.RIGHT
                 : newDirection;
-            this.heroSprite.anims.play((this.isPunching ? 'punch' : 'walk') + animDirection, true);
+            this.heroSprite.anims.play(this.heroSprite.state + animDirection, true);
         }
 
-        // fix #17 - cap lineara velocity at 1 x this.velocity
+        // fix #17 - cap linear velocity at 1 x this.velocity
         if (this.heroSprite.body.velocity.x != 0 && this.heroSprite.body.velocity.y != 0) {
             this.heroSprite.body.velocity.x *= Math.SQRT2 / 2;
             this.heroSprite.body.velocity.y *= Math.SQRT2 / 2;
@@ -91,9 +91,10 @@ export default class Hero {
             .setFrame(HERO_FRAMES.standing[startingDirection])
             .setDepth(1)
             .setTint(HERO_TINT)
+            .setState(HERO_STATES.WALK)
             .on('animationupdate', (animation: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame, heroSprite: Phaser.GameObjects.Sprite) => {
                 // add punching sound effects
-                if (this.isPunching && animation.key.toLocaleLowerCase().includes('punch')) {
+                if (this.heroSprite.state == HERO_STATES.PUNCH && animation.key.toLocaleLowerCase().includes('punch')) {
                     if (frame.index % 5 == 1) {
                         this.scene.sound.play('punch2');
                     }
@@ -115,8 +116,7 @@ export default class Hero {
     }
 
     addAnimations(): void {
-        ['walk', 'punch'].forEach(state => {
-
+        Object.values(HERO_STATES).forEach(state => {
             [
                 CARDINAL_DIRECTION.UP,
                 CARDINAL_DIRECTION.RIGHT,
