@@ -61,7 +61,12 @@ export class SiteScene extends Phaser.Scene {
 
         if (!!this.hero) {
             if (Phaser.Input.Keyboard.JustDown(this.cursors.space)) {
-                this.hero.entity.setState(this.hero.entity.state == HERO_STATES.PUNCH ? HERO_STATES.GRAB : HERO_STATES.PUNCH);
+                if (this.hero.entity.state == HERO_STATES.PUNCH) {
+                    this.hero.entity.setState(HERO_STATES.GRAB);
+                } else if (this.hero.entity.state == HERO_STATES.GRAB) {
+                    this.hero.entity.setState(HERO_STATES.PUNCH)
+                }
+                
             }
             this.hero.update(this.cursors, this.input.gamepad.gamepads[0]);
         }
@@ -193,6 +198,7 @@ export class SiteScene extends Phaser.Scene {
         if (this.dustGroup != null) {
             this.physics.add.overlap(this.hero.entity, this.dustGroup, this.dustCollision, null, this);
         }
+        this.physics.add.overlap(this.hero.entity, this.stuffGroup, this.stuffCollision, null, this);
     }
 
     initInput() {
@@ -337,6 +343,12 @@ export class SiteScene extends Phaser.Scene {
                     this.createStuff(newStuff);
                 }
             }
+        }
+    }
+
+    stuffCollision: ArcadePhysicsCallback = (_heroObj, stuffObj: Stuff) => {
+        if (this.hero.entity.state == HERO_STATES.GRAB) {
+            stuffObj.acquire();
         }
     }
 

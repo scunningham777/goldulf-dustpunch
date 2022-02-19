@@ -2,7 +2,7 @@ import { GAME_SCALE, INVENTORY_REGISTRY_KEY, STUFF_TINT } from "../constants";
 import StuffConfig from "../interfaces/stuffConfig";
 import StuffInInventory from "../interfaces/stuffInInventory";
 
-export default class Stuff extends Phaser.GameObjects.Image {
+export default class Stuff extends Phaser.Physics.Arcade.Image {
     private blinkState: 0 | 1 | 2 | 3 = 0;
     private blinkTimer: Phaser.Time.TimerEvent;
     private addToInventoryTween: Phaser.Tweens.Tween;
@@ -10,6 +10,8 @@ export default class Stuff extends Phaser.GameObjects.Image {
 
     constructor(scene: Phaser.Scene, x: number, y: number, key: string, private stuffConfig: StuffConfig) {
         super(scene, x, y, key, stuffConfig.frameIndex);
+
+        this.scene.physics.world.enable(this);
 
         // scale & tint the stuff
         this.setScale(GAME_SCALE);
@@ -53,8 +55,8 @@ export default class Stuff extends Phaser.GameObjects.Image {
     }
 
     acquire() {
+        this.scene.physics.world.disable(this);
         this.pickupTimeline.play();
-
         this.blink();
 
         const inventory: StuffInInventory[] = this.scene.registry.get(INVENTORY_REGISTRY_KEY) || [];
