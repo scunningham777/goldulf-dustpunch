@@ -26,7 +26,8 @@
     "@capacitor/status-bar": "^1.0.2",
     "localforage": "^1.10.0",
     "localforage-cordovasqlitedriver": "^1.8.0",
-    "phaser": "^3.55.2"
+    "phaser": "^3.55.2",
+    "phaser3-rex-plugins": "^1.1.67"
   },
   "scripts": {
     "copy": "copy src\\index.html www\\index.html && xcopy /e /v /i /y assets www\\assets && copy src\\service-worker.js www\\service-worker.js && copy src\\manifest.json www\\manifest.json && copy sw-toolbox.js www\\sw-toolbox.js",

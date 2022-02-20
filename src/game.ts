@@ -1,13 +1,14 @@
 /// <reference path="../node_modules/phaser/types/phaser.d.ts"/>
 
 import 'phaser';
+import ShakePositionPlugin from 'phaser3-rex-plugins/plugins/shakeposition-plugin.js';
 import { BootScene } from './scenes/boot';
 import { PreloadScene } from './scenes/preload';
 import { GameTitleScene } from './scenes/gameTitle';
 import { SiteScene } from './scenes/site';
 import { GameOverScene } from './scenes/gameOver';
 
-import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR_HEX_STRING, SITE_TYPES, IS_DEBUG, SITE_COMPLETE_SCENE_KEY, SITE_DATA_REGISTRY_KEY } from './constants';
+import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR_HEX_STRING, SITE_TYPES, IS_DEBUG, SITE_COMPLETE_SCENE_KEY, SITE_DATA_REGISTRY_KEY, REX_SHAKE_POSITION_PLUGIN_KEY } from './constants';
 
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar } from '@capacitor/status-bar';
@@ -51,6 +52,15 @@ const config: Phaser.Types.Core.GameConfig = {
     },
     input: {
         gamepad: true,
+    },
+    plugins: {
+        global: [
+            {
+                key: REX_SHAKE_POSITION_PLUGIN_KEY,
+                plugin: ShakePositionPlugin,
+                start: true
+            }
+        ]
     }
 };
 

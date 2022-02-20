@@ -1,6 +1,4 @@
-import { ANCESTORS_TEXTURE_KEY, GAME_SCALE, HERO_FRAMES, SITE_COMPLETE_SCENE_KEY, SITE_TYPES, TYPEWRITER_WORD_INTERVAL } from "../constants";
-import { AreaConfig } from "../interfaces/areaConfig";
-import { SiteConfig } from "../interfaces/siteConfig";
+import { ANCESTORS_TEXTURE_KEY, GAME_SCALE, HERO_FRAMES, REX_SHAKE_POSITION_PLUGIN_KEY, SITE_TYPES, STATIC_TEXTURE_KEY, TYPEWRITER_WORD_INTERVAL } from "../constants";
 import Hero from "../objects/hero";
 import { TypewriterText } from "../objects/typewriterText";
 import { CARDINAL_DIRECTION } from "../utils";
@@ -10,23 +8,30 @@ export interface SiteCompleteSceneProps {
     heroDisplayX: number;
     heroDisplayY: number;
     heroDirection: CARDINAL_DIRECTION;
+    miniBossFrame: number;
 }
 
 const ALPHA_DELAY = 500;
 const FLASH_DELAY = 200;
 const SPEECH_DELAY = 600;
-
+const MINIBOSS_SCALE = 3;
+const MINIBOSS_SHAKE_DURATION = 300;
+const MINIBOSS_BURST_DURATION = 1200;
 
 export class SiteCompleteScene extends Phaser.Scene {
     private hero: Hero;
     private ancestorSpirit: Phaser.GameObjects.Image;
+    private miniBossFrame: number;
+    private miniBoss: Phaser.GameObjects.Image & {shake?: {shake: Function}};
     private background: Phaser.GameObjects.Rectangle;
     private speechText: TypewriterText;
+    private bossBurstEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
     
     create(): void {
-        const {heroDisplayX, heroDisplayY, heroDirection} = this.scene.settings.data as SiteCompleteSceneProps;
+        const {heroDisplayX, heroDisplayY, heroDirection, miniBossFrame} = this.scene.settings.data as SiteCompleteSceneProps;
         this.hero = new Hero(heroDisplayX, heroDisplayY, this, 0, heroDirection)
         this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection]);
+        this.miniBossFrame = miniBossFrame;
 
         this.background = this.add.rectangle(window.innerWidth / 2, window.innerHeight / 2, window.innerWidth, window.innerHeight, 0x000000).setAlpha(.3);
         this.time.delayedCall(ALPHA_DELAY, () => this.background.setAlpha(.5));
@@ -35,20 +40,97 @@ export class SiteCompleteScene extends Phaser.Scene {
         this.time.delayedCall(3 * ALPHA_DELAY + FLASH_DELAY, () => this.cameras.main.flash(10));
         this.time.delayedCall(3 * ALPHA_DELAY + 2 * FLASH_DELAY, () => {
             this.cameras.main.flash(10);
-            
-            let ancestorPlacementX = this.hero.entity.x - this.hero.entity.displayWidth;
-            if (this.hero.entity.x > this.cameras.main.displayWidth / 2) {
-                this.hero.currentDirection = CARDINAL_DIRECTION.LEFT;
-            } else {
-                this.hero.currentDirection = CARDINAL_DIRECTION.RIGHT;
-                ancestorPlacementX = this.hero.entity.x + this.hero.entity.displayWidth;
-            }
-            
-            this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection] + 2);
-            this.ancestorSpirit = this.add.image(ancestorPlacementX, this.hero.entity.y, ANCESTORS_TEXTURE_KEY, 0);
-            this.ancestorSpirit.setScale(GAME_SCALE);
+            this.showMiniBoss();
         });
-        this.time.delayedCall(3 * ALPHA_DELAY + 2 * FLASH_DELAY + SPEECH_DELAY, () => {
+
+        this.bossBurstEmitter = this.add.particles('__WHITE').createEmitter({
+            name: 'boss_particles',
+            x: 0,
+            y: 0,
+            quantity: -1,
+            scale: MINIBOSS_SCALE * .8,
+            speed: {end: 0, start: 50 * MINIBOSS_SCALE * 2, random: true},
+            angle: {min: 0, max: 360},
+            lifespan: MINIBOSS_BURST_DURATION,
+        });
+        this.bossBurstEmitter.setEmitZone({
+            type: 'random',
+            source: new Phaser.Geom.Rectangle(0, -16 * GAME_SCALE * MINIBOSS_SCALE, 16 * GAME_SCALE * MINIBOSS_SCALE, 16 * GAME_SCALE * MINIBOSS_SCALE),
+        })
+    }
+
+    showMiniBoss() {
+        let bossPlacementX = this.hero.entity.x - (this.hero.entity.displayWidth * MINIBOSS_SCALE / 2);
+        if (this.hero.entity.x > this.cameras.main.displayWidth / 2) {
+            this.hero.currentDirection = CARDINAL_DIRECTION.LEFT;
+        } else {
+            this.hero.currentDirection = CARDINAL_DIRECTION.RIGHT;
+            bossPlacementX = this.hero.entity.x + (this.hero.entity.displayWidth * MINIBOSS_SCALE / 2);
+        }
+        this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection] + 2);
+        this.miniBoss = this.add.image(bossPlacementX, this.hero.entity.y + this.hero.entity.displayHeight / 2, STATIC_TEXTURE_KEY, this.miniBossFrame);
+        this.miniBoss.setScale(GAME_SCALE * MINIBOSS_SCALE);
+        this.miniBoss.setOrigin(0, 1);
+        this.miniBoss.shake = (this.plugins.get(REX_SHAKE_POSITION_PLUGIN_KEY) as any).add(this.miniBoss, {
+            duration: MINIBOSS_SHAKE_DURATION,
+            mode: 'effect',
+        })
+
+        this.input.keyboard.on('keydown', this.bossDefeated, this);
+        this.input.on('pointerdown', this.bossDefeated, this);
+        this.input.gamepad.on('down', this.bossDefeated, this);
+    }
+
+    async heroPunch() {
+        return new Promise<void>((resolve, reject) => {
+            this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection]);
+            this.tweens.add({
+                targets: this.hero.entity,
+                x: this.miniBoss.x,
+                duration: 400,
+                ease: 'Quad.easeIn',
+                yoyo: true,
+                onYoyo: () => {
+                    this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection] + 2);
+                    resolve();
+                }
+            })
+        });
+    }
+
+    async bossHit(shakeDurationMultiplier: number = 1) {
+        return new Promise<void>((resolve, reject) => {
+            this.miniBoss.shake.shake({
+                duration: MINIBOSS_SHAKE_DURATION * shakeDurationMultiplier,
+            });
+            this.time.delayedCall(MINIBOSS_SHAKE_DURATION * shakeDurationMultiplier, resolve);
+        })
+    }
+
+    async bossDefeated() {
+        this.input.keyboard.off('keydown', this.bossDefeated, this);
+        this.input.off('pointerdown', this.bossDefeated, this);
+        this.input.gamepad.off('down', this.bossDefeated, this);
+        await this.heroPunch();
+        await this.bossHit(4);
+        this.bossBurstEmitter.explode(100, this.miniBoss.x, this.miniBoss.y);
+        this.time.delayedCall(MINIBOSS_BURST_DURATION, () => {
+            this.miniBoss.setAlpha(0);
+            this.showAncestorSpirit();
+        })
+    }
+
+    showAncestorSpirit() {
+        let ancestorPlacementX = this.hero.entity.x - this.hero.entity.displayWidth;
+        if (this.hero.entity.x > this.cameras.main.displayWidth / 2) {
+        } else {
+            ancestorPlacementX = this.hero.entity.x + this.hero.entity.displayWidth;
+        }
+        
+        this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection] + 2);
+        this.ancestorSpirit = this.add.image(ancestorPlacementX, this.hero.entity.y, ANCESTORS_TEXTURE_KEY, 0);
+        this.ancestorSpirit.setScale(GAME_SCALE);
+        this.time.delayedCall(SPEECH_DELAY, () => {
             const halfHeight = this.cameras.main.displayHeight / 2
             const speechTextYOffset = (this.hero.entity.y > halfHeight - (this.hero.entity.height * GAME_SCALE)) ? 0 : halfHeight;
             const speechTextY = this.cameras.main.displayHeight * .1 + speechTextYOffset;

@@ -95,6 +95,7 @@ export const enum SITE_TYPES {
     site = 'site',
 }
 export const TYPEWRITER_WORD_INTERVAL = 80;
+export const REX_SHAKE_POSITION_PLUGIN_KEY = 'rexShakePosition';
 
 // "ENVIRONMENT"
 export const IS_DEBUG = false;

@@ -324,8 +324,7 @@ export class SiteScene extends Phaser.Scene {
 
             this.burstEmitter.explode(28, dustObj.x, dustObj.y);
             
-            if (this.dustGroup.getChildren().length == 0) {
-            // if (this.dustGroup.getChildren().length >= 0) {
+            if (this.checkSiteComplete()) {
                 this.sound.play('dust', {rate: .4});
                 this.sound.play('dust', {delay: .5, rate: .5});
                 this.completeSite();
@@ -377,6 +376,13 @@ export class SiteScene extends Phaser.Scene {
         }
     }
 
+    checkSiteComplete(): boolean {
+        // const dustLeft =     // store initial dust could somewhere, use that to calculate x and a below
+        // if (Math.random() < -((x/a)^.5)+1)
+        return this.dustGroup.getChildren().length == 0;
+        // return this.dustGroup.getChildren().length >= 0;
+    }
+
     completeSite() {
         this.hasHeroReachedExit = true;
         this.hero.freeze();
@@ -390,6 +396,7 @@ export class SiteScene extends Phaser.Scene {
                 heroDisplayX: this.hero.entity.x - this.cameras.main.scrollX,
                 heroDisplayY: this.hero.entity.y - this.cameras.main.scrollY,
                 heroDirection: this.hero.currentDirection,
+                miniBossFrame: Phaser.Math.RND.pick(this.siteConfig.availableDustFrames),
             }
             this.scene.launch(SITE_COMPLETE_SCENE_KEY, siteCompleteProps);
             
