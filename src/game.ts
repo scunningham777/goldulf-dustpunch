@@ -2,13 +2,15 @@
 
 import 'phaser';
 import ShakePositionPlugin from 'phaser3-rex-plugins/plugins/shakeposition-plugin.js';
+import TextTypingPlugin from 'phaser3-rex-plugins/plugins/texttyping-plugin.js';
+
 import { BootScene } from './scenes/boot';
 import { PreloadScene } from './scenes/preload';
 import { GameTitleScene } from './scenes/gameTitle';
 import { SiteScene } from './scenes/site';
 import { GameOverScene } from './scenes/gameOver';
 
-import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR_HEX_STRING, SITE_TYPES, IS_DEBUG, SITE_COMPLETE_SCENE_KEY, SITE_DATA_REGISTRY_KEY, REX_SHAKE_POSITION_PLUGIN_KEY } from './constants';
+import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR_HEX_STRING, SITE_TYPES, IS_DEBUG, SITE_COMPLETE_SCENE_KEY, SITE_DATA_REGISTRY_KEY, REX_SHAKE_POSITION_PLUGIN_KEY, REX_TEXT_TYPING_PLUGIN_KEY } from './constants';
 
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar } from '@capacitor/status-bar';
@@ -18,6 +20,7 @@ import { SiteCompleteScene } from './scenes/siteComplete';
 import { Storage } from './objects/storage';
 import StuffInInventory from './interfaces/stuffInInventory';
 import { SiteGenerationData } from './interfaces/siteGenerationData';
+import TextTyping from 'phaser3-rex-plugins/plugins/texttyping';
 
 const config: Phaser.Types.Core.GameConfig = {
     width: WORLD_WIDTH,
@@ -54,11 +57,17 @@ const config: Phaser.Types.Core.GameConfig = {
         gamepad: true,
     },
     plugins: {
+
         global: [
             {
                 key: REX_SHAKE_POSITION_PLUGIN_KEY,
                 plugin: ShakePositionPlugin,
-                start: true
+                start: true,
+            },
+            {
+                key: REX_TEXT_TYPING_PLUGIN_KEY,
+                plugin: TextTypingPlugin,
+                start: true,
             }
         ]
     }

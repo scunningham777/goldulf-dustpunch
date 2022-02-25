@@ -96,6 +96,7 @@ export const enum SITE_TYPES {
 }
 export const TYPEWRITER_WORD_INTERVAL = 80;
 export const REX_SHAKE_POSITION_PLUGIN_KEY = 'rexShakePosition';
+export const REX_TEXT_TYPING_PLUGIN_KEY = 'rexTextTyping';
 
 // "ENVIRONMENT"
 export const IS_DEBUG = false;

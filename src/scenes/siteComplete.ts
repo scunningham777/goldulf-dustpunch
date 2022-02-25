@@ -1,6 +1,9 @@
-import { ANCESTORS_TEXTURE_KEY, GAME_SCALE, HERO_FRAMES, REX_SHAKE_POSITION_PLUGIN_KEY, SITE_TYPES, STATIC_TEXTURE_KEY, TYPEWRITER_WORD_INTERVAL } from "../constants";
+import TextTyping from 'phaser3-rex-plugins/plugins/texttyping.js';
+
+import { ANCESTORS_TEXTURE_KEY, GAME_SCALE, HERO_FRAMES, REX_SHAKE_POSITION_PLUGIN_KEY, REX_TEXT_TYPING_PLUGIN_KEY, SITE_TYPES, STATIC_TEXTURE_KEY, TYPEWRITER_WORD_INTERVAL } from "../constants";
 import Hero from "../objects/hero";
 import { TypewriterText } from "../objects/typewriterText";
+import { TEXT_ANCESTOR_FREED_SPEECH } from '../text';
 import { CARDINAL_DIRECTION } from "../utils";
 import { SiteScene } from "./site";
 
@@ -24,7 +27,7 @@ export class SiteCompleteScene extends Phaser.Scene {
     private miniBossFrame: number;
     private miniBoss: Phaser.GameObjects.Image & {shake?: {shake: Function}};
     private background: Phaser.GameObjects.Rectangle;
-    private speechText: TypewriterText;
+    private speechText: TextTyping;
     private bossBurstEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
     
     create(): void {
@@ -133,14 +136,29 @@ export class SiteCompleteScene extends Phaser.Scene {
         this.time.delayedCall(SPEECH_DELAY, () => {
             const halfHeight = this.cameras.main.displayHeight / 2
             const speechTextYOffset = (this.hero.entity.y > halfHeight - (this.hero.entity.height * GAME_SCALE)) ? 0 : halfHeight;
-            const speechTextY = this.cameras.main.displayHeight * .1 + speechTextYOffset;
-            const speechText = 'Trapped here for centuries by the final curse of Goldulf, my spirit has at last been set free by your fastidious fistwork!\n\nPunch on to free the rest of our bodacious bloodline!';
-            this.speechText = new TypewriterText(speechText, this, speechTextY, TYPEWRITER_WORD_INTERVAL, () => {
-                this.sound.play('glory');
-                this.input.keyboard.on('keydown', this.nextMap, this);
-                this.input.on('pointerdown', this.nextMap, this);
-                this.input.gamepad.on('down', this.nextMap, this);
+            const speechTextY = this.cameras.main.displayHeight * .07 + speechTextYOffset;
+            const speechTextObj = this.add.text(this.cameras.main.displayWidth / 2, speechTextY, '', {font: `32px '7_12'`, color: '#fff', align: 'center', wordWrap: {width: this.cameras.main.displayWidth * .85}});
+            speechTextObj.setOrigin(.5, 0);
+
+            this.speechText = (this.plugins.get(REX_TEXT_TYPING_PLUGIN_KEY) as any).add(speechTextObj, {
+                wrap: true,
+                speed: TYPEWRITER_WORD_INTERVAL,
             });
+            this.speechText.start(TEXT_ANCESTOR_FREED_SPEECH);
+            const shortCircuitSpeech = () => {
+                this.speechText.stop(true);
+            }
+            this.setAnyInputCallback(shortCircuitSpeech);
+            this.speechText.on('complete', () => {
+                this.clearAnyInputCallback(shortCircuitSpeech);
+                this.setAnyInputCallback(this.nextMap);
+            })
+            // this, speechTextY, TYPEWRITER_WORD_INTERVAL, () => {
+            //     this.sound.play('glory');
+            //     this.input.keyboard.on('keydown', this.nextMap, this);
+            //     this.input.on('pointerdown', this.nextMap, this);
+            //     this.input.gamepad.on('down', this.nextMap, this);
+            // });
         });
     }
 
@@ -163,5 +181,16 @@ export class SiteCompleteScene extends Phaser.Scene {
                 this.scene.start(SITE_TYPES.overworld, sceneConfig);
             });
         });
+    }
+
+    private setAnyInputCallback(callback: Function) {
+        this.input.keyboard.on('keydown', callback, this);
+        this.input.on('pointerdown', callback, this);
+        this.input.gamepad.on('down', callback, this);
+    }
+    private clearAnyInputCallback(callback: Function) {
+        this.input.keyboard.off('keydown', callback, this);
+        this.input.off('pointerdown', callback, this);
+        this.input.gamepad.off('down', callback, this);
     }
 }
