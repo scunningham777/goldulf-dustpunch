@@ -1,8 +1,8 @@
 /// <reference path="../node_modules/phaser/types/phaser.d.ts"/>
 
 import 'phaser';
-import ShakePositionPlugin from 'phaser3-rex-plugins/plugins/shakeposition-plugin.js';
-import TextTypingPlugin from 'phaser3-rex-plugins/plugins/texttyping-plugin.js';
+import ShakePositionPlugin from 'phaser3-rex-plugins/plugins/shakeposition-plugin';
+import TextTypingPlugin from 'phaser3-rex-plugins/plugins/texttyping-plugin';
 
 import { BootScene } from './scenes/boot';
 import { PreloadScene } from './scenes/preload';
@@ -20,7 +20,6 @@ import { SiteCompleteScene } from './scenes/siteComplete';
 import { Storage } from './objects/storage';
 import StuffInInventory from './interfaces/stuffInInventory';
 import { SiteGenerationData } from './interfaces/siteGenerationData';
-import TextTyping from 'phaser3-rex-plugins/plugins/texttyping';
 
 const config: Phaser.Types.Core.GameConfig = {
     width: WORLD_WIDTH,
@@ -68,7 +67,7 @@ const config: Phaser.Types.Core.GameConfig = {
                 key: REX_TEXT_TYPING_PLUGIN_KEY,
                 plugin: TextTypingPlugin,
                 start: true,
-            }
+            },
         ]
     }
 };

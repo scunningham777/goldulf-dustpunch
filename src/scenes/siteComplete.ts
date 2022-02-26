@@ -2,6 +2,7 @@ import TextTyping from 'phaser3-rex-plugins/plugins/texttyping.js';
 
 import { ANCESTORS_TEXTURE_KEY, GAME_SCALE, HERO_FRAMES, REX_SHAKE_POSITION_PLUGIN_KEY, REX_TEXT_TYPING_PLUGIN_KEY, SITE_TYPES, STATIC_TEXTURE_KEY, TYPEWRITER_WORD_INTERVAL } from "../constants";
 import Hero from "../objects/hero";
+import { ModalMenu } from '../objects/modalMenu';
 import { TypewriterText } from "../objects/typewriterText";
 import { TEXT_ANCESTOR_FREED_SPEECH } from '../text';
 import { CARDINAL_DIRECTION } from "../utils";
@@ -20,6 +21,7 @@ const SPEECH_DELAY = 600;
 const MINIBOSS_SCALE = 3;
 const MINIBOSS_SHAKE_DURATION = 300;
 const MINIBOSS_BURST_DURATION = 1200;
+const SCENE_PADDING_FACTOR = .07;
 
 export class SiteCompleteScene extends Phaser.Scene {
     private hero: Hero;
@@ -29,6 +31,7 @@ export class SiteCompleteScene extends Phaser.Scene {
     private background: Phaser.GameObjects.Rectangle;
     private speechText: TextTyping;
     private bossBurstEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
+    private bossFightMenu: ModalMenu;
     
     create(): void {
         const {heroDisplayX, heroDisplayY, heroDirection, miniBossFrame} = this.scene.settings.data as SiteCompleteSceneProps;
@@ -58,30 +61,37 @@ export class SiteCompleteScene extends Phaser.Scene {
         });
         this.bossBurstEmitter.setEmitZone({
             type: 'random',
-            source: new Phaser.Geom.Rectangle(0, -16 * GAME_SCALE * MINIBOSS_SCALE, 16 * GAME_SCALE * MINIBOSS_SCALE, 16 * GAME_SCALE * MINIBOSS_SCALE),
+            source: new Phaser.Geom.Rectangle(-8 * GAME_SCALE * MINIBOSS_SCALE, -16 * GAME_SCALE * MINIBOSS_SCALE, 16 * GAME_SCALE * MINIBOSS_SCALE, 16 * GAME_SCALE * MINIBOSS_SCALE),
         })
     }
 
     showMiniBoss() {
-        let bossPlacementX = this.hero.entity.x - (this.hero.entity.displayWidth * MINIBOSS_SCALE / 2);
+        let bossPlacementX = this.hero.entity.x - (this.hero.entity.displayWidth * (MINIBOSS_SCALE + 1) / 2);
         if (this.hero.entity.x > this.cameras.main.displayWidth / 2) {
             this.hero.currentDirection = CARDINAL_DIRECTION.LEFT;
         } else {
             this.hero.currentDirection = CARDINAL_DIRECTION.RIGHT;
-            bossPlacementX = this.hero.entity.x + (this.hero.entity.displayWidth * MINIBOSS_SCALE / 2);
+            bossPlacementX = this.hero.entity.x + (this.hero.entity.displayWidth * (MINIBOSS_SCALE + 1) / 2);
         }
         this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection] + 2);
         this.miniBoss = this.add.image(bossPlacementX, this.hero.entity.y + this.hero.entity.displayHeight / 2, STATIC_TEXTURE_KEY, this.miniBossFrame);
         this.miniBoss.setScale(GAME_SCALE * MINIBOSS_SCALE);
-        this.miniBoss.setOrigin(0, 1);
+        this.miniBoss.setOrigin(0.5, 1);
         this.miniBoss.shake = (this.plugins.get(REX_SHAKE_POSITION_PLUGIN_KEY) as any).add(this.miniBoss, {
             duration: MINIBOSS_SHAKE_DURATION,
             mode: 'effect',
         })
 
-        this.input.keyboard.on('keydown', this.bossDefeated, this);
-        this.input.on('pointerdown', this.bossDefeated, this);
-        this.input.gamepad.on('down', this.bossDefeated, this);
+        this.bossFightMenu = new ModalMenu(this, {
+            x: this.cameras.main.displayWidth / 2,
+            y: this.determineOpenYLocation(),
+            width: this.cameras.main.displayWidth * .85,
+            height: this.miniBoss.y - this.miniBoss.displayHeight - (2 * this.cameras.main.displayHeight * SCENE_PADDING_FACTOR),
+            items: [],
+            showCursor: true,
+        });
+
+        this.setAnyInputCallback(this.bossDefeated);
     }
 
     async heroPunch() {
@@ -118,25 +128,18 @@ export class SiteCompleteScene extends Phaser.Scene {
         await this.bossHit(4);
         this.bossBurstEmitter.explode(100, this.miniBoss.x, this.miniBoss.y);
         this.time.delayedCall(MINIBOSS_BURST_DURATION, () => {
-            this.miniBoss.setAlpha(0);
+            this.miniBoss.setVisible(false);
+            this.bossFightMenu.toggleVisibility(false);
             this.showAncestorSpirit();
         })
     }
 
     showAncestorSpirit() {
-        let ancestorPlacementX = this.hero.entity.x - this.hero.entity.displayWidth;
-        if (this.hero.entity.x > this.cameras.main.displayWidth / 2) {
-        } else {
-            ancestorPlacementX = this.hero.entity.x + this.hero.entity.displayWidth;
-        }
-        
         this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection] + 2);
-        this.ancestorSpirit = this.add.image(ancestorPlacementX, this.hero.entity.y, ANCESTORS_TEXTURE_KEY, 0);
+        this.ancestorSpirit = this.add.image(this.miniBoss.x, this.hero.entity.y, ANCESTORS_TEXTURE_KEY, 0);
         this.ancestorSpirit.setScale(GAME_SCALE);
         this.time.delayedCall(SPEECH_DELAY, () => {
-            const halfHeight = this.cameras.main.displayHeight / 2
-            const speechTextYOffset = (this.hero.entity.y > halfHeight - (this.hero.entity.height * GAME_SCALE)) ? 0 : halfHeight;
-            const speechTextY = this.cameras.main.displayHeight * .07 + speechTextYOffset;
+            const speechTextY = this.determineOpenYLocation();
             const speechTextObj = this.add.text(this.cameras.main.displayWidth / 2, speechTextY, '', {font: `32px '7_12'`, color: '#fff', align: 'center', wordWrap: {width: this.cameras.main.displayWidth * .85}});
             speechTextObj.setOrigin(.5, 0);
 
@@ -151,7 +154,7 @@ export class SiteCompleteScene extends Phaser.Scene {
             this.setAnyInputCallback(shortCircuitSpeech);
             this.speechText.on('complete', () => {
                 this.clearAnyInputCallback(shortCircuitSpeech);
-                this.setAnyInputCallback(this.nextMap);
+                // this.setAnyInputCallback(this.nextMap);
             })
             // this, speechTextY, TYPEWRITER_WORD_INTERVAL, () => {
             //     this.sound.play('glory');
@@ -192,5 +195,11 @@ export class SiteCompleteScene extends Phaser.Scene {
         this.input.keyboard.off('keydown', callback, this);
         this.input.off('pointerdown', callback, this);
         this.input.gamepad.off('down', callback, this);
+    }
+
+    private determineOpenYLocation(): number {
+        const halfHeight = this.cameras.main.displayHeight / 2
+        const heightOffset = (this.hero.entity.y > halfHeight - (this.hero.entity.height * GAME_SCALE)) ? 0 : halfHeight;
+        return this.cameras.main.displayHeight * SCENE_PADDING_FACTOR + heightOffset;
     }
 }
