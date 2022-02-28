@@ -42,10 +42,10 @@ export class SiteCompleteScene extends Phaser.Scene {
         this.background = this.add.rectangle(window.innerWidth / 2, window.innerHeight / 2, window.innerWidth, window.innerHeight, 0x000000).setAlpha(.3);
         this.time.delayedCall(ALPHA_DELAY, () => this.background.setAlpha(.5));
         this.time.delayedCall(2 * ALPHA_DELAY, () => this.background.setAlpha(.7));
-        this.time.delayedCall(3 * ALPHA_DELAY, () => this.cameras.main.flash(10));
-        this.time.delayedCall(3 * ALPHA_DELAY + FLASH_DELAY, () => this.cameras.main.flash(10));
+        this.time.delayedCall(3 * ALPHA_DELAY, () => this.cameras.main.flash(10, 190,190,190));
+        this.time.delayedCall(3 * ALPHA_DELAY + FLASH_DELAY, () => this.cameras.main.flash(10, 190,190,190));
         this.time.delayedCall(3 * ALPHA_DELAY + 2 * FLASH_DELAY, () => {
-            this.cameras.main.flash(10);
+            this.cameras.main.flash(10, 190,190,190);
             this.showMiniBoss();
         });
 
@@ -63,6 +63,12 @@ export class SiteCompleteScene extends Phaser.Scene {
             type: 'random',
             source: new Phaser.Geom.Rectangle(-8 * GAME_SCALE * MINIBOSS_SCALE, -16 * GAME_SCALE * MINIBOSS_SCALE, 16 * GAME_SCALE * MINIBOSS_SCALE, 16 * GAME_SCALE * MINIBOSS_SCALE),
         })
+    }
+
+    update() {
+        if (!!this.bossFightMenu) {
+            this.bossFightMenu.update();
+        }
     }
 
     showMiniBoss() {
@@ -87,11 +93,37 @@ export class SiteCompleteScene extends Phaser.Scene {
             y: this.determineOpenYLocation(),
             width: this.cameras.main.displayWidth * .85,
             height: this.miniBoss.y - this.miniBoss.displayHeight - (2 * this.cameras.main.displayHeight * SCENE_PADDING_FACTOR),
-            items: [],
+            numColumns: 2,
+            items: [
+                {
+                    text: 'Punch',
+                    onSelect: this.bossDefeated.bind(this),
+                },
+                {
+                    text: 'Sneeze',
+                    onSelect: ()=>{},
+                },
+                {
+                    text: 'Taunt',
+                    onSelect: ()=>{},
+                },
+                {
+                    text: 'Plead',
+                    onSelect: ()=>{},
+                },
+                {
+                    text: 'Jinx',
+                    onSelect: ()=>{},
+                },
+                {
+                    text: 'Give Up',
+                    onSelect: ()=>{},
+                },
+            ],
             showCursor: true,
         });
 
-        this.setAnyInputCallback(this.bossDefeated);
+        // this.setAnyInputCallback(this.bossDefeated);
     }
 
     async heroPunch() {

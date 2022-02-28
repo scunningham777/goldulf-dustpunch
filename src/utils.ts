@@ -43,3 +43,31 @@ export function weightedRandomizeAnything<T>(weightedIndexes: {key: T, weight: n
         }
     }
 }
+
+export function calculateGamepad(gamepad: Phaser.Input.Gamepad.Gamepad): {up: boolean, down: boolean, left: boolean, right: boolean} {
+    const directions = {
+        up: false,
+        down: false,
+        left: false,
+        right: false,
+    }
+    
+    if (!!gamepad) {
+        const axisH = gamepad.axes[0].getValue();
+        const axisV = gamepad.axes[1].getValue();
+        if (gamepad.up || axisV < 0) {
+            directions.up = true;
+        }
+        if (gamepad.down || axisV > 0) {
+            directions.down = true;
+        }
+        if (gamepad.left || axisH < 0) {
+            directions.left = true;
+        }
+        if (gamepad.right || axisH > 0) {
+            directions.right = true;
+        }
+    }
+
+    return directions;
+}
