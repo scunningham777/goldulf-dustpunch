@@ -387,9 +387,9 @@ export class SiteScene extends Phaser.Scene {
         this.hasHeroReachedExit = true;
         this.hero.freeze();
         this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection]);
-        this.cameras.main.flash(10)
+        this.cameras.main.flash(10, 150,150,150)
         this.time.delayedCall(200, () => {
-            this.cameras.main.flash(100, 255, 255, 255, true);
+            this.cameras.main.flash(100, 150,150,150, true);
         });
         this.time.delayedCall(1000, () => {
             const siteCompleteProps: SiteCompleteSceneProps = {

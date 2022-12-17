@@ -42,10 +42,10 @@ export class SiteCompleteScene extends Phaser.Scene {
         this.background = this.add.rectangle(window.innerWidth / 2, window.innerHeight / 2, window.innerWidth, window.innerHeight, 0x000000).setAlpha(.3);
         this.time.delayedCall(ALPHA_DELAY, () => this.background.setAlpha(.5));
         this.time.delayedCall(2 * ALPHA_DELAY, () => this.background.setAlpha(.7));
-        this.time.delayedCall(3 * ALPHA_DELAY, () => this.cameras.main.flash(10, 190,190,190));
-        this.time.delayedCall(3 * ALPHA_DELAY + FLASH_DELAY, () => this.cameras.main.flash(10, 190,190,190));
+        this.time.delayedCall(3 * ALPHA_DELAY, () => this.cameras.main.flash(10,150,150,150));
+        this.time.delayedCall(3 * ALPHA_DELAY + FLASH_DELAY, () => this.cameras.main.flash(10,150,150,150));
         this.time.delayedCall(3 * ALPHA_DELAY + 2 * FLASH_DELAY, () => {
-            this.cameras.main.flash(10, 190,190,190);
+            this.cameras.main.flash(10,150,150,150);
             this.showMiniBoss();
         });
 
@@ -93,7 +93,7 @@ export class SiteCompleteScene extends Phaser.Scene {
             y: this.determineOpenYLocation(),
             width: this.cameras.main.displayWidth * .85,
             height: this.miniBoss.y - this.miniBoss.displayHeight - (2 * this.cameras.main.displayHeight * SCENE_PADDING_FACTOR),
-            numColumns: 2,
+            numColumns: 3,
             items: [
                 {
                     text: 'Punch',
@@ -101,6 +101,10 @@ export class SiteCompleteScene extends Phaser.Scene {
                 },
                 {
                     text: 'Sneeze',
+                    onSelect: ()=>{console.log('sneeze')},
+                },
+                {
+                    text: 'Tread On',
                     onSelect: ()=>{},
                 },
                 {
@@ -109,6 +113,14 @@ export class SiteCompleteScene extends Phaser.Scene {
                 },
                 {
                     text: 'Plead',
+                    onSelect: ()=>{},
+                },
+                {
+                    text: 'Doff',
+                    onSelect: ()=>{},
+                },
+                {
+                    text: 'Flatter',
                     onSelect: ()=>{},
                 },
                 {

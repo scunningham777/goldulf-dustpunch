@@ -13,6 +13,7 @@ export class ModalMenu implements TouchEnabledWithEntity {
     private layer: Phaser.GameObjects.Layer;
     private bg: RoundRectangle;
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
+    private enterKey: Phaser.Input.Keyboard.Key;
     private mvtCtrl: EntityMovementController = JOYSTICK_HERO_MOVEMENT_CONTROLLER;
     private currentSelectionIndex = 0;
     private cursor: Phaser.GameObjects.Image;
@@ -30,8 +31,9 @@ export class ModalMenu implements TouchEnabledWithEntity {
         scene.add.existing(this.bg);
         this.layer = scene.add.layer([this.bg]);
         this.cursors = this.scene.input.keyboard.createCursorKeys();
+        this.enterKey = this.scene.input.keyboard.addKey('ENTER');
 
-        const cursorPadding = config.showCursor ? 18 * GAME_SCALE : 0;
+        const cursorPadding = config.showCursor ? 20 * GAME_SCALE : 0;
         config.items.forEach((item, index) => {
             const {x: itemX, y: itemY} = this.determineItemBaseCoords(index);
             const itemLabel = scene.add.text(
@@ -40,7 +42,7 @@ export class ModalMenu implements TouchEnabledWithEntity {
                 item.text,
                 {font: `${16 * GAME_SCALE}px '7_12'`, color: '#fff'}
             );
-            // add click handler
+            // TODO: add click handler
             this.layer.add(itemLabel);
         });
 
@@ -49,6 +51,7 @@ export class ModalMenu implements TouchEnabledWithEntity {
             this.cursor = scene.add.image(cursorX, cursorY, UI_TEXTURE_KEY, 0);
             this.cursor.setScale(GAME_SCALE)
                     .setOrigin(0,0);
+            this.layer.add(this.cursor);
         }
     }
 
@@ -72,6 +75,20 @@ export class ModalMenu implements TouchEnabledWithEntity {
                 this.currentSelectionIndex += 1;
             }
             this.updateCursorPosition();
+        } else if (this.config.showCursor && Phaser.Input.Keyboard.JustDown(this.cursors.right) || gamepadDirections.right || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.RIGHT)) {
+            this.currentSelectionIndex += Math.ceil(this.config.items.length / this.config.numColumns);
+            // not gonna work if items.length is not divisible by numColumns
+            // if (this.config.items.length % this.config.numColumns === 1 && this.currentSelectionIndex >= this.config.items.length) {
+            //     this.currentSelectionIndex -= 1;
+            // }
+            this.currentSelectionIndex %= this.config.items.length;
+            this.updateCursorPosition();
+        } else if (this.config.showCursor && Phaser.Input.Keyboard.JustDown(this.cursors.left) || gamepadDirections.left || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.LEFT)) {
+            this.currentSelectionIndex += this.config.items.length - Math.ceil(this.config.items.length / this.config.numColumns);
+            this.currentSelectionIndex %= this.config.items.length;
+            this.updateCursorPosition();
+        } else if (Phaser.Input.Keyboard.JustDown(this.enterKey)) {
+            this.config.items[this.currentSelectionIndex].onSelect();
         }
     }
 
