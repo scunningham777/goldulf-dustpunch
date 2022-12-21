@@ -373,6 +373,7 @@ export class SiteScene extends Phaser.Scene {
                 heroDisplayX: this.hero.entity.x - this.cameras.main.scrollX,
                 heroDisplayY: this.hero.entity.y - this.cameras.main.scrollY,
                 heroDirection: this.hero.currentDirection,
+                siteConfig: this.mapConfig,
             }
             this.scene.launch(SITE_COMPLETE_SCENE_KEY, siteCompleteProps);
             

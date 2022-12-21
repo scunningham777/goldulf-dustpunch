@@ -7,7 +7,7 @@ import { GameTitleScene } from './scenes/gameTitle';
 import { SiteScene } from './scenes/site';
 import { GameOverScene } from './scenes/gameOver';
 
-import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR_HEX_STRING, SITE_TYPES, IS_DEBUG, SITE_COMPLETE_SCENE_KEY, SITE_DATA_REGISTRY_KEY } from './constants';
+import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_STUFF_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR_HEX_STRING, SITE_TYPES, IS_DEBUG, SITE_COMPLETE_SCENE_KEY, SITE_DATA_REGISTRY_KEY, INVENTORY_STUFF_REGISTRY_KEY__OLD } from './constants';
 
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar } from '@capacitor/status-bar';
@@ -72,13 +72,22 @@ export class Game extends Phaser.Game {
 
         Promise.all([
             this.dataStore.get(SITE_DATA_REGISTRY_KEY),
-            this.dataStore.get(INVENTORY_REGISTRY_KEY),
+            this.dataStore.get(INVENTORY_STUFF_REGISTRY_KEY).then(stuff => {
+                if (stuff) {
+                    return stuff;
+                } else {
+                    return this.dataStore.get(INVENTORY_STUFF_REGISTRY_KEY__OLD).then(oldStuff => {
+                        this.dataStore.set(INVENTORY_STUFF_REGISTRY_KEY, oldStuff);
+                        this.dataStore.remove(INVENTORY_STUFF_REGISTRY_KEY__OLD);
+                    });
+                } 
+            })
         ])
         .then(([siteData, inventory]: [(SiteGenerationData | null), (StuffInInventory[] | null)]) => {
             if (!!siteData) {
                 this.registry.set(SITE_DATA_REGISTRY_KEY, siteData);
             }
-            this.registry.set(INVENTORY_REGISTRY_KEY, inventory || []);
+            this.registry.set(INVENTORY_STUFF_REGISTRY_KEY, inventory || []);
     
             this.registry.events.on('changedata', this.updateDataStore, this);
 
@@ -95,8 +104,8 @@ export class Game extends Phaser.Game {
     }
 
     private updateDataStore(_parent: any, key: string, data: any) {
-        if (key === INVENTORY_REGISTRY_KEY) {
-            this.dataStore.set(INVENTORY_REGISTRY_KEY, data);
+        if (key === INVENTORY_STUFF_REGISTRY_KEY) {
+            this.dataStore.set(INVENTORY_STUFF_REGISTRY_KEY, data);
         }
         if (key === SITE_DATA_REGISTRY_KEY) {
             this.dataStore.set(SITE_DATA_REGISTRY_KEY, data);

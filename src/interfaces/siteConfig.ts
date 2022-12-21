@@ -1,7 +1,10 @@
 import { SITE_TYPES } from "../constants";
 import { AreaConfig } from "./areaConfig";
+import { IndexedWeightRecord } from "./indexedWeightRecord";
+import { KeyedWeightRecord } from "./keyedWeightRecord";
 
 export interface SiteConfig {
+    ancestorTypeWeights: KeyedWeightRecord[];
     siteType: SITE_TYPES;
     mapConfigName: string;
     mapConfigCategories: string[];
@@ -16,11 +19,11 @@ export interface SiteConfig {
     maxMapWidth: number;
     maxMapHeight: number;
     externalIconTileIndex: number;
-    wallTileWeights: {index: number, weight: number}[];
-    floorTileWeights: {index: number, weight: number}[];
+    wallTileWeights: IndexedWeightRecord[];
+    floorTileWeights: IndexedWeightRecord[];
     dustWeight: number;
     availableDustFrames: number[];
-    stuffTypeWeights: {key: string, weight: number}[];
+    stuffTypeWeights: KeyedWeightRecord[];
     entranceAreaConfig: AreaConfig;
     exitAreaConfigs: AreaConfig[];
     maxExitAreaCount: number;

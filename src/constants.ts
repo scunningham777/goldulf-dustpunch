@@ -3,7 +3,9 @@ export const WORLD_HEIGHT = window.innerHeight;
 export const GAME_SCALE = 3;
 export const GAME_BG_COLOR = 0x000066;
 export const GAME_BG_COLOR_HEX_STRING = '#000066';
-export const INVENTORY_REGISTRY_KEY = 'inventory';
+export const INVENTORY_STUFF_REGISTRY_KEY = 'inventory_stuff';
+export const INVENTORY_STUFF_REGISTRY_KEY__OLD = 'inventory';
+export const INVENTORY_TOKENS_REGISTRY_KEY = 'inventory_tokens';
 export const SITE_DATA_REGISTRY_KEY = 'site_data';
 export const DUST_PUNCH_EVENT_KEY = 'dustpunch';
 export const STATIC_TEXTURE_KEY = 'static_images';
@@ -81,4 +83,4 @@ export const TYPEWRITER_WORD_INTERVAL = 80;
 // "ENVIRONMENT"
 export const IS_DEBUG = false;
 export const SKIP_OVERWORLD = false;
-export const HERO_MOVEMENT_CONTROLLER: 'follow' | 'joystick' = 'follow';
+export const HERO_MOVEMENT_CONTROLLER: 'follow' | 'joystick' = 'joystick';

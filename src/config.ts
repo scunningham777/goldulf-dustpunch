@@ -5,6 +5,7 @@ import StuffConfig from "./interfaces/stuffConfig";
 export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
     'overworld': [
         {
+            ancestorTypeWeights: [],
             siteType: SITE_TYPES.overworld,
             mapConfigName: 'new_game',
             mapConfigCategories: [],
@@ -59,6 +60,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             stuffTypeWeights: [],
         },
         {
+            ancestorTypeWeights: [],
             siteType: SITE_TYPES.overworld,
             mapConfigName: 'forest_temples',
             mapConfigCategories: [],
@@ -115,6 +117,16 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
     ],
     'site': [
         {
+            ancestorTypeWeights: [
+                {
+                    key: 'basic_ancestor',
+                    weight: 4,
+                },
+                {
+                    key: 'special_ancestor',
+                    weight: 1,
+                }
+            ],
             siteType: SITE_TYPES.site,
             mapConfigName: 'cave_small',
             mapConfigCategories: ['cave'],
@@ -177,6 +189,16 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             ],
         },
         {
+            ancestorTypeWeights: [
+                {
+                    key: 'basic_ancestor',
+                    weight: 3,
+                },
+                {
+                    key: 'special_ancestor',
+                    weight: 1,
+                }
+            ],
             siteType: SITE_TYPES.site,
             mapConfigName: 'fire_cave_small',
             mapConfigCategories: ['cave'],

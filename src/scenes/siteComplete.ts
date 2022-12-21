@@ -1,15 +1,15 @@
-import { ANCESTORS_TEXTURE_KEY, GAME_SCALE, HERO_FRAMES, SITE_COMPLETE_SCENE_KEY, SITE_TYPES, TYPEWRITER_WORD_INTERVAL } from "../constants";
-import { AreaConfig } from "../interfaces/areaConfig";
+import { ANCESTORS_TEXTURE_KEY, GAME_SCALE, HERO_FRAMES, SITE_TYPES, STUFF_TINT, TYPEWRITER_WORD_INTERVAL } from "../constants";
 import { SiteConfig } from "../interfaces/siteConfig";
 import Hero from "../objects/hero";
 import { TypewriterText } from "../objects/typewriterText";
-import { CARDINAL_DIRECTION } from "../utils";
+import { CARDINAL_DIRECTION, weightedRandomizeAnything } from "../utils";
 import { SiteScene } from "./site";
 
 export interface SiteCompleteSceneProps {
     heroDisplayX: number;
     heroDisplayY: number;
     heroDirection: CARDINAL_DIRECTION;
+    siteConfig: SiteConfig;
 }
 
 const ALPHA_DELAY = 500;
@@ -24,7 +24,7 @@ export class SiteCompleteScene extends Phaser.Scene {
     private speechText: TypewriterText;
     
     create(): void {
-        const {heroDisplayX, heroDisplayY, heroDirection} = this.scene.settings.data as SiteCompleteSceneProps;
+        const {heroDisplayX, heroDisplayY, heroDirection, siteConfig} = this.scene.settings.data as SiteCompleteSceneProps;
         this.hero = new Hero(heroDisplayX, heroDisplayY, this, 0, heroDirection)
         this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection]);
 
@@ -47,6 +47,10 @@ export class SiteCompleteScene extends Phaser.Scene {
             this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection] + 2);
             this.ancestorSpirit = this.add.image(ancestorPlacementX, this.hero.entity.y, ANCESTORS_TEXTURE_KEY, 0);
             this.ancestorSpirit.setScale(GAME_SCALE);
+            const isSpecialAncestorSpirit = weightedRandomizeAnything(siteConfig.ancestorTypeWeights).toLocaleLowerCase().includes('special');
+            if (isSpecialAncestorSpirit) {
+                this.ancestorSpirit.setTint(siteConfig.defaultTileTint);
+            }
         });
         this.time.delayedCall(3 * ALPHA_DELAY + 2 * FLASH_DELAY + SPEECH_DELAY, () => {
             const halfHeight = this.cameras.main.displayHeight / 2
