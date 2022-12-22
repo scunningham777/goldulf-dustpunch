@@ -1,4 +1,4 @@
-import MapArea from "../interfaces/mapArea";
+import { MapArea } from "../interfaces/mapArea";
 import { SiteConfig } from "../interfaces/siteConfig";
 import { DustModel } from "./dustModel";
 

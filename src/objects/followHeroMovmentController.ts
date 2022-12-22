@@ -1,6 +1,6 @@
 import { HeroMovementController } from "../interfaces/heroMovementController";
 import { CARDINAL_DIRECTION } from "../utils";
-import Hero from "./hero";
+import { Hero } from "./hero";
 
 export const FOLLOW_HERO_MOVEMENT_CONTROLLER: HeroMovementController = {
     init: (_hero: Hero) => {},

@@ -1,6 +1,6 @@
 import { STUFF_CONFIGS } from "../config";
 import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY } from "../constants";
-import StuffInInventory from "../interfaces/stuffInInventory";
+import { StuffInInventory } from "../interfaces/stuffInInventory";
 import { TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT } from "../text";
 
 const VIRTUAL_JOYSTICK_DIAMETER = 16;

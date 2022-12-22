@@ -1,8 +1,8 @@
 import { GAME_SCALE, INVENTORY_STUFF_REGISTRY_KEY, STUFF_TINT } from "../constants";
-import StuffConfig from "../interfaces/stuffConfig";
-import StuffInInventory from "../interfaces/stuffInInventory";
+import { StuffConfig } from "../interfaces/stuffConfig";
+import { StuffInInventory } from "../interfaces/stuffInInventory";
 
-export default class Stuff extends Phaser.GameObjects.Image {
+export class Stuff extends Phaser.GameObjects.Image {
     private blinkState: 0 | 1 | 2 | 3 = 0;
     private blinkTimer: Phaser.Time.TimerEvent;
     private addToInventoryTween: Phaser.Tweens.Tween;

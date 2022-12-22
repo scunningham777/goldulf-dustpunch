@@ -1,5 +1,5 @@
 import { GAME_SCALE, STATIC_TEXTURE_KEY } from "../constants";
-import MapArea from "../interfaces/mapArea";
+import { MapArea } from "../interfaces/mapArea";
 import { justInsideWall, CARDINAL_DIRECTION, weightedRandomizeAnything } from "../utils";
 import { SiteConfig } from "../interfaces/siteConfig";
 import { AreaConfig } from "../interfaces/areaConfig";

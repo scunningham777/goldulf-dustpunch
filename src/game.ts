@@ -15,7 +15,7 @@ import { Capacitor } from '@capacitor/core';
 import { UIScene } from './scenes/uiScene';
 import { SiteCompleteScene } from './scenes/siteComplete';
 import { Storage } from './objects/storage';
-import StuffInInventory from './interfaces/stuffInInventory';
+import { StuffInInventory } from './interfaces/stuffInInventory';
 import { SiteGenerationData } from './interfaces/siteGenerationData';
 
 const config: Phaser.Types.Core.GameConfig = {

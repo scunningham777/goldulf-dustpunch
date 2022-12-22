@@ -1,15 +1,15 @@
-import Hero from '../objects/hero';
+import { Hero } from '../objects/hero';
 import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import { generateDungeon } from '../siteGenerator/siteGenerator_cave';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
-import MapArea from '../interfaces/mapArea';
+import { MapArea } from '../interfaces/mapArea';
 import { StuffModel } from '../siteGenerator/stuffModel';
-import Stuff from '../objects/stuff';
+import { Stuff } from '../objects/stuff';
 import { DustModel } from '../siteGenerator/dustModel';
-import Dust from '../objects/dust';
-import Exit from '../objects/exit';
+import { Dust } from '../objects/dust';
+import { Exit } from '../objects/exit';
 import { SiteCompleteSceneProps } from './siteComplete';
 import { SiteGenerationData } from '../interfaces/siteGenerationData';
 

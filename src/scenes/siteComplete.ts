@@ -1,6 +1,6 @@
 import { ANCESTORS_TEXTURE_KEY, GAME_SCALE, HERO_FRAMES, SITE_TYPES, STUFF_TINT, TYPEWRITER_WORD_INTERVAL } from "../constants";
 import { SiteConfig } from "../interfaces/siteConfig";
-import Hero from "../objects/hero";
+import { Hero } from "../objects/hero";
 import { TypewriterText } from "../objects/typewriterText";
 import { CARDINAL_DIRECTION, weightedRandomizeAnything } from "../utils";
 import { SiteScene } from "./site";

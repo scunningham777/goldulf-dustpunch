@@ -1,6 +1,6 @@
 import { SiteConfig } from "./interfaces/siteConfig";
 import { SITE_TYPES, TERRAIN_TEXTURE_KEY } from './constants';
-import StuffConfig from "./interfaces/stuffConfig";
+import { StuffConfig } from "./interfaces/stuffConfig";
 
 export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
     'overworld': [
