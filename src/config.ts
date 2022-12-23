@@ -1,6 +1,7 @@
 import { SiteConfig } from "./interfaces/siteConfig";
 import { SITE_TYPES, TERRAIN_TEXTURE_KEY } from './constants';
 import { StuffConfig } from "./interfaces/stuffConfig";
+import { AncestorConfig } from "./interfaces/ancestorConfig";
 
 export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
     'overworld': [
@@ -40,7 +41,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                     minSize: 5,
                     maxSize: 10,
                     linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: ['cave_small', 'fire_cave_small']
+                    availableLinkedMapConfigName: ['temple', 'cave']
                 }
             ],
             maxExitAreaCount: 3,
@@ -95,7 +96,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                     minSize: 5,
                     maxSize: 10,
                     linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: ['cave_small', 'fire_cave_small']
+                    availableLinkedMapConfigName: ['temple', 'cave']
                 }
             ],
             maxExitAreaCount: 4,
@@ -128,7 +129,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                 }
             ],
             siteType: SITE_TYPES.site,
-            mapConfigName: 'cave_small',
+            mapConfigName: 'temple',
             mapConfigCategories: ['cave'],
             isRandomlySelectable: true,
             tileWidth: 16,
@@ -167,24 +168,24 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             minCountAreas: 2,
             maxCountAreas: 4,
             defaultTileTint: 0xbD69b1,
-            dustWeight: 8,
+            dustWeight: 16,
             availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
                 {
                     key: 'chest',
-                    weight: 2
+                    weight: 1
                 },
                 {
                     key: 'goblet',
-                    weight: 2
+                    weight: 1
                 },
                 {
                     key: 'urn',
-                    weight: 4
+                    weight: 2
                 },
                 {
                     key: '',
-                    weight: 6
+                    weight: 36
                 }
             ],
         },
@@ -195,12 +196,12 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                     weight: 3,
                 },
                 {
-                    key: 'special_ancestor',
+                    key: 'cave_ancestor',
                     weight: 1,
                 }
             ],
             siteType: SITE_TYPES.site,
-            mapConfigName: 'fire_cave_small',
+            mapConfigName: 'cave',
             mapConfigCategories: ['cave'],
             isRandomlySelectable: true,
             tileWidth: 16,
@@ -284,4 +285,32 @@ export const STUFF_CONFIGS: StuffConfig[] = [
         frameIndex: 7,
         points: 10
     }
+]
+
+export const ANCESTOR_CONFIGS: AncestorConfig[] = [
+    {
+        key: 'basic_ancestor',
+        tokenKey: '',
+        frameIndex: 0,
+    },
+    {
+        key: 'cave_ancestor',
+        tokenKey: 'diamond',
+        frameIndex: 1,
+    },
+    {
+        key: 'temple_ancestor',
+        tokenKey: 'ring',
+        frameIndex: 2,
+    },
+    {
+        key: 'settlement_ancestor',
+        tokenKey: 'crown',
+        frameIndex: 3,
+    },
+    {
+        key: 'bog_ancestor',
+        tokenKey: 'pearl',
+        frameIndex: 4,
+    },
 ]
