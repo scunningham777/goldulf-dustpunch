@@ -1,6 +1,6 @@
 import { GAME_SCALE, INVENTORY_STUFF_REGISTRY_KEY, STUFF_TINT } from "../constants";
 import { StuffConfig } from "../interfaces/stuffConfig";
-import { StuffInInventory } from "../interfaces/stuffInInventory";
+import { InventoryItem } from "../interfaces/stuffInInventory";
 
 export class Stuff extends Phaser.GameObjects.Image {
     private blinkState: 0 | 1 | 2 | 3 = 0;
@@ -56,10 +56,10 @@ export class Stuff extends Phaser.GameObjects.Image {
     }
 
     scorePoints() {
-        const inventory: StuffInInventory[] = this.scene.registry.get(INVENTORY_STUFF_REGISTRY_KEY) || [];
-        const currentStuffType = inventory.find(i => i.stuffConfigId == this.stuffConfig.stuffName);
+        const inventory: InventoryItem[] = this.scene.registry.get(INVENTORY_STUFF_REGISTRY_KEY) || [];
+        const currentStuffType = inventory.find(i => i.inventoryItemKey == this.stuffConfig.stuffName);
         if (currentStuffType === undefined) {
-            inventory.push({stuffConfigId: this.stuffConfig.stuffName, quantity: 1})
+            inventory.push({inventoryItemKey: this.stuffConfig.stuffName, quantity: 1})
         } else {
             currentStuffType.quantity++;
         }

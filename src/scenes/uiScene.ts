@@ -1,6 +1,6 @@
-import { STUFF_CONFIGS } from "../config";
-import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY } from "../constants";
-import { StuffInInventory } from "../interfaces/stuffInInventory";
+import { STUFF_CONFIGS, TOKEN_CONFIGS } from "../config";
+import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY } from "../constants";
+import { InventoryItem } from "../interfaces/stuffInInventory";
 import { TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT } from "../text";
 
 const VIRTUAL_JOYSTICK_DIAMETER = 16;
@@ -38,6 +38,7 @@ export class UIScene extends Phaser.Scene {
         this.menuStuffDisplayGroup = this.add.group()
         this.menuTokensDisplayGroup = this.add.group()
         this.updateUI(null, INVENTORY_STUFF_REGISTRY_KEY, this.registry.values[INVENTORY_STUFF_REGISTRY_KEY]);
+        this.updateUI(null, INVENTORY_TOKENS_REGISTRY_KEY, this.registry.values[INVENTORY_TOKENS_REGISTRY_KEY]);
         
         // maybe a hack to clean up duplicate listeners - shouldn't be necessary after fixing issue #26, but leave in case
         this.registry.events.off('changedata', this.updateUI, this);
@@ -71,8 +72,8 @@ export class UIScene extends Phaser.Scene {
 
     updateUI(_parent: any, key: string, data: any) {
         if (key === INVENTORY_STUFF_REGISTRY_KEY) {
-            const totalPoints =  (data as StuffInInventory[]).reduce((points: number, s) => {
-                const stuffConfig = STUFF_CONFIGS.find(sC => sC.stuffName === s.stuffConfigId);
+            const totalPoints =  (data as InventoryItem[]).reduce((points: number, s) => {
+                const stuffConfig = STUFF_CONFIGS.find(sC => sC.stuffName === s.inventoryItemKey);
                 if (stuffConfig === undefined) {
                     return points;
                 }
@@ -80,6 +81,7 @@ export class UIScene extends Phaser.Scene {
             }, 0)
             this.pointsText.setText('Points: ' + totalPoints);
             this.updateMenuStuff(data);
+        } else if (key === INVENTORY_TOKENS_REGISTRY_KEY) {
             this.updateMenuTokens(data);
         } else if (key === TOUCH_MOVEMENT_REGISTRY_KEY) {
             if (data != null) {
@@ -111,12 +113,12 @@ export class UIScene extends Phaser.Scene {
         this.menuLayer.setVisible(doShow);
     }
 
-    updateMenuStuff(currentStuff: StuffInInventory[]) {
+    updateMenuStuff(currentStuff: InventoryItem[]) {
         this.menuStuffDisplayGroup.clear(true, true);
         currentStuff.forEach((stuff, index) => {
             const x = this.stuffHeaderText.x + (24 * index * GAME_SCALE);
             const y = this.stuffHeaderText.y + this.stuffHeaderText.height + 4 * GAME_SCALE;
-            const stuffType = STUFF_CONFIGS.find(sC => sC.stuffName === stuff.stuffConfigId)
+            const stuffType = STUFF_CONFIGS.find(sC => sC.stuffName === stuff.inventoryItemKey)
             const stuffImg = this.add.image(x, y, STATIC_TEXTURE_KEY, stuffType.frameIndex).setScale(GAME_SCALE).setTint(STUFF_TINT).setOrigin(0, 0);
             const stuffQtyText = this.add.text(stuffImg.x, stuffImg.y + stuffImg.displayHeight, 'x' + stuff.quantity, {font: `${8 * GAME_SCALE}px '7_12'`, color: '#' + HERO_TINT.toString(16)});
             this.menuStuffDisplayGroup.add(stuffImg);
@@ -126,13 +128,13 @@ export class UIScene extends Phaser.Scene {
         })
     }
 
-    updateMenuTokens(currentTokens: StuffInInventory[]) {
+    updateMenuTokens(currentTokens: InventoryItem[]) {
         this.menuTokensDisplayGroup.clear(true, true);
         currentTokens.forEach((token, index) => {
             const x = this.tokensHeaderText.x + (24 * index * GAME_SCALE);
             const y = this.tokensHeaderText.y + this.tokensHeaderText.height + 4 * GAME_SCALE;
-            const stuffType = STUFF_CONFIGS.find(sC => sC.stuffName === token.stuffConfigId)
-            const tokenImg = this.add.image(x, y, STATIC_TEXTURE_KEY, stuffType.frameIndex).setScale(GAME_SCALE).setTint(STUFF_TINT).setOrigin(0, 0);
+            const tokenType = TOKEN_CONFIGS.find(tC => tC.key === token.inventoryItemKey)
+            const tokenImg = this.add.image(x, y, STATIC_TEXTURE_KEY, tokenType.frameIndex).setScale(GAME_SCALE).setTint(STUFF_TINT).setOrigin(0, 0);
             const tokenQtyText = this.add.text(tokenImg.x, tokenImg.y + tokenImg.displayHeight, 'x' + token.quantity, {font: `${8 * GAME_SCALE}px '7_12'`, color: '#' + HERO_TINT.toString(16)});
             this.menuTokensDisplayGroup.add(tokenImg);
             this.menuTokensDisplayGroup.add(tokenQtyText);
