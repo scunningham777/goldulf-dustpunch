@@ -77,8 +77,10 @@ export class Game extends Phaser.Game {
                     return this.transformStuff(stuff) as any;
                 } else {
                     return this.dataStore.get(INVENTORY_STUFF_REGISTRY_KEY__OLD).then(oldStuff => {
-                        this.dataStore.set(INVENTORY_STUFF_REGISTRY_KEY, this.transformStuff(oldStuff));
-                        this.dataStore.remove(INVENTORY_STUFF_REGISTRY_KEY__OLD);
+                        if (oldStuff) {
+                            this.dataStore.set(INVENTORY_STUFF_REGISTRY_KEY, this.transformStuff(oldStuff));
+                            this.dataStore.remove(INVENTORY_STUFF_REGISTRY_KEY__OLD);
+                        }
                     });
                 } 
             }),
