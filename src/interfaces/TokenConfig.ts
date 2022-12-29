@@ -1,5 +1,6 @@
 export interface TokenConfig {
-    key: string;
     frameIndex: number;
+    key: string;
     points: number;
+    tint: number;
 }

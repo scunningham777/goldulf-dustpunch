@@ -2,7 +2,7 @@ import { SiteConfig } from "./interfaces/siteConfig";
 import { SITE_TYPES, TERRAIN_TEXTURE_KEY } from './constants';
 import { StuffConfig } from "./interfaces/stuffConfig";
 import { AncestorConfig } from "./interfaces/ancestorConfig";
-import { TokenConfig } from "./interfaces/TokenConfig";
+import { TokenConfig } from "./interfaces/tokenConfig";
 
 export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
     'overworld': [
@@ -122,7 +122,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             ancestorTypeWeights: [
                 {
                     key: 'basic_ancestor',
-                    weight: 0,
+                    weight: 4,
                 },
                 {
                     key: 'temple_ancestor',
@@ -322,20 +322,24 @@ export const TOKEN_CONFIGS: TokenConfig[] = [
         key: 'diamond',
         frameIndex: 12,
         points: 50,
+        tint: 0xa1102D,
     },
     {
         key: 'ring',
         frameIndex: 13,
         points: 50,
+        tint: 0xbD69b1,
     },
     {
         key: 'crown',
         frameIndex: 14,
         points: 50,
+        tint: 0xffffff,
     },
     {
         key: 'pearl',
         frameIndex: 15,
         points: 50,
+        tint: 0xffffff,
     },
 ]

@@ -10,9 +10,7 @@ export class Stuff extends Phaser.GameObjects.Image {
     constructor(scene: Phaser.Scene, x: number, y: number, key: string, private stuffConfig: StuffConfig) {
         super(scene, x, y, key, stuffConfig.frameIndex);
 
-        // scale the stuff
         this.setScale(GAME_SCALE);
-        // add the stuff to our existing scene
         this.scene.add.existing(this);
 
         const timeline = this.scene.tweens.createTimeline();
