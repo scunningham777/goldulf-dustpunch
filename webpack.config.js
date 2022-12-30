@@ -6,11 +6,16 @@ module.exports = {
   entry: './src/game.ts',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'www/build')
+    path: path.resolve(__dirname, 'www/build'),
+    hashFunction: 'sha256'
   },
   devServer: {
-    contentBase: path.resolve(__dirname, './www'),
-    publicPath: '/build/',
+    static: {
+      directory: path.resolve(__dirname, './www'),
+    },
+    devMiddleware: {
+      publicPath: '/build/',
+    },
     host: '0.0.0.0',
     port: 8080,
     open: true

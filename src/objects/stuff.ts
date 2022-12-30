@@ -1,8 +1,8 @@
-import { GAME_SCALE, INVENTORY_REGISTRY_KEY, STUFF_TINT } from "../constants";
-import StuffConfig from "../interfaces/stuffConfig";
-import StuffInInventory from "../interfaces/stuffInInventory";
+import { GAME_SCALE, INVENTORY_STUFF_REGISTRY_KEY, STUFF_TINT } from "../constants";
+import { StuffConfig } from "../interfaces/stuffConfig";
+import { InventoryItem } from "../interfaces/stuffInInventory";
 
-export default class Stuff extends Phaser.GameObjects.Image {
+export class Stuff extends Phaser.GameObjects.Image {
     private blinkState: 0 | 1 | 2 | 3 = 0;
     private blinkTimer: Phaser.Time.TimerEvent;
     private addToInventoryTween: Phaser.Tweens.Tween;
@@ -10,9 +10,7 @@ export default class Stuff extends Phaser.GameObjects.Image {
     constructor(scene: Phaser.Scene, x: number, y: number, key: string, private stuffConfig: StuffConfig) {
         super(scene, x, y, key, stuffConfig.frameIndex);
 
-        // scale the stuff
         this.setScale(GAME_SCALE);
-        // add the stuff to our existing scene
         this.scene.add.existing(this);
 
         const timeline = this.scene.tweens.createTimeline();
@@ -56,14 +54,14 @@ export default class Stuff extends Phaser.GameObjects.Image {
     }
 
     scorePoints() {
-        const inventory: StuffInInventory[] = this.scene.registry.get(INVENTORY_REGISTRY_KEY) || [];
-        const currentStuffType = inventory.find(i => i.stuffConfigId == this.stuffConfig.stuffName);
+        const inventory: InventoryItem[] = this.scene.registry.get(INVENTORY_STUFF_REGISTRY_KEY) || [];
+        const currentStuffType = inventory.find(i => i.inventoryItemKey == this.stuffConfig.stuffName);
         if (currentStuffType === undefined) {
-            inventory.push({stuffConfigId: this.stuffConfig.stuffName, quantity: 1})
+            inventory.push({inventoryItemKey: this.stuffConfig.stuffName, quantity: 1})
         } else {
             currentStuffType.quantity++;
         }
-        this.scene.registry.set(INVENTORY_REGISTRY_KEY, inventory);
+        this.scene.registry.set(INVENTORY_STUFF_REGISTRY_KEY, inventory);
     }
 
     blink() {

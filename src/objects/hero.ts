@@ -3,7 +3,7 @@ import { GAME_SCALE, HERO_ANIM_FRAME_RATES, HERO_FRAMES, HERO_TINT, HERO_OFFSETS
 import { HeroMovementController } from '../interfaces/heroMovementController';
 import { FOLLOW_HERO_MOVEMENT_CONTROLLER } from './followHeroMovmentController';
 
-export default class Hero {
+export class Hero {
 
     private heroSprite: Phaser.Physics.Arcade.Sprite;
     public touchStartX: number = null;

@@ -1,6 +1,6 @@
 import { SITE_TYPES } from "../constants";
 
-export default interface MapArea {
+export interface MapArea {
     size: number;
     focusX: number;
     focusY: number;

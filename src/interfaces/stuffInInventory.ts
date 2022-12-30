@@ -1,4 +1,4 @@
-export default interface StuffInInventory {
-    stuffConfigId: string;
+export interface InventoryItem {
+    inventoryItemKey: string;
     quantity: number;
 }

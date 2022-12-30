@@ -1,6 +1,6 @@
 import { GAME_SCALE, EXIT_COLLISION_EVENT_KEY, SITE_TYPES } from "../constants";
 
-export default class Exit extends Phaser.Physics.Arcade.Image {
+export class Exit extends Phaser.Physics.Arcade.Image {
     constructor(
         scene: Phaser.Scene,
         x: number, y: number,

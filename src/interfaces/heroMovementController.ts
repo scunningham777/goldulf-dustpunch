@@ -1,4 +1,4 @@
-import Hero from "../objects/hero";
+import { Hero } from "../objects/hero";
 import { CARDINAL_DIRECTION } from "../utils";
 
 export interface HeroMovementController {

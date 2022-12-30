@@ -1,15 +1,15 @@
-import Hero from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY } from '../constants';
+import { Hero } from '../objects/hero';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import { generateDungeon } from '../siteGenerator/siteGenerator_cave';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
-import MapArea from '../interfaces/mapArea';
+import { MapArea } from '../interfaces/mapArea';
 import { StuffModel } from '../siteGenerator/stuffModel';
-import Stuff from '../objects/stuff';
+import { Stuff } from '../objects/stuff';
 import { DustModel } from '../siteGenerator/dustModel';
-import Dust from '../objects/dust';
-import Exit from '../objects/exit';
+import { Dust } from '../objects/dust';
+import { Exit } from '../objects/exit';
 import { SiteCompleteSceneProps } from './siteComplete';
 import { SiteGenerationData } from '../interfaces/siteGenerationData';
 
@@ -310,15 +310,15 @@ export class SiteScene extends Phaser.Scene {
                 savedSiteData.dust.splice(destroyedDustIndex, 1);
                 this.registry.set(SITE_DATA_REGISTRY_KEY, {...savedSiteData, heroSpawnCoords: destroyedDustCoords});
             }
-
-            this.burstEmitter.explode(28, dustObj.x, dustObj.y);
             
             if (this.dustGroup.getChildren().length == 0) {
             // if (this.dustGroup.getChildren().length >= 0) {
+                this.performSiteCompleteEmitterBurst(dustObj.x, dustObj.y);
                 this.sound.play('dust', {rate: .4});
                 this.sound.play('dust', {delay: .5, rate: .5});
                 this.completeSite();
             } else {
+                this.burstEmitter.explode(28, dustObj.x, dustObj.y);
                 this.sound.play('dust');
                 const stuffType = weightedRandomizeAnything(this.mapConfig.stuffTypeWeights);
                 
@@ -360,19 +360,28 @@ export class SiteScene extends Phaser.Scene {
         }
     }
 
+    performSiteCompleteEmitterBurst(x: number, y: number) {
+        this.burstEmitter.setLifespan(3000);
+        this.burstEmitter.setSpeed({end: 0, start: window.innerHeight / 2, random: true});
+        this.burstEmitter.explode(window.innerHeight, x, y);
+        this.resetEmitter();
+    }
+
+    resetEmitter() {
+        this.burstEmitter.setLifespan(1200);
+        this.burstEmitter.setSpeed({end: 0, start: 50, random: true});
+    }
+
     completeSite() {
         this.hasHeroReachedExit = true;
         this.hero.freeze();
         this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection]);
-        this.cameras.main.flash(10)
-        this.time.delayedCall(200, () => {
-            this.cameras.main.flash(100, 255, 255, 255, true);
-        });
-        this.time.delayedCall(1000, () => {
+        this.time.delayedCall(2000, () => {
             const siteCompleteProps: SiteCompleteSceneProps = {
                 heroDisplayX: this.hero.entity.x - this.cameras.main.scrollX,
                 heroDisplayY: this.hero.entity.y - this.cameras.main.scrollY,
                 heroDirection: this.hero.currentDirection,
+                siteConfig: this.mapConfig,
             }
             this.scene.launch(SITE_COMPLETE_SCENE_KEY, siteCompleteProps);
             

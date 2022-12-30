@@ -1,6 +1,6 @@
 import { SITE_TYPES } from "../constants";
 import { DustModel } from "../siteGenerator/dustModel";
-import MapArea from "./mapArea";
+import { MapArea } from "./mapArea";
 
 export interface SiteGenerationData {
     tileIndexData: number[][],
