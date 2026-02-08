@@ -103,7 +103,20 @@ export class SiteScene extends Phaser.Scene {
             this.mapConfig.tileSpacing ?? 0
         );
         this.mapLayer = this.map.createBlankLayer(DUNGEON_LAYER_KEYS.BG_LAYER, newTileset);
-        this.mapLayer.putTilesAt(siteData.tileIndexData, 0, 0);
+        
+        // putTilesAt changed in Phaser 3.55+ - manually place each tile
+        console.log('siteData.tileIndexData:', siteData.tileIndexData);
+        console.log('First row:', siteData.tileIndexData[0]);
+        console.log('newTileset:', newTileset);
+
+        for (let y = 0; y < siteData.tileIndexData.length; y++) {
+            for (let x = 0; x < siteData.tileIndexData[y].length; x++) {
+                const tileIndex = siteData.tileIndexData[y][x];
+                if (tileIndex !== null && tileIndex !== undefined) {
+                    this.mapLayer.putTileAt(tileIndex, x, y);
+                }
+            }
+        }
         this.mapLayer.setScale(GAME_SCALE);
 
         this.areas = siteData.areas;
@@ -144,19 +157,16 @@ export class SiteScene extends Phaser.Scene {
     }
 
     createEmitter() {
-        this.burstEmitter = this.add.particles('__WHITE').createEmitter({
-            name: 'dust_particles',
-            x: 0,
-            y: 0,
-            quantity: -1,
-            speed: {end: 0, start: 50, random: true},
-            angle: {min: 0, max: 360},
+        this.burstEmitter = this.add.particles(0, 0, '__WHITE', {
+            speed: { min: 0, max: 50 },
+            angle: { min: 0, max: 360 },
             lifespan: 1200,
+            emitting: false,
+            emitZone: {
+                type: 'random',
+                source: new Phaser.Geom.Rectangle(-8 * GAME_SCALE, -8 * GAME_SCALE, 16 * GAME_SCALE, 16 * GAME_SCALE)
+            }
         });
-        this.burstEmitter.setEmitZone({
-            type: 'random',
-            source: new Phaser.Geom.Rectangle(-8 * GAME_SCALE, -8 * GAME_SCALE, 16 * GAME_SCALE, 16 * GAME_SCALE),
-        })
     }
 
     addListeners() {
@@ -272,10 +282,11 @@ export class SiteScene extends Phaser.Scene {
 
     tintMap() {
         this.mapLayer.forEachTile(t => t.tint = this.mapConfig.defaultTileTint);
-        this.exitGroup.children.iterate((exit: Exit) => {
-            const exitMapConfig: SiteConfig = MAP_CONFIGS.site.find(mc => mc.mapConfigName == exit.linkedMapConfigName);
+        this.exitGroup.children.iterate((exit: Phaser.GameObjects.GameObject) => {
+            const exitMapConfig: SiteConfig = MAP_CONFIGS.site.find(mc => mc.mapConfigName == (exit as Exit).linkedMapConfigName);
             const exitTint = !!exitMapConfig ? exitMapConfig.defaultTileTint : this.mapConfig.defaultTileTint;
-            exit.setTint(exitTint);
+            (exit as Exit).setTint(exitTint);
+            return true;
         }, this);
     }
 
@@ -298,14 +309,15 @@ export class SiteScene extends Phaser.Scene {
         });
     }
 
-    dustCollision: ArcadePhysicsCallback = (_heroObj, dustObj: Dust) => {
+    dustCollision = (_heroObj: Phaser.Types.Physics.Arcade.GameObjectWithBody, dustObj: Phaser.Types.Physics.Arcade.GameObjectWithBody) => {
+        const dust = dustObj as Dust;
         if (this.hero.isPunching) {
-            dustObj.clearDust();
+            dust.clearDust();
 
             // update saved Dust list and Hero respawn point
             const savedSiteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
-            const destroyedDustCoords = this.map.worldToTileXY(dustObj.x, dustObj.y);
-            const destroyedDustIndex = savedSiteData?.dust?.findIndex(d => d.id == dustObj.id) ?? -1;
+            const destroyedDustCoords = this.map.worldToTileXY(dust.x, dust.y);
+            const destroyedDustIndex = savedSiteData?.dust?.findIndex(d => d.id == dust.id) ?? -1;
             if (destroyedDustIndex > -1 && this.dustGroup.getChildren().length > 0) {
                 savedSiteData.dust.splice(destroyedDustIndex, 1);
                 this.registry.set(SITE_DATA_REGISTRY_KEY, {...savedSiteData, heroSpawnCoords: destroyedDustCoords});
@@ -313,19 +325,19 @@ export class SiteScene extends Phaser.Scene {
             
             if (this.dustGroup.getChildren().length == 0) {
             // if (this.dustGroup.getChildren().length >= 0) {
-                this.performSiteCompleteEmitterBurst(dustObj.x, dustObj.y);
+                this.performSiteCompleteEmitterBurst(dust.x, dust.y);
                 this.sound.play('dust', {rate: .4});
                 this.sound.play('dust', {delay: .5, rate: .5});
                 this.completeSite();
             } else {
-                this.burstEmitter.explode(28, dustObj.x, dustObj.y);
+                this.burstEmitter.explode(28, dust.x, dust.y);
                 this.sound.play('dust');
                 const stuffType = weightedRandomizeAnything(this.mapConfig.stuffTypeWeights);
                 
                 if (STUFF_CONFIGS.find(s => s.stuffName == stuffType)) {
                     const newStuff = new StuffModel(
-                        dustObj.x,
-                        dustObj.y,
+                        dust.x,
+                        dust.y,
                         STATIC_TEXTURE_KEY,
                         stuffType,  
                     );
@@ -335,7 +347,7 @@ export class SiteScene extends Phaser.Scene {
         }
     }
 
-    exitCollision: ArcadePhysicsCallback = (_heroObj, exitObj) => {
+    exitCollision = (_heroObj: Phaser.Types.Physics.Arcade.GameObjectWithBody, exitObj: Phaser.Types.Physics.Arcade.GameObjectWithBody) => {
         (exitObj as Exit).exitCollision();
     }
 
@@ -361,15 +373,19 @@ export class SiteScene extends Phaser.Scene {
     }
 
     performSiteCompleteEmitterBurst(x: number, y: number) {
-        this.burstEmitter.setLifespan(3000);
-        this.burstEmitter.setSpeed({end: 0, start: window.innerHeight / 2, random: true});
+        this.burstEmitter.setConfig({
+            lifespan: 3000,
+            speed: {min: 0, max: window.innerHeight / 2}
+        });
         this.burstEmitter.explode(window.innerHeight, x, y);
         this.resetEmitter();
     }
 
     resetEmitter() {
-        this.burstEmitter.setLifespan(1200);
-        this.burstEmitter.setSpeed({end: 0, start: 50, random: true});
+        this.burstEmitter.setConfig({
+            lifespan: 1200,
+            speed: { min: 0, max: 50 }
+        });
     }
 
     completeSite() {

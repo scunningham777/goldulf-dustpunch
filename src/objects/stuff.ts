@@ -5,7 +5,7 @@ import { InventoryItem } from "../interfaces/stuffInInventory";
 export class Stuff extends Phaser.GameObjects.Image {
     private blinkState: 0 | 1 | 2 | 3 = 0;
     private blinkTimer: Phaser.Time.TimerEvent;
-    private addToInventoryTween: Phaser.Tweens.Tween;
+    private addToInventoryTween: Phaser.Tweens.Tween | null = null;
 
     constructor(scene: Phaser.Scene, x: number, y: number, key: string, private stuffConfig: StuffConfig) {
         super(scene, x, y, key, stuffConfig.frameIndex);
@@ -13,9 +13,7 @@ export class Stuff extends Phaser.GameObjects.Image {
         this.setScale(GAME_SCALE);
         this.scene.add.existing(this);
 
-        const timeline = this.scene.tweens.createTimeline();
-
-        timeline.add({
+        this.scene.tweens.add({
             targets: this,
             y: y - this.displayHeight,
             duration: 1000,
@@ -24,22 +22,20 @@ export class Stuff extends Phaser.GameObjects.Image {
                 this.setTint(STUFF_TINT);
                 this.setVisible(true);
                 this.scene.time.removeEvent(this.blinkTimer);
+                
+                // Start the second tween after first completes
+                this.addToInventoryTween = this.scene.tweens.add({
+                    targets: this,
+                    x: {value: () => this.scene.cameras.main.scrollX + this.scene.scale.width, ease: 'Quad.easeIn'},
+                    y: {value: () => this.scene.cameras.main.scrollY + this.scene.scale.height, ease: 'Back.easeIn'},
+                    scale: {value: 1, ease: 'Quad.easeIn'},
+                    duration: 1500,
+                    onComplete: () => {
+                        this.cleanUp();
+                    }
+                });
             }
         });
-
-        this.addToInventoryTween = this.scene.tweens.create({
-            targets: this,
-            x: {value: () => this.scene.cameras.main.scrollX + this.scene.scale.width, ease: 'Quad.easeIn'},
-            y: {value: () => this.scene.cameras.main.scrollY + this.scene.scale.height, ease: 'Back.easeIn'},
-            scale: {value: 1, ease: 'Quad.easeIn'},
-            duration: 1500,
-            onComplete: () => {
-                this.cleanUp();
-            }
-        })
-        timeline.queue(this.addToInventoryTween);
-
-        timeline.play();
 
         this.blink();
 
@@ -47,7 +43,7 @@ export class Stuff extends Phaser.GameObjects.Image {
     }
 
     update() {
-        if (this.addToInventoryTween.isPlaying()) {
+        if (this.addToInventoryTween && this.addToInventoryTween.isPlaying()) {
             this.addToInventoryTween.updateTo('x', this.scene.cameras.main.scrollX + this.scene.scale.width)
             this.addToInventoryTween.updateTo('y', this.scene.cameras.main.scrollY + this.scene.scale.height)
         }

@@ -10,30 +10,29 @@
     "Webpack"
   ],
   "devDependencies": {
+    "copy-webpack-plugin": "^12.0.2",
+    "html-webpack-plugin": "^5.6.0",
     "tile-extruder": "^2.1.0",
-    "ts-loader": "9.2.5",
-    "typescript": "4.3.5",
-    "webpack": "5.75.0",
-    "webpack-cli": "5.0.1",
-    "webpack-dev-server": "^4.11.1"
+    "ts-loader": "9.5.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
-    "@capacitor/android": "^3.1.2",
-    "@capacitor/cli": "^3.1.2",
-    "@capacitor/core": "^3.1.2",
-    "@capacitor/ios": "^3.1.2",
-    "@capacitor/splash-screen": "^1.1.0",
-    "@capacitor/status-bar": "^1.0.2",
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/ios": "^6.0.0",
+    "@capacitor/splash-screen": "^6.0.0",
+    "@capacitor/status-bar": "^6.0.0",
     "localforage": "^1.10.0",
     "localforage-cordovasqlitedriver": "^1.8.0",
     "phaser": "^3.55.2"
   },
   "scripts": {
-    "copy": "copy src\\index.html www\\index.html && xcopy /e /v /i /y assets www\\assets && copy src\\service-worker.js www\\service-worker.js && copy src\\manifest.json www\\manifest.json && copy sw-toolbox.js www\\sw-toolbox.js",
-    "dev": "webpack && npm run copy && webpack serve --mode development",
-    "prod": "webpack && npm run copy && webpack serve --mode production",
-    "build": "webpack --mode production && npm run copy && npx cap copy",
-    "fb-deploy": "npm run build && firebase deploy",
+    "dev": "webpack serve --mode development",
+    "build": "webpack --mode production && npx cap copy",
     "start": "npm run dev"
   }
 }
