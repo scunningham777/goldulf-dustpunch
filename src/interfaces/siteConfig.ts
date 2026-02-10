@@ -1,4 +1,4 @@
-import { SITE_TYPES } from "../constants";
+import { SITE_GENERATION_TYPES, SITE_TYPES } from "../constants";
 import { AreaConfig } from "./areaConfig";
 import { IndexedWeightRecord } from "./indexedWeightRecord";
 import { KeyedWeightRecord } from "./keyedWeightRecord";
@@ -7,7 +7,7 @@ export interface SiteConfig {
     ancestorTypeWeights: KeyedWeightRecord[];
     siteType: SITE_TYPES;
     mapConfigName: string;
-    mapConfigCategories: string[];
+    siteGenerationType: SITE_GENERATION_TYPES;
     isRandomlySelectable: boolean;
     tileWidth: number;
     tileHeight: number;

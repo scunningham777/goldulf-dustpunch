@@ -78,9 +78,13 @@ export const enum SITE_TYPES {
     overworld = 'overworld',
     site = 'site',
 }
+export const enum SITE_GENERATION_TYPES {
+    temple = 'temple',
+    cave = 'cave',
+}
 export const TYPEWRITER_WORD_INTERVAL = 80;
 
 // "ENVIRONMENT"
 export const IS_DEBUG = false;
 export const SKIP_OVERWORLD = false;
-export const HERO_MOVEMENT_CONTROLLER: 'follow' | 'joystick' = 'joystick';
+export const HERO_MOVEMENT_CONTROLLER: 'follow' | 'joystick' = 'follow';

@@ -1,7 +1,6 @@
 import { Hero } from '../objects/hero';
 import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
-import { generateDungeon } from '../siteGenerator/siteGenerator_cave';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
 import { MapArea } from '../interfaces/mapArea';
@@ -12,6 +11,7 @@ import { Dust } from '../objects/dust';
 import { Exit } from '../objects/exit';
 import { SiteCompleteSceneProps } from './siteComplete';
 import { SiteGenerationData } from '../interfaces/siteGenerationData';
+import { GeneratorMapping } from '../siteGenerator/siteGenerator';
 
 export class SiteScene extends Phaser.Scene {
     private mapKey: string;
@@ -83,7 +83,7 @@ export class SiteScene extends Phaser.Scene {
             height: siteHeight,
             key: this.mapKey,
         });
-        const siteData: SiteGenerationData = useSavedSite ? savedSiteData : generateDungeon(
+        const siteData: SiteGenerationData = useSavedSite ? savedSiteData : (GeneratorMapping[this.mapConfig.siteGenerationType])?.generateSite(
             this.mapConfig,
             siteWidth,
             siteHeight,

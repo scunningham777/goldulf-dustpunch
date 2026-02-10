@@ -1,5 +1,5 @@
 import { SiteConfig } from "./interfaces/siteConfig";
-import { SITE_TYPES, TERRAIN_TEXTURE_KEY } from './constants';
+import { SITE_GENERATION_TYPES, SITE_TYPES, TERRAIN_TEXTURE_KEY } from './constants';
 import { StuffConfig } from "./interfaces/stuffConfig";
 import { AncestorConfig } from "./interfaces/ancestorConfig";
 import { TokenConfig } from "./interfaces/tokenConfig";
@@ -10,7 +10,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             ancestorTypeWeights: [],
             siteType: SITE_TYPES.overworld,
             mapConfigName: 'new_game',
-            mapConfigCategories: [],
+            siteGenerationType: SITE_GENERATION_TYPES.cave,
             isRandomlySelectable: false,
             tileWidth: 16,
             tileHeight: 16,
@@ -65,7 +65,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             ancestorTypeWeights: [],
             siteType: SITE_TYPES.overworld,
             mapConfigName: 'forest_temples',
-            mapConfigCategories: [],
+            siteGenerationType: SITE_GENERATION_TYPES.cave,
             isRandomlySelectable: true,
             tileWidth: 16,
             tileHeight: 16,
@@ -131,7 +131,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             ],
             siteType: SITE_TYPES.site,
             mapConfigName: 'temple',
-            mapConfigCategories: ['cave'],
+            siteGenerationType: SITE_GENERATION_TYPES.temple,
             isRandomlySelectable: true,
             tileWidth: 16,
             tileHeight: 16,
@@ -203,7 +203,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             ],
             siteType: SITE_TYPES.site,
             mapConfigName: 'cave',
-            mapConfigCategories: ['cave'],
+            siteGenerationType: SITE_GENERATION_TYPES.cave,
             isRandomlySelectable: true,
             tileWidth: 16,
             tileHeight: 16,
