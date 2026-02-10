@@ -28,7 +28,7 @@
     "@capacitor/status-bar": "^6.0.0",
     "localforage": "^1.10.0",
     "localforage-cordovasqlitedriver": "^1.8.0",
-    "phaser": "^3.55.2"
+    "phaser": "^3.90.0"
   },
   "scripts": {
     "dev": "webpack serve --mode development",
