@@ -42,7 +42,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                     minSize: 5,
                     maxSize: 10,
                     linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: [/*'temple', 'cave',*/ 'settlement']
+                    availableLinkedMapConfigName: ['temple', 'cave', 'settlement']
                 }
             ],
             maxExitAreaCount: 3,
@@ -97,7 +97,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                     minSize: 5,
                     maxSize: 10,
                     linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: [/*'temple', 'cave',*/ 'settlement']
+                    availableLinkedMapConfigName: ['temple', 'cave', 'settlement']
                 }
             ],
             maxExitAreaCount: 4,
