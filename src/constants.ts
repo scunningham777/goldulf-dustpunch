@@ -3,6 +3,9 @@ export const WORLD_HEIGHT = window.innerHeight;
 export const GAME_SCALE = 3;
 export const GAME_BG_COLOR = 0x000066;
 export const GAME_BG_COLOR_HEX_STRING = '#000066';
+export const TEMPLE_TINT = 0xbD69b1;
+export const CAVE_TINT = 0xa1102D;
+export const SETTLEMENT_TINT = 0x10a12D;
 export const INVENTORY_STUFF_REGISTRY_KEY = 'inventory_stuff';
 export const INVENTORY_STUFF_REGISTRY_KEY__OLD = 'inventory';
 export const INVENTORY_TOKENS_REGISTRY_KEY = 'inventory_tokens';
@@ -60,7 +63,7 @@ export const HERO_FRAMES = {
         'LEFT': 9,
     }
 };
-export const HERO_TINT = 0x41f160;
+export const HERO_TINT = 0xE2DB75;
 export const HERO_OFFSETS = {
     standing: {x: 4, y: 8},
     punching: {
@@ -81,6 +84,8 @@ export const enum SITE_TYPES {
 export const enum SITE_GENERATION_TYPES {
     temple = 'temple',
     cave = 'cave',
+    settlement = 'settlement',
+    bog = 'bog',
 }
 export const TYPEWRITER_WORD_INTERVAL = 80;
 

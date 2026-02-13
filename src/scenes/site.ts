@@ -104,11 +104,6 @@ export class SiteScene extends Phaser.Scene {
         );
         this.mapLayer = this.map.createBlankLayer(DUNGEON_LAYER_KEYS.BG_LAYER, newTileset);
         
-        // putTilesAt changed in Phaser 3.55+ - manually place each tile
-        console.log('siteData.tileIndexData:', siteData.tileIndexData);
-        console.log('First row:', siteData.tileIndexData[0]);
-        console.log('newTileset:', newTileset);
-
         for (let y = 0; y < siteData.tileIndexData.length; y++) {
             for (let x = 0; x < siteData.tileIndexData[y].length; x++) {
                 const tileIndex = siteData.tileIndexData[y][x];
@@ -186,7 +181,7 @@ export class SiteScene extends Phaser.Scene {
         this.hero.entity.setCollideWorldBounds(true);
 
         // collisions between hero and walls, and "broken" entrance if it's wall-placed
-        const collisionIndices = this.mapConfig.wallTileWeights.map(wtw => wtw.index);
+        const collisionIndices = [...this.mapConfig.wallTileWeights.map(wtw => wtw.index), ...this.mapConfig.obstructionTileWeights?.map(otw => otw.index) ?? []];
         const entranceLoc = this.getEntranceLocation();
         if (entranceLoc.x === 0 || entranceLoc.x === this.greatestXCoord || entranceLoc.y === 0 || entranceLoc.y === this.greatestYCoord) {
             collisionIndices.push(this.mapConfig.entranceAreaConfig.focusTileIndex);
