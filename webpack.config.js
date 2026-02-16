@@ -38,10 +38,10 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin({
       patterns: [
-        { from: 'assets', to: '../assets' },
-        { from: 'src/service-worker.js', to: '../service-worker.js', noErrorOnMissing: true },
-        { from: 'src/manifest.json', to: '../manifest.json', noErrorOnMissing: true },
-        { from: 'sw-toolbox.js', to: '../sw-toolbox.js', noErrorOnMissing: true }
+        { from: path.resolve(__dirname, 'assets'), to: path.resolve(__dirname, 'www', 'assets') },
+        { from: path.resolve(__dirname, 'src', 'service-worker.js'), to: path.resolve(__dirname, 'www', 'service-worker.js'), noErrorOnMissing: true },
+        { from: path.resolve(__dirname, 'src', 'manifest.json'), to: path.resolve(__dirname, 'www', 'manifest.json'), noErrorOnMissing: true },
+        { from: path.resolve(__dirname, 'sw-toolbox.js'), to: path.resolve(__dirname, 'www', 'sw-toolbox.js'), noErrorOnMissing: true }
       ]
     }),
     new HtmlWebpackPlugin({

@@ -1,5 +1,5 @@
 import { SiteConfig } from "./interfaces/siteConfig";
-import { CAVE_TINT, SETTLEMENT_TINT, SITE_GENERATION_TYPES, SITE_TYPES, TEMPLE_TINT, TERRAIN_TEXTURE_KEY } from './constants';
+import { CAVE_TINT, OVERWORLD_TINT, SETTLEMENT_TINT, SITE_GENERATION_TYPES, SITE_TYPES, TEMPLE_TINT, TERRAIN_TEXTURE_KEY } from './constants';
 import { StuffConfig } from "./interfaces/stuffConfig";
 import { AncestorConfig } from "./interfaces/ancestorConfig";
 import { TokenConfig } from "./interfaces/tokenConfig";
@@ -56,7 +56,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             ],
             minCountAreas: 2,
             maxCountAreas: 4,
-            defaultTileTint: 0xD99E18,
+            defaultTileTint: OVERWORLD_TINT,
             dustWeight: 0,
             availableDustFrames: [],
             stuffTypeWeights: [],
@@ -111,7 +111,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             ],
             minCountAreas: 2,
             maxCountAreas: 4,
-            defaultTileTint: 0xD99E18,
+            defaultTileTint: OVERWORLD_TINT,
             dustWeight: 0,
             availableDustFrames: [],
             stuffTypeWeights: [],
@@ -144,8 +144,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             maxMapHeight: 70,
             externalIconTileIndex: 5,
             wallTileWeights: [
-                {index: 0, weight: 5},
-                {index: 1, weight: 1},
+                {index: 10, weight: 1},
             ],
             floorTileWeights: [
                 {index: 59, weight: 1},
@@ -286,7 +285,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             minMapHeight: 30,
             maxMapWidth: 140,
             maxMapHeight: 100,
-            externalIconTileIndex: 0,
+            externalIconTileIndex: 15,
             wallTileWeights: [
                 {index: 7, weight: 10},
                 {index: 8, weight: 1},
@@ -296,7 +295,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                 {index: 59, weight: 1},
             ],
             obstructionTileWeights: [
-                {index: 1, weight: 1},
+                {index: 10, weight: 1},
             ],
             entranceAreaConfig: {
                 placement: 'wall',
