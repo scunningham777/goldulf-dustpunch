@@ -26,7 +26,7 @@ export const settlementGenerator: SiteGenerator =
 
         const newAreas: MapArea[] = generateAreas();
         const clearings = carveClearings(tileIndexData, newAreas, floorTileIndices);
-        placeBuildings(tileIndexData, clearings,(siteConfig.obstructionTileWeights ?? []).map(oTW => ({ key: oTW.index, weight: oTW.weight })));
+        placeBuildings(tileIndexData, clearings,(siteConfig.pathObstructionTileWeights ?? []).map(oTW => ({ key: oTW.index, weight: oTW.weight })));
         connectClearings(tileIndexData, clearings, floorTileIndices);
         drawAreas(tileIndexData, newAreas);
 
@@ -70,9 +70,7 @@ export const settlementGenerator: SiteGenerator =
             const clearings: MapArea[] = [];
 
             for (let area of areas) {
-                // Create irregular clearing shapes
-                const clearingSize = area.size + Phaser.Math.RND.integerInRange(2, 6);
-
+                const clearingSize = area.size;
                 for (let dy = -clearingSize; dy <= clearingSize; dy++) {
                     for (let dx = -clearingSize; dx <= clearingSize; dx++) {
                         const x = area.focusX + dx;
@@ -82,8 +80,18 @@ export const settlementGenerator: SiteGenerator =
                         const distance = Math.sqrt(dx * dx + dy * dy);
                         const maxDistance = clearingSize + Phaser.Math.RND.between(-2, 2);
 
+                        // only carve some of the tiles, leaving scattered bits of wall for texture
                         if (distance <= maxDistance && x > 0 && x < siteWidth - 1 && y > 0 && y < siteHeight - 1) {
-                            tileIndexData[y][x] = Phaser.Math.RND.pick(floorTileIndices);
+                            if (Phaser.Math.RND.frac() < 0.8) { // 80% chance of open floor
+                                tileIndexData[y][x] = Phaser.Math.RND.pick(floorTileIndices);
+                            }
+                        }
+
+                        // if we're very close to the edge, occasionally place an obstruction
+                        if (Math.abs(distance - maxDistance) < 1.1 && Phaser.Math.RND.frac() < 0.2) {
+                            if (x > 0 && x < siteWidth && y > 0 && y < siteHeight) {
+                                tileIndexData[y][x] = 10; // use obstruction index from config
+                            }
                         }
                     }
                 }

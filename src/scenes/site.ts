@@ -89,6 +89,8 @@ export class SiteScene extends Phaser.Scene {
             siteHeight,
         );
 
+        // console.log(siteData.tileIndexData);
+
         if (!useSavedSite) {
             // persist mapData
             this.registry.set(SITE_DATA_REGISTRY_KEY, siteData);
@@ -181,7 +183,7 @@ export class SiteScene extends Phaser.Scene {
         this.hero.entity.setCollideWorldBounds(true);
 
         // collisions between hero and walls, and "broken" entrance if it's wall-placed
-        const collisionIndices = [...this.mapConfig.wallTileWeights.map(wtw => wtw.index), ...this.mapConfig.obstructionTileWeights?.map(otw => otw.index) ?? []];
+        const collisionIndices = [...this.mapConfig.wallTileWeights.map(wtw => wtw.index), ...this.mapConfig.pathObstructionTileWeights?.map(otw => otw.index) ?? []];
         const entranceLoc = this.getEntranceLocation();
         if (entranceLoc.x === 0 || entranceLoc.x === this.greatestXCoord || entranceLoc.y === 0 || entranceLoc.y === this.greatestYCoord) {
             collisionIndices.push(this.mapConfig.entranceAreaConfig.focusTileIndex);

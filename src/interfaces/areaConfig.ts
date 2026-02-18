@@ -1,4 +1,5 @@
 import { SITE_TYPES } from "../constants";
+import { IndexedWeightRecord } from "./indexedWeightRecord";
 
 export interface AreaConfig {
     placement: 'wall'|'floor';
@@ -8,4 +9,5 @@ export interface AreaConfig {
     linkedMapConfigType?: SITE_TYPES;
     availableLinkedMapConfigName?: string[];
     availableLinkedMapConfigCategory?: string[];
+    obstructionTileWeights?: IndexedWeightRecord[];
 }

@@ -21,7 +21,7 @@ export interface SiteConfig {
     externalIconTileIndex: number;
     wallTileWeights: IndexedWeightRecord[];
     floorTileWeights: IndexedWeightRecord[];
-    obstructionTileWeights?: IndexedWeightRecord[];
+    pathObstructionTileWeights?: IndexedWeightRecord[];
     dustWeight: number;
     availableDustFrames: number[];
     stuffTypeWeights: KeyedWeightRecord[];

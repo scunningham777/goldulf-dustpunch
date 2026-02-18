@@ -4,7 +4,7 @@ import { StuffConfig } from "./interfaces/stuffConfig";
 import { AncestorConfig } from "./interfaces/ancestorConfig";
 import { TokenConfig } from "./interfaces/tokenConfig";
 
-export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
+export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
     'overworld': [
         {
             ancestorTypeWeights: [],
@@ -23,12 +23,12 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             maxMapHeight: 40,
             externalIconTileIndex: 2,
             wallTileWeights: [
-                {index: 7, weight: 10},
-                {index: 8, weight: 4},
-                {index: 9, weight: 1},
+                { index: 7, weight: 10 },
+                { index: 8, weight: 4 },
+                { index: 9, weight: 1 },
             ],
             floorTileWeights: [
-                {index: 59, weight: 1},
+                { index: 59, weight: 1 },
             ],
             entranceAreaConfig: {
                 placement: 'floor',
@@ -78,12 +78,12 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             maxMapHeight: 40,
             externalIconTileIndex: 2,
             wallTileWeights: [
-                {index: 7, weight: 10},
-                {index: 8, weight: 4},
-                {index: 9, weight: 1},
+                { index: 7, weight: 10 },
+                { index: 8, weight: 4 },
+                { index: 9, weight: 1 },
             ],
             floorTileWeights: [
-                {index: 59, weight: 1},
+                { index: 59, weight: 1 },
             ],
             entranceAreaConfig: {
                 placement: 'floor',
@@ -144,10 +144,10 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             maxMapHeight: 70,
             externalIconTileIndex: 5,
             wallTileWeights: [
-                {index: 10, weight: 1},
+                { index: 10, weight: 1 },
             ],
             floorTileWeights: [
-                {index: 59, weight: 1},
+                { index: 59, weight: 1 },
             ],
             entranceAreaConfig: {
                 placement: 'wall',
@@ -215,11 +215,11 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             maxMapHeight: 100,
             externalIconTileIndex: 6,
             wallTileWeights: [
-                {index: 0, weight: 5},
-                {index: 1, weight: 1},
+                { index: 0, weight: 5 },
+                { index: 1, weight: 1 },
             ],
             floorTileWeights: [
-                {index: 59, weight: 1},
+                { index: 59, weight: 1 },
             ],
             entranceAreaConfig: {
                 placement: 'wall',
@@ -287,15 +287,15 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
             maxMapHeight: 100,
             externalIconTileIndex: 15,
             wallTileWeights: [
-                {index: 7, weight: 10},
-                {index: 8, weight: 1},
-                {index: 9, weight: 4},
+                { index: 7, weight: 10 },
+                { index: 8, weight: 1 },
+                { index: 9, weight: 4 },
             ],
             floorTileWeights: [
-                {index: 59, weight: 1},
+                { index: 59, weight: 1 },
             ],
-            obstructionTileWeights: [
-                {index: 10, weight: 1},
+            pathObstructionTileWeights: [
+                { index: 10, weight: 1 },
             ],
             entranceAreaConfig: {
                 placement: 'wall',
@@ -311,6 +311,7 @@ export const MAP_CONFIGS: {[T in SITE_TYPES]: SiteConfig[]} = {
                     minSize: 5,
                     maxSize: 10,
                     focusTileIndex: null,
+                    obstructionTileWeights: [{ index: 10, weight: 1 }],
                 }
             ],
             minCountAreas: 2,
