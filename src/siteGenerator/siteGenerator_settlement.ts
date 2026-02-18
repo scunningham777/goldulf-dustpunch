@@ -22,12 +22,12 @@ export const settlementGenerator: SiteGenerator =
     ): SiteGenerationData {
 
         const tileIndexData = generateTileIndexData(siteConfig.wallTileWeights.map(wTW => ({ key: wTW.index, weight: wTW.weight })));
-        const floorTileIndices = siteConfig.floorTileWeights.map(ftw => ftw.index);
+        const floorTileWeights = siteConfig.floorTileWeights.map(ftw => ({ key: ftw.index, weight: ftw.weight }));
 
         const newAreas: MapArea[] = generateAreas();
-        const clearings = carveClearings(tileIndexData, newAreas, floorTileIndices);
-        placeBuildings(tileIndexData, clearings,(siteConfig.pathObstructionTileWeights ?? []).map(oTW => ({ key: oTW.index, weight: oTW.weight })));
-        connectClearings(tileIndexData, clearings, floorTileIndices);
+        const clearings = carveClearings(tileIndexData, newAreas, floorTileWeights);
+        placeBuildings(tileIndexData, clearings, (siteConfig.pathObstructionTileWeights ?? []).map(oTW => ({ key: oTW.index, weight: oTW.weight })));
+        connectClearings(tileIndexData, clearings, floorTileWeights);
         drawAreas(tileIndexData, newAreas);
 
         const dust = generateDust(tileIndexData);
@@ -66,7 +66,7 @@ export const settlementGenerator: SiteGenerator =
             return areas;
         }
 
-        function carveClearings(tileIndexData: number[][], areas: MapArea[], floorTileIndices: number[]): MapArea[] {
+        function carveClearings(tileIndexData: number[][], areas: MapArea[], floorTileWeights: { key: number, weight: number }[]): MapArea[] {
             const clearings: MapArea[] = [];
 
             for (let area of areas) {
@@ -83,7 +83,7 @@ export const settlementGenerator: SiteGenerator =
                         // only carve some of the tiles, leaving scattered bits of wall for texture
                         if (distance <= maxDistance && x > 0 && x < siteWidth - 1 && y > 0 && y < siteHeight - 1) {
                             if (Phaser.Math.RND.frac() < 0.8) { // 80% chance of open floor
-                                tileIndexData[y][x] = Phaser.Math.RND.pick(floorTileIndices);
+                                tileIndexData[y][x] = weightedRandomizeAnything(floorTileWeights);
                             }
                         }
 
@@ -203,7 +203,7 @@ export const settlementGenerator: SiteGenerator =
             }
         }
 
-        function connectClearings(tileIndexData: number[][], clearings: MapArea[], floorTileIndices: number[]) {
+        function connectClearings(tileIndexData: number[][], clearings: MapArea[], floorTileWeights: { key: number, weight: number }[]) {
             const maxXCoord = siteWidth - 1;
             const maxYCoord = siteHeight - 1;
 
@@ -234,7 +234,7 @@ export const settlementGenerator: SiteGenerator =
                     startLocation = justInsideWall(startLocation, maxXCoord, maxYCoord);
                     endLocation = justInsideWall(endLocation, maxXCoord, maxYCoord);
 
-                    carvePath(tileIndexData, startLocation, endLocation, floorTileIndices);
+                    carvePath(tileIndexData, startLocation, endLocation, floorTileWeights);
 
                     closestPair.end.isAccessible = true;
                 }
@@ -245,7 +245,7 @@ export const settlementGenerator: SiteGenerator =
             tileIndexData: number[][],
             start: Phaser.Math.Vector2,
             end: Phaser.Math.Vector2,
-            floorTileIndices: number[]
+            floorTileWeights: { key: number, weight: number }[]
         ) {
             const pathWidth = 2; // Wider paths for settlements
             let current = start.clone();
@@ -269,7 +269,7 @@ export const settlementGenerator: SiteGenerator =
                         const y = current.y + dy;
 
                         if (x > 0 && x < siteWidth - 1 && y > 0 && y < siteHeight - 1) {
-                            tileIndexData[y][x] = Phaser.Math.RND.pick(floorTileIndices);
+                            tileIndexData[y][x] = weightedRandomizeAnything(floorTileWeights);
                         }
                     }
                 }

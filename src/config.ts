@@ -28,7 +28,9 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                 { index: 9, weight: 1 },
             ],
             floorTileWeights: [
-                { index: 59, weight: 1 },
+                { index: 59, weight: 20 },
+                { index: 11, weight: 4 },
+                { index: 12, weight: 1 },
             ],
             entranceAreaConfig: {
                 placement: 'floor',
@@ -83,7 +85,9 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                 { index: 9, weight: 1 },
             ],
             floorTileWeights: [
-                { index: 59, weight: 1 },
+                { index: 59, weight: 20 },
+                { index: 11, weight: 4 },
+                { index: 12, weight: 1 },
             ],
             entranceAreaConfig: {
                 placement: 'floor',
@@ -292,7 +296,9 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                 { index: 9, weight: 4 },
             ],
             floorTileWeights: [
-                { index: 59, weight: 1 },
+                { index: 59, weight: 20 },
+                { index: 11, weight: 4 },
+                { index: 12, weight: 1 },
             ],
             pathObstructionTileWeights: [
                 { index: 10, weight: 1 },

@@ -15,10 +15,10 @@ export const caveGenerator: SiteGenerator =
         siteHeight: number,
     ): SiteGenerationData {
         const tileIndexData = generateTileIndexData(siteConfig.wallTileWeights.map(wTW => ({ key: wTW.index, weight: wTW.weight })));
-        const floorTileIndices = siteConfig.floorTileWeights.map(ftw => ftw.index);
+        const floorTileWeights = siteConfig.floorTileWeights.map(ftw => ({ key: ftw.index, weight: ftw.weight }));
 
         const newAreas: MapArea[] = generateAreas();
-        connectAreas(tileIndexData, newAreas, floorTileIndices);
+        connectAreas(tileIndexData, newAreas, floorTileWeights);
         drawAreas(tileIndexData, newAreas);
 
         const dust = generateDust(tileIndexData);
@@ -59,7 +59,7 @@ export const caveGenerator: SiteGenerator =
         }
 
 
-        function connectAreas(tileIndexData: number[][], areas: MapArea[], floorTileIndices: number[]) {
+        function connectAreas(tileIndexData: number[][], areas: MapArea[], floorTileWeights: { key: number, weight: number }[]) {
             const maxXCoord = siteWidth - 1;
             const maxYCoord = siteHeight - 1;
             while (areas.filter(a => !a.isAccessible).length) {
@@ -76,7 +76,7 @@ export const caveGenerator: SiteGenerator =
                 endLocation = justInsideWall(endLocation, maxXCoord, maxYCoord);
 
                 // create random path between them
-                createFloorPath(tileIndexData, startLocation, endLocation, floorTileIndices, siteWidth, siteHeight);
+                createFloorPath(tileIndexData, startLocation, endLocation, floorTileWeights, siteWidth, siteHeight);
 
                 // set destination as accessible
                 endArea.isAccessible = true;
@@ -207,13 +207,13 @@ export const caveGenerator: SiteGenerator =
             return false;
         }
 
-        function createFloorPath(tileIndexData: number[][], startLocation: Phaser.Math.Vector2, endLocation: Phaser.Math.Vector2, floorTileIndices: number[], siteWidth: number, siteHeight: number) {
+        function createFloorPath(tileIndexData: number[][], startLocation: Phaser.Math.Vector2, endLocation: Phaser.Math.Vector2, floorTileWeights: { key: number, weight: number }[], siteWidth: number, siteHeight: number) {
             let currentLocation = startLocation.clone();
             do {
                 const seedMod = 7;
                 const chanceTangent = 20;
                 let randomSeed = seedMod + Phaser.Math.RND.integerInRange(0, 3);
-                tileIndexData[currentLocation.y][currentLocation.x] = Phaser.Math.RND.weightedPick(floorTileIndices);
+                tileIndexData[currentLocation.y][currentLocation.x] = weightedRandomizeAnything(floorTileWeights);
 
                 // chance of creating "tangent" path
                 if (chanceTangent > 0 && Phaser.Math.RND.integerInRange(0, chanceTangent - 1) === 0) {
@@ -224,7 +224,7 @@ export const caveGenerator: SiteGenerator =
                         if (newStart == null) {
                             break;
                         } else {
-                            tileIndexData[newStart.y][newStart.x] = Phaser.Math.RND.weightedPick(floorTileIndices);
+                            tileIndexData[newStart.y][newStart.x] = weightedRandomizeAnything(floorTileWeights);
                         }
                     }
                     randomSeed = seedMod + Phaser.Math.RND.integerInRange(0, 3);
@@ -235,7 +235,7 @@ export const caveGenerator: SiteGenerator =
             } while (!currentLocation.equals(endLocation))
 
             // set tile at end location
-            tileIndexData[endLocation.y][endLocation.x] = Phaser.Math.RND.weightedPick(floorTileIndices);
+            tileIndexData[endLocation.y][endLocation.x] = weightedRandomizeAnything(floorTileWeights);
         }
 
         function stepPathRandom(startLocation: Phaser.Math.Vector2, endLocation: Phaser.Math.Vector2, randomSeed: number, maxXCoord: number, maxYCoord: number): Phaser.Math.Vector2 {

@@ -14,11 +14,11 @@ export const templeGenerator: SiteGenerator = {
     ): SiteGenerationData {
 
         const tileIndexData = generateTileIndexData(siteConfig.wallTileWeights.map(wTW => ({ key: wTW.index, weight: wTW.weight })));
-        const floorTileIndices = siteConfig.floorTileWeights.map(ftw => ftw.index);
+        const floorTileWeights = siteConfig.floorTileWeights.map(ftw => ({ key: ftw.index, weight: ftw.weight }));
 
         const newAreas: MapArea[] = generateAreas();
-        carveRooms(tileIndexData, newAreas, floorTileIndices);
-        connectRooms(tileIndexData, newAreas, floorTileIndices);
+        carveRooms(tileIndexData, newAreas, floorTileWeights);
+        connectRooms(tileIndexData, newAreas, floorTileWeights);
         drawAreas(tileIndexData, newAreas);
 
         const dust = generateDust(tileIndexData);
@@ -57,7 +57,7 @@ export const templeGenerator: SiteGenerator = {
             return areas;
         }
 
-        function carveRooms(tileIndexData: number[][], areas: MapArea[], floorTileIndices: number[]) {
+        function carveRooms(tileIndexData: number[][], areas: MapArea[], floorTileWeights: { key: number, weight: number }[]) {
             // Carve out rectangular rooms for each area
             for (let area of areas) {
                 const roomHalfSize = Math.floor(area.size / 2);
@@ -69,14 +69,14 @@ export const templeGenerator: SiteGenerator = {
 
                         // Bounds check
                         if (x > 0 && x < siteWidth - 1 && y > 0 && y < siteHeight - 1) {
-                            tileIndexData[y][x] = Phaser.Math.RND.pick(floorTileIndices);
+                            tileIndexData[y][x] = weightedRandomizeAnything(floorTileWeights);
                         }
                     }
                 }
             }
         }
 
-        function connectRooms(tileIndexData: number[][], areas: MapArea[], floorTileIndices: number[]) {
+        function connectRooms(tileIndexData: number[][], areas: MapArea[], floorTileWeights: { key: number, weight: number }[]) {
             const maxXCoord = siteWidth - 1;
             const maxYCoord = siteHeight - 1;
 
@@ -109,7 +109,7 @@ export const templeGenerator: SiteGenerator = {
                     endLocation = justInsideWall(endLocation, maxXCoord, maxYCoord);
 
                     // Create straight corridors (L-shaped path)
-                    carveCorridor(tileIndexData, startLocation, endLocation, floorTileIndices);
+                    carveCorridor(tileIndexData, startLocation, endLocation, floorTileWeights);
 
                     closestPair.end.isAccessible = true;
                 }
@@ -120,7 +120,7 @@ export const templeGenerator: SiteGenerator = {
             tileIndexData: number[][],
             start: Phaser.Math.Vector2,
             end: Phaser.Math.Vector2,
-            floorTileIndices: number[]
+            floorTileWeights: { key: number, weight: number }[]
         ) {
             const corridorWidth = 1; // Temples have narrow corridors
             let current = start.clone();
@@ -134,7 +134,7 @@ export const templeGenerator: SiteGenerator = {
                 for (let offset = -corridorWidth; offset <= corridorWidth; offset++) {
                     const y = current.y + offset;
                     if (y > 0 && y < siteHeight - 1 && current.x > 0 && current.x < siteWidth - 1) {
-                        tileIndexData[y][current.x] = Phaser.Math.RND.pick(floorTileIndices);
+                        tileIndexData[y][current.x] = weightedRandomizeAnything(floorTileWeights);
                     }
                 }
             }
@@ -148,7 +148,7 @@ export const templeGenerator: SiteGenerator = {
                 for (let offset = -corridorWidth; offset <= corridorWidth; offset++) {
                     const x = current.x + offset;
                     if (x > 0 && x < siteWidth - 1 && current.y > 0 && current.y < siteHeight - 1) {
-                        tileIndexData[current.y][x] = Phaser.Math.RND.pick(floorTileIndices);
+                        tileIndexData[current.y][x] = weightedRandomizeAnything(floorTileWeights);
                     }
                 }
             }
