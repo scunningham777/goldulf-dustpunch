@@ -49,6 +49,16 @@ export class Stuff extends Phaser.GameObjects.Image {
         }
     }
 
+    override destroy(fromScene?: boolean) {
+        if (this.blinkTimer) {
+            this.scene.time.removeEvent(this.blinkTimer);
+        }
+        if (this.addToInventoryTween) {
+            this.addToInventoryTween.stop();
+        }
+        super.destroy(fromScene);
+    }
+
     scorePoints() {
         const inventory: InventoryItem[] = this.scene.registry.get(INVENTORY_STUFF_REGISTRY_KEY) || [];
         const currentStuffType = inventory.find(i => i.inventoryItemKey == this.stuffConfig.stuffName);
@@ -61,6 +71,11 @@ export class Stuff extends Phaser.GameObjects.Image {
     }
 
     blink() {
+        // clear any existing timer before scheduling next blink
+        if (this.blinkTimer) {
+            this.scene.time.removeEvent(this.blinkTimer);
+        }
+
         this.blinkState += 1;
         if (this.blinkState > 3) {
             this.blinkState = 1;
@@ -83,7 +98,12 @@ export class Stuff extends Phaser.GameObjects.Image {
     }
 
     cleanUp() {
-        // this.scene.time.removeEvent(this.blinkTimer);
+        if (this.blinkTimer) {
+            this.scene.time.removeEvent(this.blinkTimer);
+        }
+        if (this.addToInventoryTween) {
+            this.addToInventoryTween.stop();
+        }
         this.destroy();
     }
 }

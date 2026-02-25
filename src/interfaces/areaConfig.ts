@@ -10,4 +10,11 @@ export interface AreaConfig {
     availableLinkedMapConfigName?: string[];
     availableLinkedMapConfigCategory?: string[];
     obstructionTileWeights?: IndexedWeightRecord[];
+    /**
+     * When provided the generator will only consider this config if the
+     * player has at least the specified quantity of each named token in
+     * their inventory.  Keys correspond to `inventoryItemKey` values and
+     * values are minimum quantities.
+     */
+    requiredTokens?: { [tokenKey: string]: number };
 }

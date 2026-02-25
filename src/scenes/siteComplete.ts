@@ -14,6 +14,7 @@ export interface SiteCompleteSceneProps {
     heroDisplayY: number;
     heroDirection: CARDINAL_DIRECTION;
     siteConfig: SiteConfig;
+    callingSceneKey: SITE_TYPES;
 }
 
 const BLACKOUT_DURATION = 600;
@@ -39,15 +40,17 @@ export class SiteCompleteScene extends Phaser.Scene {
     private background: Phaser.GameObjects.Rectangle;
     private speechText: TypewriterText;
     private isMovingOn: boolean;
+    private callingSceneKey: SITE_TYPES;
     
     create(): void {
         this.add.graphics();
 
         this.isMovingOn = false;
 
-        const {heroDisplayX, heroDisplayY, heroDirection, siteConfig} = this.scene.settings.data as SiteCompleteSceneProps;
+        const {heroDisplayX, heroDisplayY, heroDirection, siteConfig, callingSceneKey} = this.scene.settings.data as SiteCompleteSceneProps;
         this.hero = new Hero(heroDisplayX, heroDisplayY, this, 0, heroDirection)
         this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection]);
+        this.callingSceneKey = callingSceneKey;
 
         this.background = this.add.rectangle(window.innerWidth / 2, window.innerHeight / 2 * -1, window.innerWidth, window.innerHeight, 0x000000);
         this.tweens.add({
@@ -133,8 +136,8 @@ export class SiteCompleteScene extends Phaser.Scene {
                     const sceneConfig = {
                         mapConfigName: 'forest_temples',
                     };
-                    (this.scene.get(SITE_TYPES.site) as SiteScene).clearListeners();
-                    this.scene.stop(SITE_TYPES.site);
+                    (this.scene.get(this.callingSceneKey) as SiteScene).clearListeners();
+                    this.scene.stop(this.callingSceneKey);
                     this.scene.start(SITE_TYPES.overworld, sceneConfig);
                 });
             });

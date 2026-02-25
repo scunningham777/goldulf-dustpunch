@@ -67,6 +67,7 @@ export class Game extends Phaser.Game {
         this.scene.add('GameTitle', GameTitleScene, false);
         this.scene.add(SITE_TYPES.overworld, SiteScene, false);
         this.scene.add(SITE_TYPES.site, SiteScene, false);
+        this.scene.add(SITE_TYPES.gatedSite, SiteScene, false);
         this.scene.add(UI_SCENE_KEY, UIScene, false);
         this.scene.add('GameOver', GameOverScene, false);
         this.scene.add(SITE_COMPLETE_SCENE_KEY, SiteCompleteScene, false);

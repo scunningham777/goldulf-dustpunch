@@ -1,5 +1,5 @@
 import { SiteConfig } from "./interfaces/siteConfig";
-import { CAVE_TINT, OVERWORLD_TINT, SETTLEMENT_TINT, SITE_GENERATION_TYPES, SITE_TYPES, TEMPLE_TINT, TERRAIN_TEXTURE_KEY } from './constants';
+import { BOG_TINT, CAVE_TINT, OVERWORLD_TINT, SETTLEMENT_TINT, SITE_GENERATION_TYPES, SITE_TYPES, TEMPLE_TINT, TERRAIN_TEXTURE_KEY } from './constants';
 import { StuffConfig } from "./interfaces/stuffConfig";
 import { AncestorConfig } from "./interfaces/ancestorConfig";
 import { TokenConfig } from "./interfaces/tokenConfig";
@@ -11,7 +11,6 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             siteType: SITE_TYPES.overworld,
             mapConfigName: 'new_game',
             siteGenerationType: SITE_GENERATION_TYPES.cave,
-            isRandomlySelectable: false,
             tileWidth: 16,
             tileHeight: 16,
             tilesetKey: TERRAIN_TEXTURE_KEY,
@@ -44,8 +43,40 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     minSize: 5,
                     maxSize: 10,
                     linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: ['temple', 'cave', 'settlement']
-                }
+                    availableLinkedMapConfigName: ['temple', 'cave', 'settlement', 'bog']
+                },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.gatedSite,
+                    availableLinkedMapConfigName: ['temple_special'],
+                    requiredTokens: { ring: 4 }
+                },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.gatedSite,
+                    availableLinkedMapConfigName: ['supreme_cave'],
+                    requiredTokens: { diamond: 4 }
+                },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.gatedSite,
+                    availableLinkedMapConfigName: ['supreme_settlement'],
+                    requiredTokens: { crown: 4 }
+                },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.gatedSite,
+                    availableLinkedMapConfigName: ['supreme_bog'],
+                    requiredTokens: { pearl: 4 }
+                },
             ],
             maxExitAreaCount: 3,
             otherAreaConfigs: [
@@ -68,7 +99,6 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             siteType: SITE_TYPES.overworld,
             mapConfigName: 'forest_temples',
             siteGenerationType: SITE_GENERATION_TYPES.cave,
-            isRandomlySelectable: true,
             tileWidth: 16,
             tileHeight: 16,
             tilesetKey: TERRAIN_TEXTURE_KEY,
@@ -101,8 +131,40 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     minSize: 5,
                     maxSize: 10,
                     linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: ['temple', 'cave', 'settlement']
-                }
+                    availableLinkedMapConfigName: ['temple', 'cave', 'settlement', 'bog']
+                },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.gatedSite,
+                    availableLinkedMapConfigName: ['supreme_temple'],
+                    requiredTokens: { ring: 4 }
+                },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.gatedSite,
+                    availableLinkedMapConfigName: ['supreme_cave'],
+                    requiredTokens: { diamond: 4 }
+                },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.gatedSite,
+                    availableLinkedMapConfigName: ['supreme_settlement'],
+                    requiredTokens: { crown: 4 }
+                },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.gatedSite,
+                    availableLinkedMapConfigName: ['supreme_bog'],
+                    requiredTokens: { pearl: 4 }
+                },
             ],
             maxExitAreaCount: 4,
             otherAreaConfigs: [
@@ -136,7 +198,305 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             siteType: SITE_TYPES.site,
             mapConfigName: 'temple',
             siteGenerationType: SITE_GENERATION_TYPES.temple,
-            isRandomlySelectable: true,
+            tileWidth: 16,
+            tileHeight: 16,
+            tilesetKey: TERRAIN_TEXTURE_KEY,
+            tilesetMargin: 1,
+            tileSpacing: 2,
+            minMapWidth: 40,
+            minMapHeight: 70,
+            maxMapWidth: 40,
+            maxMapHeight: 70,
+            externalIconTileIndex: 5,
+            wallTileWeights: [
+                { index: 10, weight: 1 },
+            ],
+            floorTileWeights: [
+                { index: 59, weight: 1 },
+            ],
+            entranceAreaConfig: {
+                placement: 'wall',
+                minSize: 8,
+                maxSize: 8,
+                focusTileIndex: 3,
+            },
+            exitAreaConfigs: [],
+            maxExitAreaCount: 0,
+            otherAreaConfigs: [
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    focusTileIndex: null,
+                }
+            ],
+            minCountAreas: 2,
+            maxCountAreas: 4,
+            defaultTileTint: TEMPLE_TINT,
+            dustWeight: 20,
+            availableDustFrames: [0, 1, 2, 3],
+            stuffTypeWeights: [
+                {
+                    key: 'chest',
+                    weight: 1
+                },
+                {
+                    key: 'goblet',
+                    weight: 1
+                },
+                {
+                    key: 'urn',
+                    weight: 2
+                },
+                {
+                    key: '',
+                    weight: 36
+                }
+            ],
+        },
+        {
+            ancestorTypeWeights: [
+                {
+                    key: 'basic_ancestor',
+                    weight: 0,
+                },
+                {
+                    key: 'cave_ancestor',
+                    weight: 1,
+                }
+            ],
+            siteType: SITE_TYPES.site,
+            mapConfigName: 'cave',
+            siteGenerationType: SITE_GENERATION_TYPES.cave,
+            tileWidth: 16,
+            tileHeight: 16,
+            tilesetKey: TERRAIN_TEXTURE_KEY,
+            tilesetMargin: 1,
+            tileSpacing: 2,
+            minMapWidth: 90,
+            minMapHeight: 30,
+            maxMapWidth: 140,
+            maxMapHeight: 100,
+            externalIconTileIndex: 6,
+            wallTileWeights: [
+                { index: 0, weight: 5 },
+                { index: 1, weight: 1 },
+            ],
+            floorTileWeights: [
+                { index: 59, weight: 1 },
+            ],
+            entranceAreaConfig: {
+                placement: 'wall',
+                minSize: 8,
+                maxSize: 8,
+                focusTileIndex: 3,
+            },
+            exitAreaConfigs: [],
+            maxExitAreaCount: 0,
+            otherAreaConfigs: [
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    focusTileIndex: null,
+                }
+            ],
+            minCountAreas: 1,
+            maxCountAreas: 1,
+            defaultTileTint: CAVE_TINT,
+            dustWeight: 15,
+            availableDustFrames: [0, 1, 2, 3],
+            stuffTypeWeights: [
+                {
+                    key: 'chest',
+                    weight: 4
+                },
+                {
+                    key: 'urn',
+                    weight: 2
+                },
+                {
+                    key: 'trophy',
+                    weight: 1
+                },
+                {
+                    key: '',
+                    weight: 63
+                }
+            ],
+        },
+        {
+            ancestorTypeWeights: [
+                {
+                    key: 'basic_ancestor',
+                    weight: 3,
+                },
+                {
+                    key: 'settlement_ancestor',
+                    weight: 1,
+                }
+            ],
+            siteType: SITE_TYPES.site,
+            mapConfigName: 'settlement',
+            siteGenerationType: SITE_GENERATION_TYPES.settlement,
+            tileWidth: 16,
+            tileHeight: 16,
+            tilesetKey: TERRAIN_TEXTURE_KEY,
+            tilesetMargin: 1,
+            tileSpacing: 2,
+            minMapWidth: 90,
+            minMapHeight: 30,
+            maxMapWidth: 140,
+            maxMapHeight: 100,
+            externalIconTileIndex: 16,
+            wallTileWeights: [
+                { index: 7, weight: 10 },
+                { index: 8, weight: 1 },
+                { index: 9, weight: 4 },
+            ],
+            floorTileWeights: [
+                { index: 59, weight: 20 },
+                { index: 11, weight: 4 },
+                { index: 12, weight: 1 },
+            ],
+            pathObstructionTileWeights: [
+                { index: 10, weight: 1 },
+            ],
+            entranceAreaConfig: {
+                placement: 'wall',
+                minSize: 8,
+                maxSize: 8,
+                focusTileIndex: 4,
+            },
+            exitAreaConfigs: [],
+            maxExitAreaCount: 0,
+            otherAreaConfigs: [
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    focusTileIndex: null,
+                    obstructionTileWeights: [{ index: 10, weight: 1 }],
+                }
+            ],
+            minCountAreas: 2,
+            maxCountAreas: 4,
+            defaultTileTint: SETTLEMENT_TINT,
+            dustWeight: 15,
+            availableDustFrames: [0, 1, 2, 3],
+            stuffTypeWeights: [
+                {
+                    key: 'chest',
+                    weight: 4
+                },
+                {
+                    key: 'urn',
+                    weight: 2
+                },
+                {
+                    key: 'trophy',
+                    weight: 1
+                },
+                {
+                    key: '',
+                    weight: 63
+                }
+            ],
+        },
+        {
+            ancestorTypeWeights: [
+                {
+                    key: 'basic_ancestor',
+                    weight: 3,
+                },
+                {
+                    key: 'bog_ancestor',
+                    weight: 1,
+                }
+            ],
+            siteType: SITE_TYPES.site,
+            mapConfigName: 'bog',
+            siteGenerationType: SITE_GENERATION_TYPES.bog,
+            tileWidth: 16,
+            tileHeight: 16,
+            tilesetKey: TERRAIN_TEXTURE_KEY,
+            tilesetMargin: 1,
+            tileSpacing: 2,
+            minMapWidth: 60,
+            minMapHeight: 30,
+            maxMapWidth: 100,
+            maxMapHeight: 70,
+            externalIconTileIndex: 25,
+            wallTileWeights: [
+                { index: 7, weight: 10 },
+                { index: 8, weight: 1 },
+                { index: 9, weight: 4 },
+            ],
+            floorTileWeights: [
+                { index: 59, weight: 20 },
+                { index: 11, weight: 4 },
+                { index: 12, weight: 1 },
+            ],
+            pathObstructionTileWeights: [
+                { index: 10, weight: 1 },
+            ],
+            entranceAreaConfig: {
+                placement: 'wall',
+                minSize: 8,
+                maxSize: 8,
+                focusTileIndex: 4,
+            },
+            exitAreaConfigs: [],
+            maxExitAreaCount: 0,
+            otherAreaConfigs: [
+                {
+                    placement: 'floor',
+                    minSize: 4,
+                    maxSize: 6,
+                    focusTileIndex: null,
+                    obstructionTileWeights: [{ index: 10, weight: 1 }],
+                }
+            ],
+            minCountAreas: 2,
+            maxCountAreas: 4,
+            defaultTileTint: BOG_TINT,
+            dustWeight: 15,
+            availableDustFrames: [0, 1, 2, 3],
+            stuffTypeWeights: [
+                {
+                    key: 'chest',
+                    weight: 4
+                },
+                {
+                    key: 'urn',
+                    weight: 2
+                },
+                {
+                    key: 'trophy',
+                    weight: 1
+                },
+                {
+                    key: '',
+                    weight: 63
+                }
+            ],
+        },
+    ],
+    'gatedSite': [
+        {
+            ancestorTypeWeights: [
+                {
+                    key: 'basic_ancestor',
+                    weight: 4,
+                },
+                {
+                    key: 'temple_ancestor',
+                    weight: 1,
+                }
+            ],
+            siteType: SITE_TYPES.gatedSite,
+            mapConfigName: 'supreme_temple',
+            siteGenerationType: SITE_GENERATION_TYPES.temple,
             tileWidth: 16,
             tileHeight: 16,
             tilesetKey: TERRAIN_TEXTURE_KEY,
@@ -204,10 +564,9 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     weight: 1,
                 }
             ],
-            siteType: SITE_TYPES.site,
-            mapConfigName: 'cave',
+            siteType: SITE_TYPES.gatedSite,
+            mapConfigName: 'supreme_cave',
             siteGenerationType: SITE_GENERATION_TYPES.cave,
-            isRandomlySelectable: true,
             tileWidth: 16,
             tileHeight: 16,
             tilesetKey: TERRAIN_TEXTURE_KEY,
@@ -276,10 +635,9 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     weight: 1,
                 }
             ],
-            siteType: SITE_TYPES.site,
-            mapConfigName: 'settlement',
+            siteType: SITE_TYPES.gatedSite,
+            mapConfigName: 'supreme_settlement',
             siteGenerationType: SITE_GENERATION_TYPES.settlement,
-            isRandomlySelectable: true,
             tileWidth: 16,
             tileHeight: 16,
             tilesetKey: TERRAIN_TEXTURE_KEY,
@@ -289,7 +647,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             minMapHeight: 30,
             maxMapWidth: 140,
             maxMapHeight: 100,
-            externalIconTileIndex: 15,
+            externalIconTileIndex: 16,
             wallTileWeights: [
                 { index: 7, weight: 10 },
                 { index: 8, weight: 1 },
@@ -323,6 +681,84 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             minCountAreas: 2,
             maxCountAreas: 4,
             defaultTileTint: SETTLEMENT_TINT,
+            dustWeight: 15,
+            availableDustFrames: [0, 1, 2, 3],
+            stuffTypeWeights: [
+                {
+                    key: 'chest',
+                    weight: 4
+                },
+                {
+                    key: 'urn',
+                    weight: 2
+                },
+                {
+                    key: 'trophy',
+                    weight: 1
+                },
+                {
+                    key: '',
+                    weight: 63
+                }
+            ],
+        },
+        {
+            ancestorTypeWeights: [
+                {
+                    key: 'basic_ancestor',
+                    weight: 3,
+                },
+                {
+                    key: 'bog_ancestor',
+                    weight: 1,
+                }
+            ],
+            siteType: SITE_TYPES.gatedSite,
+            mapConfigName: 'supreme_bog',
+            siteGenerationType: SITE_GENERATION_TYPES.bog,
+            tileWidth: 16,
+            tileHeight: 16,
+            tilesetKey: TERRAIN_TEXTURE_KEY,
+            tilesetMargin: 1,
+            tileSpacing: 2,
+            minMapWidth: 60,
+            minMapHeight: 30,
+            maxMapWidth: 100,
+            maxMapHeight: 70,
+            externalIconTileIndex: 25,
+            wallTileWeights: [
+                { index: 7, weight: 10 },
+                { index: 8, weight: 1 },
+                { index: 9, weight: 4 },
+            ],
+            floorTileWeights: [
+                { index: 59, weight: 20 },
+                { index: 11, weight: 4 },
+                { index: 12, weight: 1 },
+            ],
+            pathObstructionTileWeights: [
+                { index: 10, weight: 1 },
+            ],
+            entranceAreaConfig: {
+                placement: 'wall',
+                minSize: 8,
+                maxSize: 8,
+                focusTileIndex: 4,
+            },
+            exitAreaConfigs: [],
+            maxExitAreaCount: 0,
+            otherAreaConfigs: [
+                {
+                    placement: 'floor',
+                    minSize: 4,
+                    maxSize: 6,
+                    focusTileIndex: null,
+                    obstructionTileWeights: [{ index: 10, weight: 1 }],
+                }
+            ],
+            minCountAreas: 2,
+            maxCountAreas: 4,
+            defaultTileTint: BOG_TINT,
             dustWeight: 15,
             availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
@@ -422,6 +858,6 @@ export const TOKEN_CONFIGS: TokenConfig[] = [
         key: 'pearl',
         frameIndex: 15,
         points: 50,
-        tint: 0xffffff,
+        tint: BOG_TINT,
     },
 ]

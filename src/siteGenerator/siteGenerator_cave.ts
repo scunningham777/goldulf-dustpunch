@@ -1,11 +1,13 @@
 import { GAME_SCALE, STATIC_TEXTURE_KEY } from "../constants";
 import { MapArea } from "../interfaces/mapArea";
-import { justInsideWall, CARDINAL_DIRECTION, weightedRandomizeAnything } from "../utils";
+import { justInsideWall, weightedRandomizeAnything } from "../utils";
 import { SiteConfig } from "../interfaces/siteConfig";
 import { AreaConfig } from "../interfaces/areaConfig";
 import { DustModel } from "./dustModel";
 import { SiteGenerationData } from "../interfaces/siteGenerationData";
 import { SiteGenerator } from "./siteGenerator";
+import { generateTileIndexData, tokenRequirementFilter, isAreaCollision, generateRandomArea } from "./generatorUtils";
+import { InventoryItem } from "../interfaces/stuffInInventory";
 
 export const caveGenerator: SiteGenerator =
 {
@@ -13,8 +15,10 @@ export const caveGenerator: SiteGenerator =
         siteConfig: SiteConfig,
         siteWidth: number,
         siteHeight: number,
+        inventoryTokens: InventoryItem[] = []
     ): SiteGenerationData {
-        const tileIndexData = generateTileIndexData(siteConfig.wallTileWeights.map(wTW => ({ key: wTW.index, weight: wTW.weight })));
+        const tileIndexData = generateTileIndexData(siteWidth, siteHeight, siteConfig.wallTileWeights.map(wTW => ({ key: wTW.index, weight: wTW.weight })));
+        const canUse = tokenRequirementFilter(inventoryTokens);
         const floorTileWeights = siteConfig.floorTileWeights.map(ftw => ({ key: ftw.index, weight: ftw.weight }));
 
         const newAreas: MapArea[] = generateAreas();
@@ -36,17 +40,6 @@ export const caveGenerator: SiteGenerator =
             heroSpawnCoords,
         };
 
-        function generateTileIndexData(wallTileWeights: { key: number, weight: number }[]): number[][] {
-            const tileIndexData: number[][] = [];
-            for (let y = 0; y < siteHeight; y++) {
-                tileIndexData[y] = [];
-                for (let x = 0; x < siteWidth; x++) {
-                    tileIndexData[y][x] = weightedRandomizeAnything(wallTileWeights);
-                }
-            }
-            return tileIndexData;
-        }
-
         function generateAreas(areas: MapArea[] = []): MapArea[] {
             const maxXCoord = siteWidth - 1;
             const maxYCoord = siteHeight - 1;
@@ -57,7 +50,6 @@ export const caveGenerator: SiteGenerator =
 
             return areas;
         }
-
 
         function connectAreas(tileIndexData: number[][], areas: MapArea[], floorTileWeights: { key: number, weight: number }[]) {
             const maxXCoord = siteWidth - 1;
@@ -129,7 +121,8 @@ export const caveGenerator: SiteGenerator =
                 for (let i = 0; i < countExits; i++) {
                     let exitArea: MapArea;
                     do {
-                        const exitAreaConfig = Phaser.Math.RND.pick(siteConfig.exitAreaConfigs ?? []);
+                        const choices = (siteConfig.exitAreaConfigs ?? []).filter(canUse);
+                        const exitAreaConfig = Phaser.Math.RND.pick(choices);
                         exitArea = generateRandomArea(exitAreaConfig, maxXCoord, maxYCoord);
                     } while (isAreaCollision(areas, exitArea))
                     areas.push(exitArea);
@@ -143,7 +136,8 @@ export const caveGenerator: SiteGenerator =
             const areas: MapArea[] = [];
             for (let i = 0; i < numAreas; i++) {
                 for (let j = 0; j < 30; j++) {
-                    const newAreaConfig: AreaConfig = Phaser.Math.RND.pick(siteConfig.otherAreaConfigs ?? []);
+                    const choices = (siteConfig.otherAreaConfigs ?? []).filter(canUse);
+                    const newAreaConfig: AreaConfig = Phaser.Math.RND.pick(choices);
                     const newArea = generateRandomArea(newAreaConfig, maxXCoord, maxYCoord);
                     if (!isAreaCollision(areas, newArea)) {
                         areas.push(newArea);
@@ -157,55 +151,7 @@ export const caveGenerator: SiteGenerator =
             return areas;
         }
 
-        function generateRandomArea(areaConfig: AreaConfig, maxXCoord: number, maxYCoord: number): MapArea {
-            const focusTileIndex = areaConfig.focusTileIndex;
-            const newArea: MapArea = {
-                size: Phaser.Math.RND.integerInRange(areaConfig.minSize, areaConfig.maxSize),
-                focusX: 0,
-                focusY: 0,
-                focusTileIndex: focusTileIndex,
-                linkedMapConfigType: areaConfig.linkedMapConfigType,
-                linkedMapConfigName: Phaser.Math.RND.pick(areaConfig.availableLinkedMapConfigName ?? []),
-                linkedMapConfigCategory: Phaser.Math.RND.pick(areaConfig.availableLinkedMapConfigCategory ?? []),
-                isAccessible: false,
-            }
 
-            if (areaConfig.placement === 'wall') {
-                const direction = Phaser.Math.RND.pick(Object.keys(CARDINAL_DIRECTION));
-                switch (direction) {
-                    case CARDINAL_DIRECTION.UP:
-                        newArea.focusX = Phaser.Math.RND.integerInRange(1, maxXCoord - 1);
-                        break;
-                    case CARDINAL_DIRECTION.RIGHT:
-                        newArea.focusX = maxXCoord;
-                        newArea.focusY = Phaser.Math.RND.integerInRange(1, maxYCoord - 1);
-                        break;
-                    case CARDINAL_DIRECTION.DOWN:
-                        newArea.focusX = Phaser.Math.RND.integerInRange(1, maxXCoord - 1);
-                        newArea.focusY = maxYCoord;
-                        break;
-                    case CARDINAL_DIRECTION.LEFT:
-                        newArea.focusY = Phaser.Math.RND.integerInRange(1, maxYCoord - 1);
-                        break;
-                }
-            } else {
-                newArea.focusX = Phaser.Math.RND.integerInRange(1, maxXCoord - 1);
-                newArea.focusY = Phaser.Math.RND.integerInRange(1, maxYCoord - 1);
-            }
-
-            return newArea;
-        }
-
-        function isAreaCollision(existingAreas: MapArea[], potentialArea: MapArea): boolean {
-            for (let existingArea of existingAreas) {
-                const absX = Math.abs(existingArea.focusX - potentialArea.focusX);
-                const absY = Math.abs(existingArea.focusY - potentialArea.focusY);
-                if (absX + absY <= (potentialArea.size / 2) + (existingArea.size / 2)) {
-                    return true;
-                }
-            }
-            return false;
-        }
 
         function createFloorPath(tileIndexData: number[][], startLocation: Phaser.Math.Vector2, endLocation: Phaser.Math.Vector2, floorTileWeights: { key: number, weight: number }[], siteWidth: number, siteHeight: number) {
             let currentLocation = startLocation.clone();

@@ -8,7 +8,6 @@ export interface SiteConfig {
     siteType: SITE_TYPES;
     mapConfigName: string;
     siteGenerationType: SITE_GENERATION_TYPES;
-    isRandomlySelectable: boolean;
     tileWidth: number;
     tileHeight: number;
     tilesetKey: string;

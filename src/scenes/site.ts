@@ -1,5 +1,5 @@
 import { Hero } from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
@@ -12,7 +12,7 @@ import { Exit } from '../objects/exit';
 import { SiteCompleteSceneProps } from './siteComplete';
 import { SiteGenerationData } from '../interfaces/siteGenerationData';
 import { GeneratorMapping } from '../siteGenerator/siteGenerator';
-
+import { InventoryItem } from '../interfaces/stuffInInventory';
 export class SiteScene extends Phaser.Scene {
     private mapKey: string;
     private mapConfig: SiteConfig;
@@ -68,7 +68,7 @@ export class SiteScene extends Phaser.Scene {
     selectMapConfig() {
         this.mapConfig = MAP_CONFIGS[this.scene.key].find(mc => mc.mapConfigName == this.scene.settings.data['mapConfigName'])
             ?? Phaser.Math.RND.pick(MAP_CONFIGS[this.scene.key].filter(mc => mc.mapConfigCategories.some(mcc => mcc == this.scene.settings.data['mapConfigCategory'])) ?? [])
-            ?? Phaser.Math.RND.pick(MAP_CONFIGS[this.scene.key].filter(mc => mc.isRandomlySelectable) ?? []);
+            ?? Phaser.Math.RND.pick(MAP_CONFIGS[this.scene.key]);
     }
 
     createMap() {
@@ -83,10 +83,12 @@ export class SiteScene extends Phaser.Scene {
             height: siteHeight,
             key: this.mapKey,
         });
+        const inventoryTokens: InventoryItem[] = this.registry.get(INVENTORY_TOKENS_REGISTRY_KEY) || [];
         const siteData: SiteGenerationData = useSavedSite ? savedSiteData : (GeneratorMapping[this.mapConfig.siteGenerationType])?.generateSite(
             this.mapConfig,
             siteWidth,
             siteHeight,
+            inventoryTokens
         );
 
         // console.log(siteData.tileIndexData);
@@ -150,7 +152,7 @@ export class SiteScene extends Phaser.Scene {
             heroStartDirection,
             heroMvtCtrl
         );
-        this.hero.isPunching = this.scene.key === SITE_TYPES.site;
+        this.hero.isPunching = this.scene.key !== SITE_TYPES.overworld;
     }
 
     createEmitter() {
@@ -252,7 +254,8 @@ export class SiteScene extends Phaser.Scene {
                 exitX, exitY,
                 this.mapConfig.tilesetKey, imageIndex,
                 '' + new Date().getTime(),
-                exit.linkedMapConfigType, exit.linkedMapConfigName, exit.linkedMapConfigCategory
+                exit.linkedMapConfigType, exit.linkedMapConfigName, exit.linkedMapConfigCategory,
+                exit.requiredTokens
             );
             exitGroup.add(newExit);
         }
@@ -287,7 +290,7 @@ export class SiteScene extends Phaser.Scene {
         }, this);
     }
 
-    nextMap(exitConfig?: {linkedMapSceneType: SITE_TYPES, linkedMapConfigName: string, linkedMapConfigCategory: string}) {
+    nextMap(exitConfig?: {linkedMapSceneType: SITE_TYPES, linkedMapConfigName: string, linkedMapConfigCategory: string, requiredTokens?: { [tokenKey: string]: number }}) {
         this.hasHeroReachedExit = true;
         this.hero.freeze();
         this.clearListeners();
@@ -298,6 +301,21 @@ export class SiteScene extends Phaser.Scene {
             }
         });
         cam.once('camerafadeoutcomplete', () => {
+            // deduct any tokens required by the exit before changing scenes
+            // if (exitConfig?.requiredTokens) {
+            //     const inventory: InventoryItem[] =
+            //         this.registry.get(INVENTORY_TOKENS_REGISTRY_KEY) || [];
+            //     Object.entries(exitConfig.requiredTokens).forEach(([key, qty]) => {
+            //         const item = inventory.find(i => i.inventoryItemKey === key);
+            //         if (item) {
+            //             item.quantity = Math.max(0, item.quantity - qty);
+            //         }
+            //     });
+            //     // remove zero-quantity entries
+            //     const cleaned = inventory.filter(i => i.quantity > 0);
+            //     this.registry.set(INVENTORY_TOKENS_REGISTRY_KEY, cleaned);
+            // }
+
             const sceneConfig = {
                 mapConfigName: exitConfig?.linkedMapConfigName,
                 mapConfigCategory: exitConfig?.linkedMapConfigCategory
@@ -395,6 +413,7 @@ export class SiteScene extends Phaser.Scene {
                 heroDisplayY: this.hero.entity.y - this.cameras.main.scrollY,
                 heroDirection: this.hero.currentDirection,
                 siteConfig: this.mapConfig,
+                callingSceneKey: this.scene.key as SITE_TYPES,
             }
             this.scene.launch(SITE_COMPLETE_SCENE_KEY, siteCompleteProps);
             

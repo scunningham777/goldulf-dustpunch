@@ -1,9 +1,11 @@
 import { GAME_SCALE, STATIC_TEXTURE_KEY } from "../constants";
 import { MapArea } from "../interfaces/mapArea";
-import { justInsideWall, CARDINAL_DIRECTION, weightedRandomizeAnything } from "../utils";
 import { SiteConfig } from "../interfaces/siteConfig";
-import { DustModel } from "./dustModel";
 import { SiteGenerationData } from "../interfaces/siteGenerationData";
+import { InventoryItem } from "../interfaces/stuffInInventory";
+import { justInsideWall, weightedRandomizeAnything } from "../utils";
+import { DustModel } from "./dustModel";
+import { generateRandomArea, generateTileIndexData, isAreaCollision, tokenRequirementFilter } from "./generatorUtils";
 import { SiteGenerator } from "./siteGenerator";
 
 export const templeGenerator: SiteGenerator = {
@@ -11,11 +13,12 @@ export const templeGenerator: SiteGenerator = {
         siteConfig: SiteConfig,
         siteWidth: number,
         siteHeight: number,
+        inventoryTokens: InventoryItem[] = []
     ): SiteGenerationData {
 
-        const tileIndexData = generateTileIndexData(siteConfig.wallTileWeights.map(wTW => ({ key: wTW.index, weight: wTW.weight })));
+        const tileIndexData = generateTileIndexData(siteWidth, siteHeight, siteConfig.wallTileWeights.map(wTW => ({ key: wTW.index, weight: wTW.weight })));
         const floorTileWeights = siteConfig.floorTileWeights.map(ftw => ({ key: ftw.index, weight: ftw.weight }));
-
+        const canUse = tokenRequirementFilter(inventoryTokens);
         const newAreas: MapArea[] = generateAreas();
         carveRooms(tileIndexData, newAreas, floorTileWeights);
         connectRooms(tileIndexData, newAreas, floorTileWeights);
@@ -34,17 +37,6 @@ export const templeGenerator: SiteGenerator = {
             siteHeight,
             heroSpawnCoords,
         };
-
-        function generateTileIndexData(wallTileWeights: { key: number, weight: number }[]): number[][] {
-            const tileIndexData: number[][] = [];
-            for (let y = 0; y < siteHeight; y++) {
-                tileIndexData[y] = [];
-                for (let x = 0; x < siteWidth; x++) {
-                    tileIndexData[y][x] = weightedRandomizeAnything(wallTileWeights);
-                }
-            }
-            return tileIndexData;
-        }
 
         function generateAreas(areas: MapArea[] = []): MapArea[] {
             const maxXCoord = siteWidth - 1;
@@ -199,7 +191,8 @@ export const templeGenerator: SiteGenerator = {
 
         function generateRoomAreas(numRooms: number, maxXCoord: number, maxYCoord: number): MapArea[] {
             const areas: MapArea[] = [];
-            const roomConfig = Phaser.Math.RND.pick(siteConfig.otherAreaConfigs ?? []);
+            const roomChoices = (siteConfig.otherAreaConfigs ?? []).filter(canUse);
+            const roomConfig = Phaser.Math.RND.pick(roomChoices);
 
             for (let i = 0; i < numRooms; i++) {
                 for (let attempt = 0; attempt < 30; attempt++) {
@@ -212,55 +205,6 @@ export const templeGenerator: SiteGenerator = {
             }
 
             return areas;
-        }
-
-        function generateRandomArea(areaConfig: typeof siteConfig.entranceAreaConfig, maxXCoord: number, maxYCoord: number): MapArea {
-            const newArea: MapArea = {
-                size: Phaser.Math.RND.integerInRange(areaConfig.minSize, areaConfig.maxSize),
-                focusX: 0,
-                focusY: 0,
-                focusTileIndex: areaConfig.focusTileIndex,
-                linkedMapConfigType: areaConfig.linkedMapConfigType,
-                linkedMapConfigName: Phaser.Math.RND.pick(areaConfig.availableLinkedMapConfigName ?? []),
-                linkedMapConfigCategory: Phaser.Math.RND.pick(areaConfig.availableLinkedMapConfigCategory ?? []),
-                isAccessible: false,
-            };
-
-            if (areaConfig.placement === 'wall') {
-                const direction = Phaser.Math.RND.pick(Object.keys(CARDINAL_DIRECTION));
-                switch (direction) {
-                    case CARDINAL_DIRECTION.UP:
-                        newArea.focusX = Phaser.Math.RND.integerInRange(1, maxXCoord - 1);
-                        break;
-                    case CARDINAL_DIRECTION.RIGHT:
-                        newArea.focusX = maxXCoord;
-                        newArea.focusY = Phaser.Math.RND.integerInRange(1, maxYCoord - 1);
-                        break;
-                    case CARDINAL_DIRECTION.DOWN:
-                        newArea.focusX = Phaser.Math.RND.integerInRange(1, maxXCoord - 1);
-                        newArea.focusY = maxYCoord;
-                        break;
-                    case CARDINAL_DIRECTION.LEFT:
-                        newArea.focusY = Phaser.Math.RND.integerInRange(1, maxYCoord - 1);
-                        break;
-                }
-            } else {
-                newArea.focusX = Phaser.Math.RND.integerInRange(1, maxXCoord - 1);
-                newArea.focusY = Phaser.Math.RND.integerInRange(1, maxYCoord - 1);
-            }
-
-            return newArea;
-        }
-
-        function isAreaCollision(existingAreas: MapArea[], potentialArea: MapArea): boolean {
-            for (let existingArea of existingAreas) {
-                const absX = Math.abs(existingArea.focusX - potentialArea.focusX);
-                const absY = Math.abs(existingArea.focusY - potentialArea.focusY);
-                if (absX + absY <= (potentialArea.size / 2) + (existingArea.size / 2)) {
-                    return true;
-                }
-            }
-            return false;
         }
     }
 }
