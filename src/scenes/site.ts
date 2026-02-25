@@ -1,5 +1,5 @@
 import { Hero } from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
@@ -207,6 +207,9 @@ export class SiteScene extends Phaser.Scene {
         // Phaser supports multiple cameras, but you can access the default camera like this:
         const camera = this.cameras.main;
 
+        // Set bg color so we can tween for gated sites
+        camera.setBackgroundColor(GAME_BG_COLOR);
+
         // Constrain the camera so that it isn't allowed to move outside the width/height of tilemap
         camera.setBounds(0, 0, this.map.widthInPixels * GAME_SCALE, this.map.heightInPixels * GAME_SCALE);
         camera.startFollow(this.hero.entity);
@@ -221,6 +224,29 @@ export class SiteScene extends Phaser.Scene {
         const cam = this.cameras.main;
         cam.fadeIn(500)
         cam.once('camerafadeincomplete', () => {
+            // special flash for gated entrances to reinforce the colour change
+            if (this.mapConfig.siteType === SITE_TYPES.gatedSite) {
+                // fade the camera background toward a color halfway between the
+                // default bg color and the hero tint.  the tween updates the
+                // camera's backgroundColor object directly.
+                const dest = Phaser.Display.Color.ValueToColor(HERO_TINT);
+                const source = Phaser.Display.Color.ValueToColor(GAME_BG_COLOR);
+                const midRed = Math.floor((source.red + dest.red) * .7);
+                const midGreen = Math.floor((source.green + dest.green) * .7);
+                const midBlue = Math.floor((source.blue + dest.blue) * .7);
+
+                this.tweens.add({
+                    targets: cam.backgroundColor,
+                    red: midRed,
+                    green: midGreen,
+                    blue: midBlue,
+                    duration: 1600,
+                    ease: 'Linear',
+                    yoyo: true,
+                    repeat: -1,
+                });
+            }
+
             if (this.mapConfig.mapConfigName != 'new_game') {
                 this.sound.play('dust', {rate: .2});
                 this.sound.play('dust', {delay: .5, rate: .4});

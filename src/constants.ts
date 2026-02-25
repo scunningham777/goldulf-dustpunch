@@ -3,6 +3,11 @@ export const WORLD_HEIGHT = window.innerHeight;
 export const GAME_SCALE = 3;
 export const GAME_BG_COLOR = 0x000066;
 export const GAME_BG_COLOR_HEX_STRING = '#000066';
+
+// special background for `gatedSite` entrances; a deep purple that contrasts
+// well with the light-yellow HERO_TINT and the other _TINT colors.
+export const GATE_SITE_BG_COLOR = 0x330066;
+export const GATE_SITE_BG_COLOR_HEX_STRING = '#330066';
 // export const OVERWORLD_TINT = 0x10a12D;
 // export const OVERWORLD_TINT = 0xddc19a;
 export const OVERWORLD_TINT = 0xcccccc;
@@ -70,7 +75,7 @@ export const HERO_FRAMES = {
         'LEFT': 9,
     }
 };
-export const HERO_TINT = 0xE2DB75;
+export const HERO_TINT = 0x49ddd3;
 export const HERO_OFFSETS = {
     standing: {x: 4, y: 8},
     punching: {

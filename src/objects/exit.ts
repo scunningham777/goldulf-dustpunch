@@ -66,7 +66,7 @@ export class Exit extends Phaser.Physics.Arcade.Image {
         switch (this.blinkState) {
             case 0:
                 this.setTint(this.blinkTint);
-                delay = 500;
+                delay = 1000;
                 break;
             case 1:
                 this.setTint(0xffffff);
