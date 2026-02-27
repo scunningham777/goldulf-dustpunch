@@ -11,7 +11,7 @@ export class TypewriterText {
 
     constructor (private baseText: string, private scene: Phaser.Scene, yPosition: number, wordInterval: number = TYPEWRITER_WORD_INTERVAL, completedCallback?: Function, completedCallbackContext?: any) {
         this.words = this.baseText.split(DIVIDER);
-        this.completedCallback = completedCallback.bind(completedCallbackContext);
+        this.completedCallback = completedCallback?.bind(completedCallbackContext);
 
         this.textObject = this.scene.add.text(
             this.scene.cameras.main.displayWidth / 2,
@@ -48,9 +48,17 @@ export class TypewriterText {
         this.scene.input.keyboard.off('keydown', this.shortCircuit);
         this.scene.input.off('pointerdown', this.shortCircuit);
         this.scene.input.gamepad.off('down', this.shortCircuit);
-        if (!!this.completedCallback) {
+        if (this.completedCallback) {
             this.completedCallback();
         }
+    }
+
+    /**
+     * Stop any ongoing typing and remove the underlying text object.
+     */
+    destroy() {
+        this.finish();
+        this.textObject.destroy();
     }
 
 }

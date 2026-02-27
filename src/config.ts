@@ -230,8 +230,8 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     focusTileIndex: null,
                 }
             ],
-            minCountAreas: 2,
-            maxCountAreas: 4,
+            minCountAreas: 3,
+            maxCountAreas: 5,
             defaultTileTint: TEMPLE_TINT,
             dustWeight: 20,
             availableDustFrames: [0, 1, 2, 3],
@@ -258,7 +258,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ancestorTypeWeights: [
                 {
                     key: 'basic_ancestor',
-                    weight: 0,
+                    weight: 3,
                 },
                 {
                     key: 'cave_ancestor',

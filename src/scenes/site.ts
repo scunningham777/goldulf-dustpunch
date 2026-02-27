@@ -328,19 +328,18 @@ export class SiteScene extends Phaser.Scene {
         });
         cam.once('camerafadeoutcomplete', () => {
             // deduct any tokens required by the exit before changing scenes
-            // if (exitConfig?.requiredTokens) {
-            //     const inventory: InventoryItem[] =
-            //         this.registry.get(INVENTORY_TOKENS_REGISTRY_KEY) || [];
-            //     Object.entries(exitConfig.requiredTokens).forEach(([key, qty]) => {
-            //         const item = inventory.find(i => i.inventoryItemKey === key);
-            //         if (item) {
-            //             item.quantity = Math.max(0, item.quantity - qty);
-            //         }
-            //     });
-            //     // remove zero-quantity entries
-            //     const cleaned = inventory.filter(i => i.quantity > 0);
-            //     this.registry.set(INVENTORY_TOKENS_REGISTRY_KEY, cleaned);
-            // }
+            if (exitConfig?.requiredTokens) {
+                const inventory: InventoryItem[] =
+                    this.registry.get(INVENTORY_TOKENS_REGISTRY_KEY) || [];
+                Object.entries(exitConfig.requiredTokens).forEach(([key, qty]) => {
+                    const item = inventory.find(i => i.inventoryItemKey === key);
+                    if (item) {
+                        item.quantity = Math.max(0, item.quantity - qty);
+                    }
+                });
+                // retain zero-quantity entries to differentiate from entries that have never been collected
+                this.registry.set(INVENTORY_TOKENS_REGISTRY_KEY, inventory);
+            }
 
             const sceneConfig = {
                 mapConfigName: exitConfig?.linkedMapConfigName,

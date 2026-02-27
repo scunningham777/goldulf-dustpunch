@@ -274,7 +274,6 @@ export const settlementGenerator: SiteGenerator =
         }
 
         function generateDust(tileIndexData: number[][]): DustModel[] {
-            // Find all accessible tiles via flood-fill from the entrance
             const accessibleTiles: boolean[][] = [];
             for (let y = 0; y < tileIndexData.length; y++) {
                 accessibleTiles[y] = new Array(tileIndexData[y].length).fill(false);
@@ -318,37 +317,35 @@ export const settlementGenerator: SiteGenerator =
             floorTileIndices: number[]
         ) {
             // Adjust start position to be inside the map if on boundary (entrance can be on walls)
-            let adjustedX = startX;
-            let adjustedY = startY;
+            const startCoord = justInsideWall(new Phaser.Math.Vector2(startX, startY), siteWidth - 1, siteHeight - 1);
 
-            if (adjustedX <= 0) adjustedX = 1;
-            if (adjustedX >= tileIndexData[0].length - 1) adjustedX = tileIndexData[0].length - 2;
-            if (adjustedY <= 0) adjustedY = 1;
-            if (adjustedY >= tileIndexData.length - 1) adjustedY = tileIndexData.length - 2;
-
-            const queue: Array<{ x: number, y: number }> = [{ x: adjustedX, y: adjustedY }];
+            // Find all accessible tiles via flood-fill from the entrance
+            const queue: Array<{ x: number, y: number }> = [{ x: startCoord.x, y: startCoord.y }];
             const visited = new Set<string>();
-
+            
             while (queue.length > 0) {
                 const { x, y } = queue.shift()!;
                 const key = `${x},${y}`;
-
+                
                 if (visited.has(key)) continue;
                 visited.add(key);
-
+                
                 if (x < 0 || x >= tileIndexData[0].length || y < 0 || y >= tileIndexData.length) continue;
-
+                
                 const isFloor = floorTileIndices.includes(tileIndexData[y][x]);
                 if (!isFloor) continue;
-
+                
                 accessibleTiles[y][x] = true;
-
+                
                 // Add neighbors to queue (4-directional connectivity)
                 queue.push({ x: x + 1, y });
                 queue.push({ x: x - 1, y });
                 queue.push({ x, y: y + 1 });
                 queue.push({ x, y: y - 1 });
             }
+
+            // Ensure no Dust on the start tile itself since Hero will spawn there
+            accessibleTiles[startCoord.y][startCoord.x] = false;
         }
 
         function generateDoorAreas(maxXCoord: number, maxYCoord: number): MapArea[] {

@@ -41,13 +41,18 @@ export class SiteCompleteScene extends Phaser.Scene {
     private speechText: TypewriterText;
     private isMovingOn: boolean;
     private callingSceneKey: SITE_TYPES;
-    
+    private token: Token;
+
+    // set to true when the current token being granted was never in the
+    // player's inventory before.  used to trigger the special tutorial message
+    private firstTokenReceived: boolean = false;
+
     create(): void {
         this.add.graphics();
 
         this.isMovingOn = false;
 
-        const {heroDisplayX, heroDisplayY, heroDirection, siteConfig, callingSceneKey} = this.scene.settings.data as SiteCompleteSceneProps;
+        const { heroDisplayX, heroDisplayY, heroDirection, siteConfig, callingSceneKey } = this.scene.settings.data as SiteCompleteSceneProps;
         this.hero = new Hero(heroDisplayX, heroDisplayY, this, 0, heroDirection)
         this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection]);
         this.callingSceneKey = callingSceneKey;
@@ -67,13 +72,16 @@ export class SiteCompleteScene extends Phaser.Scene {
                 duration: CENTERING_DURATION,
             });
         });
-        this.time.delayedCall(ANCESTOR_DELAY, () => { 
+        this.time.delayedCall(ANCESTOR_DELAY, () => {
             this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[CARDINAL_DIRECTION.RIGHT] + 2);
 
             this.createAncestorSpirit(siteConfig);
 
             if (this.ancestorSpirit.config.tokenKey) {
-                this.bestowToken();
+                const firstTime = this.bestowToken();
+                if (firstTime) {
+                    this.firstTokenReceived = true;
+                }
             }
         });
         this.time.delayedCall(SPEECH_DELAY, () => {
@@ -95,7 +103,7 @@ export class SiteCompleteScene extends Phaser.Scene {
         const ancestorPlacementX = this.hero.entity.x + this.hero.entity.displayWidth;
         const ancestorPlacementY = this.hero.entity.y + this.hero.entity.displayHeight;
 
-        const ancestorConfigTypeKey =  weightedRandomizeAnything(siteConfig.ancestorTypeWeights);
+        const ancestorConfigTypeKey = weightedRandomizeAnything(siteConfig.ancestorTypeWeights);
         const ancestorConfig = ANCESTOR_CONFIGS.find(ac => ac.key == ancestorConfigTypeKey) ?? ANCESTOR_CONFIGS[0];
         const ancestorImage = this.add.image(ancestorPlacementX, ancestorPlacementY, ANCESTORS_TEXTURE_KEY, 0);
         ancestorImage.setScale(GAME_SCALE);
@@ -120,43 +128,128 @@ export class SiteCompleteScene extends Phaser.Scene {
         if (!this.isMovingOn) {
             this.isMovingOn = true;
 
-            this.sound.play('spirit', {rate: 1.2});
+            this.sound.play('spirit', { rate: 1.2 });
+
+            const cam = this.cameras.main;
 
             if (this.ancestorSpirit.config.tokenKey) {
                 this.ancestorSpirit.image.setVisible(false);
-                this.createToken();
+
+                if (this.firstTokenReceived) {
+                    // show the tutorial tip immediately alongside the token
+                    this.firstTokenReceived = false;
+                    this.showFirstTokenMessage(this.ancestorSpirit.config.tokenKey!);
+
+                    // create the token
+                    this.token = this.createToken();
+
+                    // fire the immediate flashes (same as before)
+                    this.time.delayedCall(1, () => cam.flash(FLASH_DURATION, FLASH_RGB, FLASH_RGB, FLASH_RGB));
+                    this.time.delayedCall(FLASH_DELAY, () => cam.flash(FLASH_DURATION, FLASH_RGB, FLASH_RGB, FLASH_RGB));
+
+                    // do not schedule the fadeout yet – it will happen in
+                    // scheduleTransition when the player presses a key after the
+                    // token animation completes.
+                    return;
+                } else {
+                    this.token = this.createToken();
+                }
             }
-            
-            const cam = this.cameras.main;
+
+            // if we reach here either there's no token or it's not a first-time
+            // receipt, transition immediately (with the usual timed fadeouts).
             this.time.delayedCall(1, () => cam.flash(FLASH_DURATION, FLASH_RGB, FLASH_RGB, FLASH_RGB));
             this.time.delayedCall(FLASH_DELAY, () => cam.flash(FLASH_DURATION, FLASH_RGB, FLASH_RGB, FLASH_RGB));
-            this.time.delayedCall(this.ancestorSpirit.config.tokenKey ? 5 * FADEOUT_DELAY : FADEOUT_DELAY, () => {
-                cam.fade(FADEOUT_DURATION, FADEOUT_RGB, FADEOUT_RGB, FADEOUT_RGB, false);
-                cam.once('camerafadeoutcomplete', () => {
-                    const sceneConfig = {
-                        mapConfigName: 'forest_temples',
-                    };
-                    (this.scene.get(this.callingSceneKey) as SiteScene).clearListeners();
-                    this.scene.stop(this.callingSceneKey);
-                    this.scene.start(SITE_TYPES.overworld, sceneConfig);
-                });
-            });
+            this.scheduleTransition();
         }
     }
 
-    bestowToken() {
+    /**
+     * Adds the bestowed token to the registry and returns true if this is the
+     * first time the player has ever received this particular token type.
+     */
+    bestowToken(): boolean {
         const inventory = this.registry.get(INVENTORY_TOKENS_REGISTRY_KEY) || [];
         const currentTokenType = inventory.find(i => i.inventoryItemKey == this.ancestorSpirit.config.tokenKey);
-        if (currentTokenType === undefined) {
-            inventory.push({inventoryItemKey: this.ancestorSpirit.config.tokenKey, quantity: 1})
+        const firstTime = currentTokenType === undefined;
+        if (firstTime) {
+            inventory.push({ inventoryItemKey: this.ancestorSpirit.config.tokenKey, quantity: 1 });
         } else {
             currentTokenType.quantity++;
         }
         this.registry.set(INVENTORY_TOKENS_REGISTRY_KEY, inventory);
+        return firstTime;
     }
 
+    /**
+     * Instantiate a token and optionally run a callback when its final animation
+     * completes.
+     */
     createToken() {
         const tokenConfig = TOKEN_CONFIGS.find(tC => tC.key === this.ancestorSpirit.config.tokenKey);
-        const token = new Token(this, this.ancestorSpirit.image.x, this.ancestorSpirit.image.y, STATIC_TEXTURE_KEY, tokenConfig);
+        if (!tokenConfig) {
+            console.warn('createToken called but no config for', this.ancestorSpirit.config.tokenKey);
+            return;
+        }
+        return new Token(this, this.ancestorSpirit.image.x, this.ancestorSpirit.image.y, STATIC_TEXTURE_KEY, tokenConfig);
+    }
+
+    /**
+     * Return the y coordinate where speech text is displayed (same calculation
+     * used in the initial speech).  Extracted to avoid duplication.
+     */
+    private getSpeechTextY(): number {
+        const halfHeight = this.cameras.main.displayHeight / 2;
+        const speechTextYOffset = (this.hero.entity.y > halfHeight - (this.hero.entity.height * GAME_SCALE)) ? 0 : halfHeight;
+        return this.cameras.main.displayHeight * .1 + speechTextYOffset;
+    }
+
+    private showFirstTokenMessage(tokenKey: string) {
+        if (this.speechText) {
+            this.speechText.destroy();
+        }
+
+        const name = tokenKey.charAt(0).toUpperCase() + tokenKey.slice(1);
+        const message = `Wow, you got a ${name}! Collect more of these to unlock supreme sites!`;
+        this.speechText = new TypewriterText(message, this, this.getSpeechTextY(), TYPEWRITER_WORD_INTERVAL, () => {
+            // once the token message has finished displaying, allow the player
+            // to press a key (or click/tap) to continue.
+            this.input.keyboard.on('keydown', this.scheduleTransition, this);
+            this.input.on('pointerdown', this.scheduleTransition, this);
+            this.input.gamepad.on('down', this.scheduleTransition, this);
+        });
+    }
+
+    /**
+     * Called when the scene should begin its camera fade and eventually switch
+     * back to the overworld.  This is extracted so both the standard path and
+     * the delayed (first-token) path can reuse it.
+     */
+    private scheduleTransition() {
+        // detach any auxiliary listeners added by the token callback
+        this.input.keyboard.off('keydown', this.scheduleTransition, this);
+        this.input.off('pointerdown', this.scheduleTransition, this);
+        this.input.gamepad.off('down', this.scheduleTransition, this);
+
+        // animate the token to the inventory if it exists and is still visible
+        if (this.token && this.token.visible) {
+            this.token.animateToInventory(() => {
+                this.token = undefined;
+            });
+        }
+
+        const cam = this.cameras.main;
+        const delay = this.ancestorSpirit.config.tokenKey ? 5 * FADEOUT_DELAY : FADEOUT_DELAY;
+        this.time.delayedCall(delay, () => {
+            cam.fade(FADEOUT_DURATION, FADEOUT_RGB, FADEOUT_RGB, FADEOUT_RGB, false);
+            cam.once('camerafadeoutcomplete', () => {
+                const sceneConfig = {
+                    mapConfigName: 'forest_temples',
+                };
+                (this.scene.get(this.callingSceneKey) as SiteScene).clearListeners();
+                this.scene.stop(this.callingSceneKey);
+                this.scene.start(SITE_TYPES.overworld, sceneConfig);
+            });
+        });
     }
 }

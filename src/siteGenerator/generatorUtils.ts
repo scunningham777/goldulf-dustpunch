@@ -1,7 +1,10 @@
+import { GAME_SCALE, STATIC_TEXTURE_KEY } from "../constants";
 import { AreaConfig } from "../interfaces/areaConfig";
 import { MapArea } from "../interfaces/mapArea";
+import { SiteConfig } from "../interfaces/siteConfig";
 import { InventoryItem } from "../interfaces/stuffInInventory";
 import { CARDINAL_DIRECTION, weightedRandomizeAnything } from "../utils";
+import { DustModel } from "./dustModel";
 
 /**
  * Simple predicate builder for token requirements.  Use this in any
@@ -104,4 +107,46 @@ export function generateRandomArea(
     }
 
     return newArea;
+}
+
+/**
+ * Shared dust-placement logic used by the temple & cave generators.
+ * (settlement keeps its own variant, so it's **not** moved here.)
+ */
+export function generateDust(
+    tileIndexData: number[][],
+    siteConfig: SiteConfig,
+    excludedCoords: Phaser.Math.Vector2[] = []
+): DustModel[] {
+    const newDustArray: DustModel[] = [];
+
+    for (let y = 0; y < tileIndexData.length; y++) {
+        for (let x = 0; x < tileIndexData[y].length; x++) {
+            const isDustableTile =
+                siteConfig.floorTileWeights.some(fTW => fTW.index == tileIndexData[y][x]) &&
+                !excludedCoords.some(coord => coord.x === x && coord.y === y);
+
+            if (!isDustableTile) continue;
+
+            const doAddDust =
+                Phaser.Math.RND.integerInRange(1, 100) <= siteConfig.dustWeight;
+            if (!doAddDust) continue;
+
+            const dustFrame = Phaser.Math.RND.pick(siteConfig.availableDustFrames);
+            const newDustX = (x + 0.5) * siteConfig.tileWidth * GAME_SCALE;
+            const newDustY = (y + 0.5) * siteConfig.tileHeight * GAME_SCALE;
+
+            const newDust = new DustModel(
+                newDustX,
+                newDustY,
+                STATIC_TEXTURE_KEY,
+                dustFrame,
+                y * tileIndexData[y].length + x
+            );
+
+            newDustArray.push(newDust);
+        }
+    }
+
+    return newDustArray;
 }

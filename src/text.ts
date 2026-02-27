@@ -3,4 +3,4 @@ export const TEXT_TITLE_TUTORIAL_BODY = `It has been 100 years since your Great 
 export const TEXT_TITLE_TUTORIAL_CALL_TO_ACTION = `HASTE you must make!\nCOURAGE you must muster!\nDUST!\nYOU!!\nSHALL!!!\nPUNCH!!!!`;
 export const TEXT_ANCESTOR_FREED_SPEECH = `Trapped here for centuries by the final curse of Goldulf, my spirit has at last been set free by your fastidious fistwork!`;
 export const TEXT_ANCESTOR_FREED_CTA = `Punch on to free the rest of our bodacious bloodline!`;
-export const TEXT_ANCESTOR_BESTOWED_TOKEN_CTA = `Bear this relic as a token of your devotion to our family! And to cleanliness.`;
+export const TEXT_ANCESTOR_BESTOWED_TOKEN_CTA = `Bear this Token as proof of your devotion to our family! And to cleanliness.`;

@@ -4,8 +4,7 @@ import { SiteConfig } from "../interfaces/siteConfig";
 import { SiteGenerationData } from "../interfaces/siteGenerationData";
 import { InventoryItem } from "../interfaces/stuffInInventory";
 import { justInsideWall, weightedRandomizeAnything } from "../utils";
-import { DustModel } from "./dustModel";
-import { generateRandomArea, generateTileIndexData, isAreaCollision, tokenRequirementFilter } from "./generatorUtils";
+import { generateDust, generateRandomArea, generateTileIndexData, isAreaCollision, tokenRequirementFilter } from "./generatorUtils";
 import { SiteGenerator } from "./siteGenerator";
 
 export const templeGenerator: SiteGenerator = {
@@ -24,8 +23,8 @@ export const templeGenerator: SiteGenerator = {
         connectRooms(tileIndexData, newAreas, floorTileWeights);
         drawAreas(tileIndexData, newAreas);
 
-        const dust = generateDust(tileIndexData);
         const heroSpawnCoords = new Phaser.Math.Vector2(newAreas[0].focusX, newAreas[0].focusY);
+        const dust = generateDust(tileIndexData, siteConfig, [justInsideWall(heroSpawnCoords, siteWidth - 1, siteHeight - 1)]);
 
         return {
             tileIndexData,
@@ -152,32 +151,7 @@ export const templeGenerator: SiteGenerator = {
             }
         }
 
-        function generateDust(tileIndexData: number[][]): DustModel[] {
-            const newDustArray: DustModel[] = [];
-            for (let y = 0; y < tileIndexData.length; y++) {
-                for (let x = 0; x < tileIndexData[y].length; x++) {
-                    const isDustableTile = siteConfig.floorTileWeights.some(fTW => fTW.index == tileIndexData[y][x]);
-                    if (isDustableTile) {
-                        const doAddDust = Phaser.Math.RND.integerInRange(1, 100) <= siteConfig.dustWeight;
-                        if (doAddDust) {
-                            const dustFrame = Phaser.Math.RND.pick(siteConfig.availableDustFrames);
-                            const newDustX = (x + .5) * siteConfig.tileWidth * GAME_SCALE;
-                            const newDustY = (y + .5) * siteConfig.tileHeight * GAME_SCALE;
 
-                            const newDust = new DustModel(
-                                newDustX,
-                                newDustY,
-                                STATIC_TEXTURE_KEY,
-                                dustFrame,
-                                y * tileIndexData[y].length + x,
-                            );
-                            newDustArray.push(newDust);
-                        }
-                    }
-                }
-            }
-            return newDustArray;
-        }
 
         function generateDoorAreas(maxXCoord: number, maxYCoord: number): MapArea[] {
             const areas: MapArea[] = [];
