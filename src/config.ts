@@ -1,8 +1,9 @@
 import { SiteConfig } from "./interfaces/siteConfig";
-import { BOG_TINT, CAVE_TINT, OVERWORLD_TINT, SETTLEMENT_TINT, SITE_GENERATION_TYPES, SITE_TYPES, TEMPLE_TINT, TERRAIN_TEXTURE_KEY } from './constants';
+import { BOG_TINT, CAVE_TINT, HERO_TINT, OVERWORLD_TINT, SETTLEMENT_TINT, SITE_GENERATION_TYPES, SITE_TYPES, TEMPLE_TINT, TERRAIN_TEXTURE_KEY } from './constants';
 import { StuffConfig } from "./interfaces/stuffConfig";
 import { AncestorConfig } from "./interfaces/ancestorConfig";
 import { TokenConfig } from "./interfaces/tokenConfig";
+import { RelicConfig } from "./interfaces/relicConfig";
 
 export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
     'overworld': [
@@ -188,7 +189,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ancestorTypeWeights: [
                 {
                     key: 'basic_ancestor',
-                    weight: 4,
+                    weight: 0,
                 },
                 {
                     key: 'temple_ancestor',
@@ -486,13 +487,9 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
         {
             ancestorTypeWeights: [
                 {
-                    key: 'basic_ancestor',
-                    weight: 4,
-                },
-                {
-                    key: 'temple_ancestor',
+                    key: 'supreme_temple_ancestor',
                     weight: 1,
-                }
+                },
             ],
             siteType: SITE_TYPES.gatedSite,
             mapConfigName: 'supreme_temple',
@@ -810,54 +807,121 @@ export const ANCESTOR_CONFIGS: AncestorConfig[] = [
     {
         key: 'basic_ancestor',
         tokenKey: '',
+        relicKey: '',
         frameIndex: 0,
         overrideTint: 0xffffff,
     },
     {
         key: 'cave_ancestor',
         tokenKey: 'diamond',
-        frameIndex: 1,
+        relicKey: '',
+        frameIndex: 0,
     },
     {
         key: 'temple_ancestor',
         tokenKey: 'ring',
-        frameIndex: 2,
+        relicKey: '',
+        frameIndex: 0,
     },
     {
         key: 'settlement_ancestor',
-        tokenKey: 'crown',
-        frameIndex: 3,
+        tokenKey: 'scales',
+        relicKey: '',
+        frameIndex: 0,
     },
     {
         key: 'bog_ancestor',
-        tokenKey: 'pearl',
-        frameIndex: 4,
+        tokenKey: 'fasces',
+        relicKey: '',
+        frameIndex: 0,
+    },
+    {
+        key: 'supreme_temple_ancestor',
+        tokenKey: '',
+        relicKey: 'sandal',
+        frameIndex: 1
+    },
+    {
+        key: 'supreme_cave_ancestor',
+        tokenKey: '',
+        relicKey: 'dagger',
+        frameIndex: 1
+    },
+    {
+        key: 'supreme_settlement_ancestor',
+        tokenKey: '',
+        relicKey: 'crown',
+        frameIndex: 1
+    },
+    {
+        key: 'supreme_bog_ancestor',
+        tokenKey: '',
+        relicKey: 'pearl',
+        frameIndex: 1
     },
 ]
 
 export const TOKEN_CONFIGS: TokenConfig[] = [
     {
         key: 'diamond',
-        frameIndex: 12,
+        frameIndex: 20,
         points: 50,
         tint: CAVE_TINT,
     },
     {
         key: 'ring',
-        frameIndex: 13,
+        frameIndex: 21,
         points: 50,
         tint: TEMPLE_TINT,
     },
     {
-        key: 'crown',
-        frameIndex: 14,
+        key: 'scales',
+        frameIndex: 22,
         points: 50,
         tint: SETTLEMENT_TINT,
     },
     {
-        key: 'pearl',
-        frameIndex: 15,
+        key: 'fasces',
+        frameIndex: 23,
         points: 50,
         tint: BOG_TINT,
     },
 ]
+
+export const RELIC_CONFIGS: RelicConfig[] = [
+    {
+        key: 'sandal',
+        frameIndex: 28,
+        points: 100,
+        tint: TEMPLE_TINT,
+        description: 'A winged sandal. Activate it to dash!'
+    },
+    {
+        key: 'dagger',
+        frameIndex: 29,
+        points: 100,
+        tint: CAVE_TINT,
+        description: 'A winged sandal. Activate it to dash!'
+    },
+    {
+        key: 'crown',
+        frameIndex: 30,
+        points: 100,
+        tint: SETTLEMENT_TINT,
+        description: 'A winged sandal. Activate it to dash!'
+    },
+    {
+        key: 'pearl',
+        frameIndex: 31,
+        points: 100,
+        tint: BOG_TINT,
+        description: 'A winged sandal. Activate it to dash!'
+    },
+    {
+        key: 'cestus',
+        frameIndex: 32,
+        points: 100,
+        tint: HERO_TINT,
+        description: 'A winged sandal. Activate it to dash!'
+    },
+];

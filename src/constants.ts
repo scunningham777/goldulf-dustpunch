@@ -21,6 +21,7 @@ export const BOG_TINT = 0x68a12D;
 export const INVENTORY_STUFF_REGISTRY_KEY = 'inventory_stuff';
 export const INVENTORY_STUFF_REGISTRY_KEY__OLD = 'inventory';
 export const INVENTORY_TOKENS_REGISTRY_KEY = 'inventory_tokens';
+export const INVENTORY_RELICS_REGISTRY_KEY = 'inventory_relics';
 export const SITE_DATA_REGISTRY_KEY = 'site_data';
 export const DUST_PUNCH_EVENT_KEY = 'dustpunch';
 export const STATIC_TEXTURE_KEY = 'static_images';

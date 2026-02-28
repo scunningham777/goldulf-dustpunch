@@ -224,26 +224,52 @@ export class SiteScene extends Phaser.Scene {
         const cam = this.cameras.main;
         cam.fadeIn(500)
         cam.once('camerafadeincomplete', () => {
-            // special flash for gated entrances to reinforce the colour change
+            // special tint flash for gated entrances to reinforce the colour change
             if (this.mapConfig.siteType === SITE_TYPES.gatedSite) {
-                // fade the camera background toward a color halfway between the
-                // default bg color and the hero tint.  the tween updates the
-                // camera's backgroundColor object directly.
+                // tween the mapLayer tint between the default tile tint and hero tint
                 const dest = Phaser.Display.Color.ValueToColor(HERO_TINT);
-                const source = Phaser.Display.Color.ValueToColor(GAME_BG_COLOR);
-                const midRed = Math.floor((source.red + dest.red) * .7);
-                const midGreen = Math.floor((source.green + dest.green) * .7);
-                const midBlue = Math.floor((source.blue + dest.blue) * .7);
+                const source = Phaser.Display.Color.ValueToColor(this.mapConfig.defaultTileTint);
+                let lastUpdateTime = 0;
 
+            //     // fade the camera background toward a color partway between the
+            //     // default bg color and the hero tint.  the tween updates the
+            //     // camera's backgroundColor object directly.
+            //     const midRed = Math.floor((source.red + dest.red) * .7);
+            //     const midGreen = Math.floor((source.green + dest.green) * .7);
+            //     const midBlue = Math.floor((source.blue + dest.blue) * .7);
+
+            //     this.tweens.add({
+            //         targets: cam.backgroundColor,
+            //         red: midRed,
+            //         green: midGreen,
+            //         blue: midBlue,
+            //         duration: 1600,
+            //         ease: 'Linear',
+            //         yoyo: true,
+            //         repeat: -1,
+            //     });
+                
                 this.tweens.add({
-                    targets: cam.backgroundColor,
-                    red: midRed,
-                    green: midGreen,
-                    blue: midBlue,
+                    targets: source,
+                    red: dest.red,
+                    green: dest.green,
+                    blue: dest.blue,
                     duration: 1600,
                     ease: 'Linear',
                     yoyo: true,
                     repeat: -1,
+                    onUpdate: () => {
+                        const currentTime = Date.now();
+                        if (currentTime - lastUpdateTime >= 400) {
+                            const tweenedTint = Phaser.Display.Color.GetColor(
+                                Math.floor(source.red),
+                                Math.floor(source.green),
+                                Math.floor(source.blue)
+                            );
+                            this.mapLayer.forEachTile(t => t.tint = tweenedTint);
+                            lastUpdateTime = currentTime;
+                        }
+                    }
                 });
             }
 

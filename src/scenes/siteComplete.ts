@@ -1,11 +1,13 @@
-import { ANCESTOR_CONFIGS, TOKEN_CONFIGS } from "../config";
-import { ANCESTORS_TEXTURE_KEY, GAME_SCALE, HERO_FRAMES, INVENTORY_TOKENS_REGISTRY_KEY, SITE_TYPES, STATIC_TEXTURE_KEY, TYPEWRITER_WORD_INTERVAL } from "../constants";
+import { ANCESTOR_CONFIGS, TOKEN_CONFIGS, RELIC_CONFIGS } from "../config";
+import { ANCESTORS_TEXTURE_KEY, GAME_SCALE, HERO_FRAMES, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, SITE_TYPES, STATIC_TEXTURE_KEY, TYPEWRITER_WORD_INTERVAL } from "../constants";
 import { AncestorConfig } from "../interfaces/ancestorConfig";
 import { SiteConfig } from "../interfaces/siteConfig";
 import { Hero } from "../objects/hero";
 import { Token } from "../objects/token";
+// @ts-ignore - module sometimes not picked up by TS watcher until rebuild
+import { Relic } from "../objects/relic.ts";
 import { TypewriterText } from "../objects/typewriterText";
-import { TEXT_ANCESTOR_BESTOWED_TOKEN_CTA, TEXT_ANCESTOR_FREED_CTA, TEXT_ANCESTOR_FREED_SPEECH } from "../text";
+import { TEXT_ANCESTOR_BESTOWED_TOKEN_CTA, TEXT_ANCESTOR_FREED_CTA, TEXT_ANCESTOR_FREED_SPEECH, TEXT_FIRST_TOKEN_RECEIVED } from "../text";
 import { CARDINAL_DIRECTION, weightedRandomizeAnything } from "../utils";
 import { SiteScene } from "./site";
 
@@ -41,11 +43,13 @@ export class SiteCompleteScene extends Phaser.Scene {
     private speechText: TypewriterText;
     private isMovingOn: boolean;
     private callingSceneKey: SITE_TYPES;
-    private token: Token;
+    private token: Token | undefined;
+    private relic: Relic | undefined;
 
-    // set to true when the current token being granted was never in the
+    // set to true when the current token/relic being granted was never in the
     // player's inventory before.  used to trigger the special tutorial message
     private firstTokenReceived: boolean = false;
+    private firstRelicReceived: boolean = false;
 
     create(): void {
         this.add.graphics();
@@ -81,6 +85,13 @@ export class SiteCompleteScene extends Phaser.Scene {
                 const firstTime = this.bestowToken();
                 if (firstTime) {
                     this.firstTokenReceived = true;
+                }
+            }
+
+            if (this.ancestorSpirit.config.relicKey) {
+                const firstRelic = this.bestowRelic();
+                if (firstRelic) {
+                    this.firstRelicReceived = true;
                 }
             }
         });
@@ -132,7 +143,24 @@ export class SiteCompleteScene extends Phaser.Scene {
 
             const cam = this.cameras.main;
 
-            if (this.ancestorSpirit.config.tokenKey) {
+            // relics take precedence over tokens when both are present
+            if (this.ancestorSpirit.config.relicKey) {
+                this.ancestorSpirit.image.setVisible(false);
+
+                if (this.firstRelicReceived) {
+                    this.firstRelicReceived = false;
+                    this.showFirstRelicMessage(this.ancestorSpirit.config.relicKey!);
+
+                    this.relic = this.createRelic();
+
+                    this.time.delayedCall(1, () => cam.flash(FLASH_DURATION, FLASH_RGB, FLASH_RGB, FLASH_RGB));
+                    this.time.delayedCall(FLASH_DELAY, () => cam.flash(FLASH_DURATION, FLASH_RGB, FLASH_RGB, FLASH_RGB));
+
+                    return; // wait for scheduleTransition later via input
+                } else {
+                    this.relic = this.createRelic();
+                }
+            } else if (this.ancestorSpirit.config.tokenKey) {
                 this.ancestorSpirit.image.setVisible(false);
 
                 if (this.firstTokenReceived) {
@@ -156,8 +184,8 @@ export class SiteCompleteScene extends Phaser.Scene {
                 }
             }
 
-            // if we reach here either there's no token or it's not a first-time
-            // receipt, transition immediately (with the usual timed fadeouts).
+            // if we reach here either there's no relevant drop or it wasn't a
+            // first-time receipt; transition immediately.
             this.time.delayedCall(1, () => cam.flash(FLASH_DURATION, FLASH_RGB, FLASH_RGB, FLASH_RGB));
             this.time.delayedCall(FLASH_DELAY, () => cam.flash(FLASH_DURATION, FLASH_RGB, FLASH_RGB, FLASH_RGB));
             this.scheduleTransition();
@@ -182,6 +210,23 @@ export class SiteCompleteScene extends Phaser.Scene {
     }
 
     /**
+     * Adds the bestowed relic to the registry and returns true if this is the
+     * first time the player has ever received this particular relic type.
+     */
+    bestowRelic(): boolean {
+        const inventory = this.registry.get(INVENTORY_RELICS_REGISTRY_KEY) || [];
+        const currentRelicType = inventory.find(i => i.inventoryItemKey == this.ancestorSpirit.config.relicKey);
+        const firstTime = currentRelicType === undefined;
+        if (firstTime) {
+            inventory.push({ inventoryItemKey: this.ancestorSpirit.config.relicKey, quantity: 1 });
+        } else {
+            currentRelicType.quantity++;
+        }
+        this.registry.set(INVENTORY_RELICS_REGISTRY_KEY, inventory);
+        return firstTime;
+    }
+
+    /**
      * Instantiate a token and optionally run a callback when its final animation
      * completes.
      */
@@ -192,6 +237,18 @@ export class SiteCompleteScene extends Phaser.Scene {
             return;
         }
         return new Token(this, this.ancestorSpirit.image.x, this.ancestorSpirit.image.y, STATIC_TEXTURE_KEY, tokenConfig);
+    }
+
+    /**
+     * Instantiate a relic and optionally run a callback when its animation completes.
+     */
+    createRelic() {
+        const relicConfig = RELIC_CONFIGS.find(rC => rC.key === this.ancestorSpirit.config.relicKey);
+        if (!relicConfig) {
+            console.warn('createRelic called but no config for', this.ancestorSpirit.config.relicKey);
+            return;
+        }
+        return new Relic(this, this.ancestorSpirit.image.x, this.ancestorSpirit.image.y, STATIC_TEXTURE_KEY, relicConfig);
     }
 
     /**
@@ -210,10 +267,24 @@ export class SiteCompleteScene extends Phaser.Scene {
         }
 
         const name = tokenKey.charAt(0).toUpperCase() + tokenKey.slice(1);
-        const message = `Wow, you got a ${name}! Collect more of these to unlock supreme sites!`;
+        const message = TEXT_FIRST_TOKEN_RECEIVED(name);
         this.speechText = new TypewriterText(message, this, this.getSpeechTextY(), TYPEWRITER_WORD_INTERVAL, () => {
             // once the token message has finished displaying, allow the player
             // to press a key (or click/tap) to continue.
+            this.input.keyboard.on('keydown', this.scheduleTransition, this);
+            this.input.on('pointerdown', this.scheduleTransition, this);
+            this.input.gamepad.on('down', this.scheduleTransition, this);
+        });
+    }
+
+    private showFirstRelicMessage(relicKey: string) {
+        if (this.speechText) {
+            this.speechText.destroy();
+        }
+
+        const relicConfig = RELIC_CONFIGS.find(r => r.key === relicKey);
+        const message = relicConfig ? relicConfig.description : '';
+        this.speechText = new TypewriterText(message, this, this.getSpeechTextY(), TYPEWRITER_WORD_INTERVAL, () => {
             this.input.keyboard.on('keydown', this.scheduleTransition, this);
             this.input.on('pointerdown', this.scheduleTransition, this);
             this.input.gamepad.on('down', this.scheduleTransition, this);
@@ -231,15 +302,20 @@ export class SiteCompleteScene extends Phaser.Scene {
         this.input.off('pointerdown', this.scheduleTransition, this);
         this.input.gamepad.off('down', this.scheduleTransition, this);
 
-        // animate the token to the inventory if it exists and is still visible
+        // animate the token or relic to the inventory if present
         if (this.token && this.token.visible) {
             this.token.animateToInventory(() => {
                 this.token = undefined;
             });
         }
+        if (this.relic && this.relic.visible) {
+            this.relic.animateToInventory(() => {
+                this.relic = undefined;
+            });
+        }
 
         const cam = this.cameras.main;
-        const delay = this.ancestorSpirit.config.tokenKey ? 5 * FADEOUT_DELAY : FADEOUT_DELAY;
+        const delay = (this.ancestorSpirit.config.tokenKey || this.ancestorSpirit.config.relicKey) ? 5 * FADEOUT_DELAY : FADEOUT_DELAY;
         this.time.delayedCall(delay, () => {
             cam.fade(FADEOUT_DURATION, FADEOUT_RGB, FADEOUT_RGB, FADEOUT_RGB, false);
             cam.once('camerafadeoutcomplete', () => {

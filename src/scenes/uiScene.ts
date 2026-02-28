@@ -1,5 +1,5 @@
-import { STUFF_CONFIGS, TOKEN_CONFIGS } from "../config";
-import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY } from "../constants";
+import { STUFF_CONFIGS, TOKEN_CONFIGS, RELIC_CONFIGS } from "../config";
+import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY } from "../constants";
 import { InventoryItem } from "../interfaces/stuffInInventory";
 import { TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT } from "../text";
 
@@ -14,9 +14,11 @@ export class UIScene extends Phaser.Scene {
     private closeImage: Phaser.GameObjects.Image;
     private menuStuffDisplayGroup: Phaser.GameObjects.Group;
     private menuTokensDisplayGroup: Phaser.GameObjects.Group;
+    private menuRelicsDisplayGroup: Phaser.GameObjects.Group;
     private menuHeaderText: Phaser.GameObjects.Text;
     private stuffHeaderText: Phaser.GameObjects.Text;
     private tokensHeaderText: Phaser.GameObjects.Text;
+    private relicsHeaderText: Phaser.GameObjects.Text;
     private menuBtn: Phaser.GameObjects.Rectangle;
     private menuBtnImage: Phaser.GameObjects.Image;
 
@@ -37,8 +39,10 @@ export class UIScene extends Phaser.Scene {
         this.menuLayer = this.generateMenu();
         this.menuStuffDisplayGroup = this.add.group()
         this.menuTokensDisplayGroup = this.add.group()
+        this.menuRelicsDisplayGroup = this.add.group()
         this.updateUI(null, INVENTORY_STUFF_REGISTRY_KEY, this.registry.values[INVENTORY_STUFF_REGISTRY_KEY]);
         this.updateUI(null, INVENTORY_TOKENS_REGISTRY_KEY, this.registry.values[INVENTORY_TOKENS_REGISTRY_KEY]);
+        this.updateUI(null, INVENTORY_RELICS_REGISTRY_KEY, this.registry.values[INVENTORY_RELICS_REGISTRY_KEY]);
         
         // maybe a hack to clean up duplicate listeners - shouldn't be necessary after fixing issue #26, but leave in case
         this.registry.events.off('changedata', this.updateUI, this);
@@ -62,9 +66,10 @@ export class UIScene extends Phaser.Scene {
     
         this.stuffHeaderText = this.add.text(menuBodyOffsetX, this.pointsText.y + this.pointsText.displayHeight + 8, 'Your Stuff: ', {font: `32px '7_12'`, color: `#fff`});
         this.tokensHeaderText = this.add.text(menuBodyOffsetX, this.stuffHeaderText.y + this.stuffHeaderText.displayHeight + 36 * GAME_SCALE, 'Your Tokens: ', {font: `32px '7_12'`, color: `#fff`});
+        this.relicsHeaderText = this.add.text(menuBodyOffsetX, this.tokensHeaderText.y + this.tokensHeaderText.displayHeight + 36 * GAME_SCALE, 'Your Relics: ', {font: `32px '7_12'`, color: `#fff`});
         this.closeImage = this.add.image(this.menuBtn.x + this.menuBtn.width / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 1).setScale(GAME_SCALE);
 
-        const menuLayer = this.add.layer([this.menuBackground, this.menuHeaderText, this.pointsText, this.stuffHeaderText, this.tokensHeaderText, this.closeImage]);
+        const menuLayer = this.add.layer([this.menuBackground, this.menuHeaderText, this.pointsText, this.stuffHeaderText, this.tokensHeaderText, this.closeImage, this.relicsHeaderText]);
         menuLayer.setVisible(false);
 
         return menuLayer;
@@ -83,6 +88,8 @@ export class UIScene extends Phaser.Scene {
             this.updateMenuStuff(data);
         } else if (key === INVENTORY_TOKENS_REGISTRY_KEY) {
             this.updateMenuTokens(data);
+        } else if (key === INVENTORY_RELICS_REGISTRY_KEY) {
+            this.updateMenuRelics(data);
         } else if (key === TOUCH_MOVEMENT_REGISTRY_KEY) {
             if (data != null) {
                 this.showVirtualJoystick(data);
@@ -134,12 +141,27 @@ export class UIScene extends Phaser.Scene {
             const x = this.tokensHeaderText.x + (24 * index * GAME_SCALE);
             const y = this.tokensHeaderText.y + this.tokensHeaderText.height + 4 * GAME_SCALE;
             const tokenType = TOKEN_CONFIGS.find(tC => tC.key === token.inventoryItemKey)
-            const tokenImg = this.add.image(x, y, STATIC_TEXTURE_KEY, tokenType.frameIndex).setScale(GAME_SCALE).setTint(STUFF_TINT).setOrigin(0, 0);
+            const tokenImg = this.add.image(x, y, STATIC_TEXTURE_KEY, tokenType.frameIndex).setScale(GAME_SCALE).setTint(tokenType.tint).setOrigin(0, 0);
             const tokenQtyText = this.add.text(tokenImg.x, tokenImg.y + tokenImg.displayHeight, 'x' + token.quantity, {font: `${8 * GAME_SCALE}px '7_12'`, color: '#' + HERO_TINT.toString(16)});
             this.menuTokensDisplayGroup.add(tokenImg);
             this.menuTokensDisplayGroup.add(tokenQtyText);
             this.menuLayer.add(tokenImg);
             this.menuLayer.add(tokenQtyText);
+        })
+    }
+
+    updateMenuRelics(currentRelics: InventoryItem[]) {
+        this.menuRelicsDisplayGroup.clear(true, true);
+        currentRelics.forEach((relic, index) => {
+            const x = this.relicsHeaderText.x + (24 * index * GAME_SCALE);
+            const y = this.relicsHeaderText.y + this.relicsHeaderText.height + 4 * GAME_SCALE;
+            const relicType = RELIC_CONFIGS.find(rC => rC.key === relic.inventoryItemKey)
+            const relicImg = this.add.image(x, y, STATIC_TEXTURE_KEY, relicType.frameIndex).setScale(GAME_SCALE).setTint(relicType.tint).setOrigin(0, 0);
+            const relicQtyText = this.add.text(relicImg.x, relicImg.y + relicImg.displayHeight, 'x' + relic.quantity, {font: `${8 * GAME_SCALE}px '7_12'`, color: '#' + HERO_TINT.toString(16)});
+            this.menuRelicsDisplayGroup.add(relicImg);
+            this.menuRelicsDisplayGroup.add(relicQtyText);
+            this.menuLayer.add(relicImg);
+            this.menuLayer.add(relicQtyText);
         })
     }
 
@@ -153,6 +175,8 @@ export class UIScene extends Phaser.Scene {
         this.menuHeaderText.setPosition(this.menuBackground.x + this.menuBackground.width / 2, 16);
         this.pointsText.setPosition(this.menuBackground.x + 20, this.menuHeaderText.y + this.menuHeaderText.displayHeight + 16)
         this.stuffHeaderText.setPosition(this.menuBackground.x + 20, this.pointsText.y + this.pointsText.displayHeight + 8);
+        this.tokensHeaderText.setPosition(this.menuBackground.x + 20, this.stuffHeaderText.y + this.stuffHeaderText.displayHeight + 36 * GAME_SCALE);
+        this.relicsHeaderText.setPosition(this.menuBackground.x + 20, this.tokensHeaderText.y + this.tokensHeaderText.displayHeight + 36 * GAME_SCALE);
     }
 
     private calculateMenuBGWidth() {
