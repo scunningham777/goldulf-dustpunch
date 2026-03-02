@@ -91,15 +91,17 @@ export class UIScene extends Phaser.Scene {
             .setOrigin(.5, 0);
 
         const menuBodyOffsetX = menuBGWidth * .06;
-        this.pointsText = this.add.text(menuBodyOffsetX, this.menuHeaderText.y + this.menuHeaderText.displayHeight + 16, 'Points: 0', {font: `32px '7_12'`, color: '#fff'});
+        const standardFontSize = 8 * GAME_SCALE;
+        this.pointsText = this.add.text(menuBodyOffsetX, this.menuHeaderText.y + this.menuHeaderText.displayHeight + 16, 'Points: 0', {font: `${standardFontSize}px '7_12'`, color: '#fff'});
     
-        this.stuffHeaderText = this.add.text(menuBodyOffsetX, this.pointsText.y + this.pointsText.displayHeight + 8, 'Your Stuff: ', {font: `32px '7_12'`, color: `#fff`});
-        this.tokensHeaderText = this.add.text(menuBodyOffsetX, this.stuffHeaderText.y + this.stuffHeaderText.displayHeight + 36 * GAME_SCALE, 'Your Tokens: ', {font: `32px '7_12'`, color: `#fff`});
-        this.relicsHeaderText = this.add.text(menuBodyOffsetX, this.tokensHeaderText.y + this.tokensHeaderText.displayHeight + 36 * GAME_SCALE, 'Your Relics: ', {font: `32px '7_12'`, color: `#fff`});
-        this.settingsHeaderText = this.add.text(menuBodyOffsetX, this.relicsHeaderText.y + this.relicsHeaderText.displayHeight + 36 * GAME_SCALE, 'Settings: ', {font: `32px '7_12'`, color: `#fff`});
-        this.mvtCtrlHeaderText = this.add.text(menuBodyOffsetX, this.settingsHeaderText.y + this.settingsHeaderText.displayHeight + 8 * GAME_SCALE, 'Player Movement: ', {font: `32px '7_12'`, color: `#fff`});
-        this.mvtCtrlFollowBtn = this.add.text(menuBodyOffsetX + this.mvtCtrlHeaderText.displayWidth + 8, this.mvtCtrlHeaderText.y, 'Follow Cursor', {font: `32px '7_12'`, color: `#fff`});
-        this.mvtCtrlJoystickBtn = this.add.text(this.mvtCtrlFollowBtn.x + this.mvtCtrlFollowBtn.displayWidth + 8, this.mvtCtrlHeaderText.y, 'Joystick', {font: `32px '7_12'`, color: `#fff`});
+        this.stuffHeaderText = this.add.text(menuBodyOffsetX, this.pointsText.y + this.pointsText.displayHeight + 8, 'Your Stuff: ', {font: `${standardFontSize}px '7_12'`, color: `#fff`});
+        this.tokensHeaderText = this.add.text(menuBodyOffsetX, this.stuffHeaderText.y + this.stuffHeaderText.displayHeight + 36 * GAME_SCALE, 'Your Tokens: ', {font: `${standardFontSize}px '7_12'`, color: `#fff`});
+        this.relicsHeaderText = this.add.text(menuBodyOffsetX, this.tokensHeaderText.y + this.tokensHeaderText.displayHeight + 36 * GAME_SCALE, 'Your Relics: ', {font: `${standardFontSize}px '7_12'`, color: `#fff`});
+        
+        this.settingsHeaderText = this.add.text(this.menuBackground.x + this.menuBackground.width / 2, this.relicsHeaderText.y + this.relicsHeaderText.displayHeight + 36 * GAME_SCALE, 'Settings', {font: `${12 * GAME_SCALE}px '7_12'`, color: `#fff`}).setOrigin(.5, 0);
+        this.mvtCtrlHeaderText = this.add.text(menuBodyOffsetX, this.settingsHeaderText.y + this.settingsHeaderText.displayHeight + 8 * GAME_SCALE, 'Player Movement: ', {font: `${standardFontSize}px '7_12'`, color: `#fff`});
+        this.mvtCtrlFollowBtn = this.add.text(menuBodyOffsetX + 8 * GAME_SCALE, this.mvtCtrlHeaderText.y + this.mvtCtrlHeaderText.displayHeight + 8 * GAME_SCALE, 'Follow Cursor', {font: `${standardFontSize}px '7_12'`, color: `#fff`});
+        this.mvtCtrlJoystickBtn = this.add.text(this.mvtCtrlFollowBtn.x + this.mvtCtrlFollowBtn.displayWidth + 8, this.mvtCtrlFollowBtn.y, 'Joystick', {font: `${standardFontSize}px '7_12'`, color: `#fff`});
         
         this.mvtCtrlFollowBtn.setInteractive();
         this.mvtCtrlFollowBtn.on('pointerdown', () => {
