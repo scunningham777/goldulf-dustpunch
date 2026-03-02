@@ -7,7 +7,7 @@ import { GameTitleScene } from './scenes/gameTitle';
 import { SiteScene } from './scenes/site';
 import { GameOverScene } from './scenes/gameOver';
 
-import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_STUFF_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR_HEX_STRING, SITE_TYPES, IS_DEBUG, SITE_COMPLETE_SCENE_KEY, SITE_DATA_REGISTRY_KEY, INVENTORY_STUFF_REGISTRY_KEY__OLD, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY } from './constants';
+import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_STUFF_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR_HEX_STRING, SITE_TYPES, IS_DEBUG, SITE_COMPLETE_SCENE_KEY, SITE_DATA_REGISTRY_KEY, INVENTORY_STUFF_REGISTRY_KEY__OLD, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY } from './constants';
 
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar } from '@capacitor/status-bar';
@@ -17,6 +17,7 @@ import { SiteCompleteScene } from './scenes/siteComplete';
 import { Storage } from './objects/storage';
 import { InventoryItem } from './interfaces/stuffInInventory';
 import { SiteGenerationData } from './interfaces/siteGenerationData';
+import { HERO_MOVEMENT_CONTROLLERS } from './interfaces/heroMovementController';
 
 const config: Phaser.Types.Core.GameConfig = {
     width: WORLD_WIDTH,
@@ -88,14 +89,16 @@ export class Game extends Phaser.Game {
             }),
             this.dataStore.get(INVENTORY_TOKENS_REGISTRY_KEY),
             this.dataStore.get(INVENTORY_RELICS_REGISTRY_KEY),
+            this.dataStore.get(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY),
         ])
-        .then(([siteData, inventoryStuff, inventoryTokens, inventoryRelics]: [(SiteGenerationData | null), (InventoryItem[] | null), (InventoryItem[] | null), (InventoryItem[] | null)]) => {
+        .then(([siteData, inventoryStuff, inventoryTokens, inventoryRelics, heroMovementController]: [(SiteGenerationData | null), (InventoryItem[] | null), (InventoryItem[] | null), (InventoryItem[] | null), (HERO_MOVEMENT_CONTROLLERS | null)]) => {
             if (!!siteData) {
                 this.registry.set(SITE_DATA_REGISTRY_KEY, siteData);
             }
             this.registry.set(INVENTORY_STUFF_REGISTRY_KEY, inventoryStuff || []);
             this.registry.set(INVENTORY_TOKENS_REGISTRY_KEY, inventoryTokens || []);
             this.registry.set(INVENTORY_RELICS_REGISTRY_KEY, inventoryRelics || []);
+            this.registry.set(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, heroMovementController || HERO_MOVEMENT_CONTROLLERS.FOLLOW_HERO);
     
             this.registry.events.on('changedata', this.updateDataStore, this);
 
@@ -123,6 +126,9 @@ export class Game extends Phaser.Game {
         }
         if (key === INVENTORY_RELICS_REGISTRY_KEY) {
             this.dataStore.set(INVENTORY_RELICS_REGISTRY_KEY, data);
+        }
+        if (key === HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY) {
+            this.dataStore.set(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, data);
         }
     }
 

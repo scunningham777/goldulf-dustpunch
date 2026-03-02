@@ -430,6 +430,9 @@ export class SiteScene extends Phaser.Scene {
                 this.hero.unfreeze();
             }
         }
+        if (key === HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY) {
+            this.hero.setMovementController(data);
+        }
     }
 
     gamepadDownHandler(pad: Phaser.Input.Gamepad.Gamepad, button: Phaser.Input.Gamepad.Button, value: number) {

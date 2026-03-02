@@ -46,9 +46,6 @@ export class PreloadScene extends Phaser.Scene {
                 }
             }
         });
-
-        const heroMvtCtrl = HERO_MOVEMENT_CONTROLLER === 'joystick' ? JOYSTICK_HERO_MOVEMENT_CONTROLLER : FOLLOW_HERO_MOVEMENT_CONTROLLER;
-        this.registry.set(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, heroMvtCtrl);
     }
 
 }
