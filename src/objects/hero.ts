@@ -20,6 +20,7 @@ export class Hero {
 
     private isDashing = false;
     private dashDir: CARDINAL_DIRECTION = null;
+    private dashCooldownEndsAt = 0;  // timestamp when cooldown expires (0 = no cooldown)
 
     private pointerDownX: number = null;
     private pointerDownY: number = null;
@@ -71,8 +72,11 @@ export class Hero {
         if (this.isDashing) {
             const body = this.heroSprite.body as Phaser.Physics.Arcade.Body;
             if (body.blocked.left || body.blocked.right || body.blocked.up || body.blocked.down) {
-                // stopped by a tile/wall
+                // stopped by a tile/wall - end dash and start cooldown
                 this.isDashing = false;
+                const sandalQuantity = this.getSandalQuantity();
+                const cooldownMs = this.calculateDashCooldownMs(sandalQuantity);
+                this.dashCooldownEndsAt = this.scene.time.now + cooldownMs;
                 this.heroSprite.setVelocity(0);
             }
             this.mvtCtrl.update(this);
@@ -225,7 +229,7 @@ export class Hero {
     }
 
     private startDash(direction: CARDINAL_DIRECTION) {
-        if (this.isDashing || !this.hasSandalRelic()) {
+        if (!this.canDash()) {
             return;
         }
         this.isDashing = true;
@@ -250,9 +254,27 @@ export class Hero {
         this.heroSprite.anims.play('walk' + animDir, true);
     }
 
-    private hasSandalRelic(): boolean {
+    private canDash(): boolean {
+        return !this.isDashing && this.getSandalQuantity() > 0 && this.scene.time.now >= this.dashCooldownEndsAt;
+    }
+
+    private getSandalQuantity(): number {
         const relics = this.scene.registry.get(INVENTORY_RELICS_REGISTRY_KEY) || [];
-        return relics.some((item: any) => item.inventoryItemKey === 'sandal' && item.quantity > 0);
+        const sandal = relics.find((item: any) => item.inventoryItemKey === 'sandal');
+        return sandal ? sandal.quantity : 0;
+    }
+
+    private calculateDashCooldownMs(sandalQuantity: number): number {
+        let cooldownSeconds = 20;
+        // Half the cooldown for each sandal beyond the first, rounded up each time
+        for (let i = 1; i < sandalQuantity; i++) {
+            cooldownSeconds = Math.ceil(cooldownSeconds / 2);
+        }
+        return Math.max(1, cooldownSeconds) * 1000;  // minimum 1 second, convert to ms
+    }
+
+    private hasSandalRelic(): boolean {
+        return this.getSandalQuantity() > 0;
     }
 
     private onPointerDown(pointer: Phaser.Input.Pointer) {
