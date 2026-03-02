@@ -189,7 +189,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ancestorTypeWeights: [
                 {
                     key: 'basic_ancestor',
-                    weight: 0,
+                    weight: 3,
                 },
                 {
                     key: 'temple_ancestor',

@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "goldulf-dustpunch",
     "public": "www",
     "ignore": [
       "firebase.json",

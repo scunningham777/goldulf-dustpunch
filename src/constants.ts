@@ -107,3 +107,9 @@ export const TYPEWRITER_WORD_INTERVAL = 80;
 export const IS_DEBUG = false;
 export const SKIP_OVERWORLD = false;
 export const HERO_MOVEMENT_CONTROLLER: 'follow' | 'joystick' = 'follow';
+
+// dash / double-tap settings
+export const DOUBLE_TAP_THRESHOLD = 250; // ms allowed between taps
+export const DASH_SPEED_MULT = 3;          // multiplier applied to base velocity
+export const SWIPE_MAX_TIME = 300;        // max duration for a swipe gesture
+export const SWIPE_MIN_DISTANCE = 40;     // min pixel distance for a swipe
