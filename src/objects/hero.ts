@@ -1,6 +1,6 @@
 import { CARDINAL_DIRECTION } from '../utils';
 import { GAME_SCALE, HERO_ANIM_FRAME_RATES, HERO_FRAMES, HERO_TINT, HERO_OFFSETS, HERO_TEXTURE_KEY,
-         DOUBLE_TAP_THRESHOLD, DASH_SPEED_MULT, SWIPE_MAX_TIME, SWIPE_MIN_DISTANCE, INVENTORY_RELICS_REGISTRY_KEY, SHOW_MENU_REGISTRY_KEY } from '../constants';
+         DOUBLE_TAP_THRESHOLD, DASH_SPEED_MULT, SWIPE_MAX_TIME, SWIPE_MIN_DISTANCE, INVENTORY_RELICS_REGISTRY_KEY, SHOW_MENU_REGISTRY_KEY, UI_BAR_HEIGHT } from '../constants';
 import { HERO_MOVEMENT_CONTROLLER_MAP, HERO_MOVEMENT_CONTROLLERS, HeroMovementController } from '../interfaces/heroMovementController';
 import { FOLLOW_HERO_MOVEMENT_CONTROLLER } from './followHeroMovmentController';
 
@@ -286,7 +286,6 @@ export class Hero {
     private onPointerDown(pointer: Phaser.Input.Pointer) {
         // ignore pointer events that start on the bottom UI bar so UI clicks
         // (like toggling the inventory) don't register as movement input
-        const UI_BAR_HEIGHT = 20 * GAME_SCALE;
         if (pointer.y >= (this.scene.scale.height - UI_BAR_HEIGHT)) {
             return;
         }

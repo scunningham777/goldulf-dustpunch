@@ -4,6 +4,11 @@ export const GAME_SCALE = 3;
 export const GAME_BG_COLOR = 0x000066;
 export const GAME_BG_COLOR_HEX_STRING = '#000066';
 
+// height in pixels for the UI bar that spans the bottom of the screen.  Using a
+// constant lets the site scene offset its camera so that the bottom row of
+// tiles is never obscured by the overlaying UI.
+export const UI_BAR_HEIGHT = 20 * GAME_SCALE;
+
 // special background for `gatedSite` entrances; a deep purple that contrasts
 // well with the light-yellow HERO_TINT and the other _TINT colors.
 export const GATE_SITE_BG_COLOR = 0x330066;

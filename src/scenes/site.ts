@@ -1,5 +1,5 @@
 import { Hero } from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
@@ -210,9 +210,25 @@ export class SiteScene extends Phaser.Scene {
         // Set bg color so we can tween for gated sites
         camera.setBackgroundColor(GAME_BG_COLOR);
 
-        // Constrain the camera so that it isn't allowed to move outside the width/height of tilemap
-        camera.setBounds(0, 0, this.map.widthInPixels * GAME_SCALE, this.map.heightInPixels * GAME_SCALE);
-        camera.startFollow(this.hero.entity);
+        // Constrain the camera so that it isn't allowed to move outside the width/height
+        // of the tilemap.  We subtract the UI bar height from the bottom bound so that
+        // the lowest row of tiles is always visible above the overlaying UI elements.
+        const setCameraBounds = () => {
+            camera.setBounds(
+                0,
+                0,
+                this.map.widthInPixels * GAME_SCALE,
+                this.map.heightInPixels * GAME_SCALE + UI_BAR_HEIGHT
+            );
+        };
+
+        setCameraBounds();
+        // keep bounds up to date if the canvas is resized (orientation change, etc.)
+        this.scale.on('resize', setCameraBounds);
+
+        // follow the hero; offset the camera upwards by half the UI bar height so that
+        // the hero (and bottom row) never sit directly underneath the overlay.
+        camera.startFollow(this.hero.entity, true, 0.1, 0.1, 0, UI_BAR_HEIGHT / 2);
     }
 
     initRegistry() {
