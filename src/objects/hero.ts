@@ -22,6 +22,8 @@ export class Hero {
     private isDashing = false;
     private dashDir: CARDINAL_DIRECTION = null;
     private dashCooldownEndsAt = 0;  // timestamp when cooldown expires (0 = no cooldown)
+    private dashPhaseEndTime = 0;    // when current dash phase ends
+    private isBoosting = false;
 
     private pointerDownX: number = null;
     private pointerDownY: number = null;
@@ -71,15 +73,36 @@ export class Hero {
         // other overlaps to fire, and the movement controller may need to update
         // its touch registry, so call it even when dashing.
         if (this.isDashing) {
+            const now = this.scene.time.now;
             const body = this.heroSprite.body as Phaser.Physics.Arcade.Body;
-            if (body.blocked.left || body.blocked.right || body.blocked.up || body.blocked.down) {
-                // stopped by a tile/wall - end dash and start cooldown
+            const hitWall = body.blocked.left || body.blocked.right || body.blocked.up || body.blocked.down;
+
+            // dash phase: 4x speed, straight line, no control
+            if (hitWall || now >= this.dashPhaseEndTime) {
                 this.isDashing = false;
-                const sandalQuantity = this.getSandalQuantity();
-                const cooldownMs = this.calculateDashCooldownMs(sandalQuantity);
-                this.dashCooldownEndsAt = this.scene.time.now + cooldownMs;
-                this.heroSprite.setVelocity(0);
+                this.isBoosting = true;
+                this.dashPhaseEndTime = now + 4000;  // 4 seconds boost
+                this.heroSprite.setVelocity(0);  // stop momentum
+                this.heroSprite.setTint(0xffffff);
+            } else {
+                // maintain straight line velocity during dash
+                const speed = this.velocity * 4;
+                switch (this.dashDir) {
+                    case CARDINAL_DIRECTION.LEFT:
+                        this.heroSprite.setVelocityX(-speed);
+                        break;
+                    case CARDINAL_DIRECTION.RIGHT:
+                        this.heroSprite.setVelocityX(speed);
+                        break;
+                    case CARDINAL_DIRECTION.UP:
+                        this.heroSprite.setVelocityY(-speed);
+                        break;
+                    case CARDINAL_DIRECTION.DOWN:
+                        this.heroSprite.setVelocityY(speed);
+                        break;
+                }
             }
+
             this.mvtCtrl.update(this);
             return; // skip normal input while dashing
         }
@@ -141,10 +164,27 @@ export class Hero {
                 this.heroSprite.anims.play((this.isPunching ? 'punch' : 'walk') + animDirection, true);
             }
 
+            // apply boost multiplier if in boost phase
+            if (this.isBoosting) {
+                if (this.heroSprite.body.velocity.x !== 0 || this.heroSprite.body.velocity.y !== 0) {
+                    this.heroSprite.body.velocity.x *= 2;
+                    this.heroSprite.body.velocity.y *= 2;
+                }
+            }
+
             // fix #17 - cap lineara velocity at 1 x this.velocity
             if (this.heroSprite.body.velocity.x != 0 && this.heroSprite.body.velocity.y != 0) {
                 this.heroSprite.body.velocity.x *= Math.SQRT2 / 2;
                 this.heroSprite.body.velocity.y *= Math.SQRT2 / 2;
+            }
+
+            // check if boost phase should end
+            if (this.isBoosting && this.scene.time.now >= this.dashPhaseEndTime) {
+                this.isBoosting = false;
+                this.heroSprite.setTint(HERO_TINT);
+                const sandalQuantity = this.getSandalQuantity();
+                const cooldownMs = this.calculateDashCooldownMs(sandalQuantity);
+                this.dashCooldownEndsAt = this.scene.time.now + cooldownMs;
             }
         }
 
@@ -241,27 +281,14 @@ export class Hero {
         this.isDashing = true;
         this.dashDir = direction;
         this.currentDirection = direction;
-        const speed = this.velocity * DASH_SPEED_MULT;
-        switch (direction) {
-            case CARDINAL_DIRECTION.LEFT:
-                this.heroSprite.setVelocityX(-speed);
-                break;
-            case CARDINAL_DIRECTION.RIGHT:
-                this.heroSprite.setVelocityX(speed);
-                break;
-            case CARDINAL_DIRECTION.UP:
-                this.heroSprite.setVelocityY(-speed);
-                break;
-            case CARDINAL_DIRECTION.DOWN:
-                this.heroSprite.setVelocityY(speed);
-                break;
-        }
+        this.dashPhaseEndTime = this.scene.time.now + 1000;  // 2 seconds dash
         const animDir = direction === CARDINAL_DIRECTION.LEFT ? CARDINAL_DIRECTION.RIGHT : direction;
         this.heroSprite.anims.play('walk' + animDir, true);
+        this.heroSprite.setTint(0xFF0000);
     }
 
     private canDash(): boolean {
-        return !this.isDashing && this.getSandalQuantity() > 0 && this.scene.time.now >= this.dashCooldownEndsAt;
+        return !this.isDashing && !this.isBoosting && this.getSandalQuantity() > 0 && this.scene.time.now >= this.dashCooldownEndsAt;
     }
 
     private getSandalQuantity(): number {
@@ -277,10 +304,6 @@ export class Hero {
             cooldownSeconds = Math.ceil(cooldownSeconds / 2);
         }
         return Math.max(1, cooldownSeconds) * 1000;  // minimum 1 second, convert to ms
-    }
-
-    private hasSandalRelic(): boolean {
-        return this.getSandalQuantity() > 0;
     }
 
     private onPointerDown(pointer: Phaser.Input.Pointer) {
