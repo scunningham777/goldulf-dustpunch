@@ -24,6 +24,8 @@ export class Hero {
     private dashCooldownEndsAt = 0;  // timestamp when cooldown expires (0 = no cooldown)
     private dashPhaseEndTime = 0;    // when current dash phase ends
     private isBoosting = false;
+    private blinkTimer: Phaser.Time.TimerEvent;
+    private blinkState = false;  // false = HERO_TINT, true = white
 
     private pointerDownX: number = null;
     private pointerDownY: number = null;
@@ -83,7 +85,7 @@ export class Hero {
                 this.isBoosting = true;
                 this.dashPhaseEndTime = now + 4000;  // 4 seconds boost
                 this.heroSprite.setVelocity(0);  // stop momentum
-                this.heroSprite.setTint(0xffffff);
+                this.startBoostBlinking();
             } else {
                 // maintain straight line velocity during dash
                 const speed = this.velocity * 4;
@@ -181,7 +183,7 @@ export class Hero {
             // check if boost phase should end
             if (this.isBoosting && this.scene.time.now >= this.dashPhaseEndTime) {
                 this.isBoosting = false;
-                this.heroSprite.setTint(HERO_TINT);
+                this.stopBoostBlinking();
                 const sandalQuantity = this.getSandalQuantity();
                 const cooldownMs = this.calculateDashCooldownMs(sandalQuantity);
                 this.dashCooldownEndsAt = this.scene.time.now + cooldownMs;
@@ -253,11 +255,15 @@ export class Hero {
     freeze() {
         (this.entity.body as Phaser.Physics.Arcade.Body).moves = false;
         this.heroSprite.anims.pause();
+        this.stopBoostBlinking();
         this.isFrozen = true;
     }
     unfreeze() {
         (this.entity.body as Phaser.Physics.Arcade.Body).moves = true;
         this.heroSprite.anims.resume();
+        if (this.isBoosting) {
+            this.startBoostBlinking();
+        }
         this.isFrozen = false;
     }
 
@@ -284,7 +290,7 @@ export class Hero {
         this.dashPhaseEndTime = this.scene.time.now + 1000;  // 2 seconds dash
         const animDir = direction === CARDINAL_DIRECTION.LEFT ? CARDINAL_DIRECTION.RIGHT : direction;
         this.heroSprite.anims.play('walk' + animDir, true);
-        this.heroSprite.setTint(0xFF0000);
+        this.heroSprite.setTint(0xFFFFFF);
     }
 
     private canDash(): boolean {
@@ -365,5 +371,26 @@ export class Hero {
         }
 
         return directions;
+    }
+
+    // ---------- boost blinking methods ----------
+    private startBoostBlinking() {
+        this.blinkState = false;
+        this.heroSprite.setTint(HERO_TINT);
+        this.blinkTimer = this.scene.time.delayedCall(250, this.boostBlink, [], this);
+    }
+
+    private stopBoostBlinking() {
+        if (this.blinkTimer) {
+            this.scene.time.removeEvent(this.blinkTimer);
+            this.blinkTimer = null;
+        }
+        this.heroSprite.setTint(HERO_TINT);
+    }
+
+    private boostBlink() {
+        this.blinkState = !this.blinkState;
+        this.heroSprite.setTint(this.blinkState ? 0xffffff : HERO_TINT);
+        this.blinkTimer = this.scene.time.delayedCall(250, this.boostBlink, [], this);
     }
 }
