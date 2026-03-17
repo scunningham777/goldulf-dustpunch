@@ -1,5 +1,5 @@
 import { Hero } from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
@@ -171,11 +171,13 @@ export class SiteScene extends Phaser.Scene {
     addListeners() {
         this.registry.events.on(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
         this.registry.events.on('changedata', this.registryChangeHandler, this);
+        this.registry.events.on(SPIN_DUST_BREAK_EVENT_KEY, this.spinDustBreakHandler, this);
         this.input.gamepad.on('down', this.gamepadDownHandler, this);
     }
     clearListeners() {
         this.registry.events.off(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
         this.registry.events.off('changedata', this.registryChangeHandler);
+        this.registry.events.off(SPIN_DUST_BREAK_EVENT_KEY, this.spinDustBreakHandler);
         this.input.gamepad.off('down', this.gamepadDownHandler);
     }
 
@@ -426,6 +428,53 @@ export class SiteScene extends Phaser.Scene {
                     this.createStuff(newStuff);
                 }
             }
+        }
+    }
+
+    spinDustBreakHandler = (x: number, y: number, radius: number) => {
+        if (this.dustGroup != null) {
+            const dustToBreak: Dust[] = [];
+            this.dustGroup.getChildren().forEach((dustObj) => {
+                const dust = dustObj as Dust;
+                const distance = Phaser.Math.Distance.Between(x, y, dust.x, dust.y);
+                if (distance <= radius) {
+                    dustToBreak.push(dust);
+                }
+            });
+            
+            dustToBreak.forEach(dust => {
+                dust.clearDust();
+                
+                // update saved Dust list and Hero respawn point
+                const savedSiteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
+                const destroyedDustCoords = this.map.worldToTileXY(dust.x, dust.y);
+                const destroyedDustIndex = savedSiteData?.dust?.findIndex(d => d.id == dust.id) ?? -1;
+                if (destroyedDustIndex > -1 && this.dustGroup.getChildren().length > 0) {
+                    savedSiteData.dust.splice(destroyedDustIndex, 1);
+                    this.registry.set(SITE_DATA_REGISTRY_KEY, {...savedSiteData, heroSpawnCoords: destroyedDustCoords});
+                }
+                
+                if (this.dustGroup.getChildren().length == 0) {
+                    this.performSiteCompleteEmitterBurst(dust.x, dust.y);
+                    this.sound.play('dust', {rate: .4});
+                    this.sound.play('dust', {delay: .5, rate: .5});
+                    this.completeSite();
+                } else {
+                    this.burstEmitter.explode(28, dust.x, dust.y);
+                    this.sound.play('dust');
+                    const stuffType = weightedRandomizeAnything(this.mapConfig.stuffTypeWeights);
+                    
+                    if (STUFF_CONFIGS.find(s => s.stuffName == stuffType)) {
+                        const newStuff = new StuffModel(
+                            dust.x,
+                            dust.y,
+                            STATIC_TEXTURE_KEY,
+                            stuffType,  
+                        );
+                        this.createStuff(newStuff);
+                    }
+                }
+            });
         }
     }
 

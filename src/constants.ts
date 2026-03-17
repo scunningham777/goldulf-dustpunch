@@ -29,6 +29,7 @@ export const INVENTORY_TOKENS_REGISTRY_KEY = 'inventory_tokens';
 export const INVENTORY_RELICS_REGISTRY_KEY = 'inventory_relics';
 export const SITE_DATA_REGISTRY_KEY = 'site_data';
 export const DUST_PUNCH_EVENT_KEY = 'dustpunch';
+export const SPIN_DUST_BREAK_EVENT_KEY = 'spin_dust_break';
 export const STATIC_TEXTURE_KEY = 'static_images';
 export const TERRAIN_TEXTURE_KEY = 'terrain';
 export const UI_TEXTURE_KEY = 'ui_texture';

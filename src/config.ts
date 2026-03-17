@@ -838,25 +838,25 @@ export const ANCESTOR_CONFIGS: AncestorConfig[] = [
     {
         key: 'supreme_temple_ancestor',
         tokenKey: '',
-        relicKey: 'sandal',
+        relicKey: 'dagger',
         frameIndex: 1
     },
     {
         key: 'supreme_cave_ancestor',
         tokenKey: '',
-        relicKey: 'dagger',
+        relicKey: 'crown',
         frameIndex: 1
     },
     {
         key: 'supreme_settlement_ancestor',
         tokenKey: '',
-        relicKey: 'crown',
+        relicKey: 'sandal',
         frameIndex: 1
     },
     {
         key: 'supreme_bog_ancestor',
         tokenKey: '',
-        relicKey: 'pearl',
+        relicKey: 'orb',
         frameIndex: 1
     },
 ]
@@ -893,25 +893,25 @@ export const RELIC_CONFIGS: RelicConfig[] = [
         key: 'sandal',
         frameIndex: 28,
         points: 100,
-        tint: TEMPLE_TINT,
+        tint: SETTLEMENT_TINT,
         description: 'A winged sandal. Activate it to dash!'
     },
     {
         key: 'dagger',
         frameIndex: 29,
         points: 100,
-        tint: CAVE_TINT,
+        tint: TEMPLE_TINT,
         description: 'A winged sandal. Activate it to dash!'
     },
     {
         key: 'crown',
         frameIndex: 30,
         points: 100,
-        tint: SETTLEMENT_TINT,
+        tint: CAVE_TINT,
         description: 'A winged sandal. Activate it to dash!'
     },
     {
-        key: 'pearl',
+        key: 'orb',
         frameIndex: 31,
         points: 100,
         tint: BOG_TINT,

@@ -1,6 +1,6 @@
 import { CARDINAL_DIRECTION } from '../utils';
 import { GAME_SCALE, HERO_ANIM_FRAME_RATES, HERO_FRAMES, HERO_TINT, HERO_OFFSETS, HERO_TEXTURE_KEY,
-         DOUBLE_TAP_THRESHOLD, DASH_SPEED_MULT, SWIPE_MAX_TIME, SWIPE_MIN_DISTANCE, INVENTORY_RELICS_REGISTRY_KEY, SHOW_MENU_REGISTRY_KEY, UI_BAR_HEIGHT } from '../constants';
+         DOUBLE_TAP_THRESHOLD, DASH_SPEED_MULT, SWIPE_MAX_TIME, SWIPE_MIN_DISTANCE, INVENTORY_RELICS_REGISTRY_KEY, SHOW_MENU_REGISTRY_KEY, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY } from '../constants';
 import { HERO_MOVEMENT_CONTROLLER_MAP, HERO_MOVEMENT_CONTROLLERS, HeroMovementController } from '../interfaces/heroMovementController';
 import { FOLLOW_HERO_MOVEMENT_CONTROLLER } from './followHeroMovmentController';
 
@@ -18,14 +18,27 @@ export class Hero {
     private lastTapDir: CARDINAL_DIRECTION = null;
     private lastTapTime = 0;                       // timestamp of last directional tap
     private prevGamepadDirections = {up:false,down:false,left:false,right:false};
+    private prevGamepadButtons: boolean[] = [];
 
     private isDashing = false;
     private dashDir: CARDINAL_DIRECTION = null;
     private dashCooldownEndsAt = 0;  // timestamp when cooldown expires (0 = no cooldown)
     private dashPhaseEndTime = 0;    // when current dash phase ends
     private isBoosting = false;
+    private boostDuration = 5000; // total ms of boost
     private blinkTimer: Phaser.Time.TimerEvent;
     private blinkState = false;  // false = HERO_TINT, true = white
+    private blinkDelay = 250; // ms between blink state changes during boost
+
+    // spin move state
+    private spinCooldownEndsAt = 0;
+    private isSpinning = false;
+    private spinStep = 0;
+    private originalDirection: CARDINAL_DIRECTION = null;
+    private spinTimer: Phaser.Time.TimerEvent;
+    private spinDustRadius = 2.5 * GAME_SCALE * 16; // pixels, roughly 2 tiles    private spinCooldownEndsAt = 0;  // timestamp when cooldown expires (0 = no cooldown)
+    // mobile double tap for spin
+    private lastPointerUpTime = 0;
 
     private pointerDownX: number = null;
     private pointerDownY: number = null;
@@ -83,7 +96,7 @@ export class Hero {
             if (hitWall || now >= this.dashPhaseEndTime) {
                 this.isDashing = false;
                 this.isBoosting = true;
-                this.dashPhaseEndTime = now + 4000;  // 4 seconds boost
+                this.dashPhaseEndTime = now + this.boostDuration;
                 this.heroSprite.setVelocity(0);  // stop momentum
                 this.startBoostBlinking();
             } else {
@@ -107,6 +120,13 @@ export class Hero {
 
             this.mvtCtrl.update(this);
             return; // skip normal input while dashing
+        }
+
+        // handle spinning state
+        if (this.isSpinning) {
+            // spinning blocks all other input and movement
+            this.mvtCtrl.update(this);
+            return;
         }
 
         // read input events so we can spot double-taps / just-pressed
@@ -138,7 +158,23 @@ export class Hero {
             (this.prevGamepadDirections as any)[dir] = active;
         });
 
-        if (!this.isDashing) {
+        // spin move detection
+        if (Phaser.Input.Keyboard.JustDown(this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE))) {
+            this.tryStartSpin();
+        }
+        if (gamepad && !this.isDashing && !this.isBoosting) {
+            // check any gamepad button except index 8 or 9
+            for (let i = 0; i < gamepad.buttons.length; i++) {
+                if (i !== 8 && i !== 9 && gamepad.buttons[i].value === 1 && !this.prevGamepadButtons[i]) {
+                    this.tryStartSpin();
+                    break;
+                }
+            }
+            // update previous button states
+            this.prevGamepadButtons = gamepad.buttons.map(b => b.value === 1);
+        }
+
+        if (!this.isDashing && !this.isSpinning) {
             this.heroSprite.setVelocity(0);
 
             let newDirection: CARDINAL_DIRECTION = null;
@@ -174,7 +210,7 @@ export class Hero {
                 }
             }
 
-            // fix #17 - cap lineara velocity at 1 x this.velocity
+            // fix #17 - cap linear velocity at 1 x this.velocity
             if (this.heroSprite.body.velocity.x != 0 && this.heroSprite.body.velocity.y != 0) {
                 this.heroSprite.body.velocity.x *= Math.SQRT2 / 2;
                 this.heroSprite.body.velocity.y *= Math.SQRT2 / 2;
@@ -256,6 +292,7 @@ export class Hero {
         (this.entity.body as Phaser.Physics.Arcade.Body).moves = false;
         this.heroSprite.anims.pause();
         this.stopBoostBlinking();
+        this.stopSpin();
         this.isFrozen = true;
     }
     unfreeze() {
@@ -312,6 +349,15 @@ export class Hero {
         return Math.max(1, cooldownSeconds) * 1000;  // minimum 1 second, convert to ms
     }
 
+    private calculateSpinCooldownMs(daggerQuantity: number): number {
+        let cooldownSeconds = 20;
+        // Half the cooldown for each dagger beyond the first, rounded up each time
+        for (let i = 1; i < daggerQuantity; i++) {
+            cooldownSeconds = Math.ceil(cooldownSeconds / 2);
+        }
+        return Math.max(1, cooldownSeconds) * 1000;  // minimum 1 second, convert to ms
+    }
+
     private onPointerDown(pointer: Phaser.Input.Pointer) {
         // ignore pointer events that start on the bottom UI bar so UI clicks
         // (like toggling the inventory) don't register as movement input
@@ -336,11 +382,20 @@ export class Hero {
         const dt = pointer.upTime - this.pointerDownTime;
         this.pointerDownX = null;
         this.pointerDownY = null;
+
         if (dt <= SWIPE_MAX_TIME && (Math.abs(dx) >= SWIPE_MIN_DISTANCE || Math.abs(dy) >= SWIPE_MIN_DISTANCE)) {
+            // it's a swipe - trigger dash
             const dir = Math.abs(dx) > Math.abs(dy)
                 ? (dx > 0 ? CARDINAL_DIRECTION.RIGHT : CARDINAL_DIRECTION.LEFT)
                 : (dy > 0 ? CARDINAL_DIRECTION.DOWN : CARDINAL_DIRECTION.UP);
             this.startDash(dir);
+        } else {
+            // check for double tap (no significant movement)
+            const now = pointer.upTime;
+            if (now - this.lastPointerUpTime <= DOUBLE_TAP_THRESHOLD) {
+                this.tryStartSpin();
+            }
+            this.lastPointerUpTime = now;
         }
     }
 
@@ -377,7 +432,7 @@ export class Hero {
     private startBoostBlinking() {
         this.blinkState = false;
         this.heroSprite.setTint(HERO_TINT);
-        this.blinkTimer = this.scene.time.delayedCall(250, this.boostBlink, [], this);
+        this.blinkTimer = this.scene.time.delayedCall(this.blinkDelay, this.boostBlink, [], this);
     }
 
     private stopBoostBlinking() {
@@ -391,6 +446,72 @@ export class Hero {
     private boostBlink() {
         this.blinkState = !this.blinkState;
         this.heroSprite.setTint(this.blinkState ? 0xffffff : HERO_TINT);
-        this.blinkTimer = this.scene.time.delayedCall(250, this.boostBlink, [], this);
+        this.blinkTimer = this.scene.time.delayedCall(this.blinkDelay, this.boostBlink, [], this);
     }
-}
+    // ---------- spin move methods ----------
+    private tryStartSpin() {
+        if (this.getDaggerQuantity() > 0 && !this.isDashing && !this.isBoosting && !this.isSpinning && this.scene.time.now >= this.spinCooldownEndsAt) {
+            this.startSpin();
+        }
+    }
+
+    private startSpin() {
+        this.isSpinning = true;
+        this.spinStep = 0;
+        this.originalDirection = this.currentDirection;
+        this.heroSprite.setVelocity(0);
+        this.heroSprite.anims.stop();
+        this.doSpinStep();
+    }
+
+    private stopSpin() {
+        if (this.spinTimer) {
+            this.scene.time.removeEvent(this.spinTimer);
+            this.spinTimer = null;
+        }
+        if (this.isSpinning) {
+            this.isSpinning = false;
+            this.currentDirection = this.originalDirection;
+            this.heroSprite.flipX = this.originalDirection === CARDINAL_DIRECTION.LEFT ? true : false;
+        }
+    }
+
+    private doSpinStep() {
+        const spinDirections = [CARDINAL_DIRECTION.DOWN, CARDINAL_DIRECTION.LEFT, CARDINAL_DIRECTION.UP, CARDINAL_DIRECTION.RIGHT];
+
+        if (this.spinStep < spinDirections.length) {
+            // set direction for current spin step
+            const dir = spinDirections[this.spinStep];
+            this.currentDirection = dir;
+            this.heroSprite.flipX = dir === CARDINAL_DIRECTION.LEFT ? true : false;
+            this.heroSprite.setFrame(HERO_FRAMES.punchAnimStart[dir]);
+
+            this.spinStep++;
+            
+            // break dust halfway through spin (after 2 steps)
+            if (this.spinStep === 2) {
+                this.scene.registry.events.emit(SPIN_DUST_BREAK_EVENT_KEY, this.heroSprite.x, this.heroSprite.y, this.spinDustRadius);
+            }
+            
+            this.spinTimer = this.scene.time.delayedCall(200, this.doSpinStep, [], this);
+        } else {
+            // spin complete, return to original direction and resume
+            this.currentDirection = this.originalDirection;
+            this.heroSprite.flipX = this.originalDirection === CARDINAL_DIRECTION.LEFT ? true : false;
+            this.heroSprite.setFrame(HERO_FRAMES.standing[this.originalDirection]);
+            this.isSpinning = false;
+            const animDirection = this.originalDirection === CARDINAL_DIRECTION.LEFT ? CARDINAL_DIRECTION.RIGHT : this.originalDirection;
+            this.heroSprite.anims.play((this.isPunching ? 'punch' : 'walk') + animDirection, true);
+            
+            // set cooldown after spin completes
+            const daggerQuantity = this.getDaggerQuantity();
+            const cooldownMs = this.calculateSpinCooldownMs(daggerQuantity);
+            this.spinCooldownEndsAt = this.scene.time.now + cooldownMs;
+        }
+    }
+
+    private getDaggerQuantity(): number {
+        const relics = this.scene.registry.get(INVENTORY_RELICS_REGISTRY_KEY) || [];
+        const dagger = relics.find((item: any) => item.inventoryItemKey === 'dagger');
+        return dagger ? dagger.quantity : 0;
+    }}
