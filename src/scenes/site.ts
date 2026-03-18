@@ -1,5 +1,5 @@
 import { Hero } from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY, INVENTORY_RELICS_REGISTRY_KEY } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
@@ -426,6 +426,96 @@ export class SiteScene extends Phaser.Scene {
                         stuffType,  
                     );
                     this.createStuff(newStuff);
+                }
+
+                // Crown relic chain reaction: 50% chance per crown to blow up nearby dust
+                const relics = this.registry.get(INVENTORY_RELICS_REGISTRY_KEY) || [];
+                const crown = relics.find((item: any) => item.inventoryItemKey === 'crown');
+                const crownQuantity = crown ? crown.quantity : 0;
+                
+                for (let i = 0; i < crownQuantity; i++) {
+                    if (Math.random() < 0.5) { // 50% chance per crown
+                        this.triggerCrownChainReaction(dust.x, dust.y, 0, crownQuantity);
+                    }
+                }
+            }
+        }
+    }
+
+    triggerCrownChainReaction = (x: number, y: number, depth: number = 0, maxDepth: number = 0) => {
+        // Don't allow chaining beyond the maximum depth
+        if (depth >= maxDepth) {
+            return;
+        }
+
+        if (this.dustGroup != null) {
+            // Find all dust within 2.5 squares (2.5 * 16 pixels * GAME_SCALE)
+            const chainRadius = 2.5 * 16 * GAME_SCALE;
+            const nearbyDust: Dust[] = [];
+            
+            this.dustGroup.getChildren().forEach((dustObj) => {
+                const dust = dustObj as Dust;
+                const distance = Phaser.Math.Distance.Between(x, y, dust.x, dust.y);
+                if (distance <= chainRadius && distance > 0) { // distance > 0 to exclude the original dust
+                    nearbyDust.push(dust);
+                }
+            });
+            
+            // If there are nearby dust particles, pick one randomly and destroy it after 200ms delay
+            if (nearbyDust.length > 0) {
+                const randomDust = Phaser.Utils.Array.GetRandom(nearbyDust);
+                this.time.delayedCall(200, () => {
+                    this.destroyDustForCrownChain(randomDust, depth + 1, maxDepth);
+                }, [], this);
+            }
+        }
+    }
+
+    destroyDustForCrownChain = (dust: Dust, depth: number = 0, maxDepth: number = 0) => {
+        // Safety check: ensure dust still exists and is active
+        if (!dust || !dust.active) {
+            return;
+        }
+
+        dust.clearDust();
+
+        // update saved Dust list and Hero respawn point
+        const savedSiteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
+        const destroyedDustCoords = this.map.worldToTileXY(dust.x, dust.y);
+        const destroyedDustIndex = savedSiteData?.dust?.findIndex(d => d.id == dust.id) ?? -1;
+        if (destroyedDustIndex > -1 && this.dustGroup.getChildren().length > 0) {
+            savedSiteData.dust.splice(destroyedDustIndex, 1);
+            this.registry.set(SITE_DATA_REGISTRY_KEY, {...savedSiteData, heroSpawnCoords: destroyedDustCoords});
+        }
+        
+        if (this.dustGroup.getChildren().length == 0) {
+            this.performSiteCompleteEmitterBurst(dust.x, dust.y);
+            this.sound.play('dust', {rate: .4});
+            this.sound.play('dust', {delay: .5, rate: .5});
+            this.completeSite();
+        } else {
+            this.burstEmitter.explode(28, dust.x, dust.y);
+            this.sound.play('dust');
+            const stuffType = weightedRandomizeAnything(this.mapConfig.stuffTypeWeights);
+            
+            if (STUFF_CONFIGS.find(s => s.stuffName == stuffType)) {
+                const newStuff = new StuffModel(
+                    dust.x,
+                    dust.y,
+                    STATIC_TEXTURE_KEY,
+                    stuffType,  
+                );
+                this.createStuff(newStuff);
+            }
+
+            // Crown relic chain reaction: 50% chance per crown to blow up nearby dust
+            const relics = this.registry.get(INVENTORY_RELICS_REGISTRY_KEY) || [];
+            const crown = relics.find((item: any) => item.inventoryItemKey === 'crown');
+            const crownQuantity = crown ? crown.quantity : 0;
+            
+            for (let i = 0; i < crownQuantity; i++) {
+                if (Math.random() < 0.5) { // 50% chance per crown
+                    this.triggerCrownChainReaction(dust.x, dust.y, depth, maxDepth);
                 }
             }
         }

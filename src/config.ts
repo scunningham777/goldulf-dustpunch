@@ -44,7 +44,28 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     minSize: 5,
                     maxSize: 10,
                     linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: ['temple', 'cave', 'settlement', 'bog']
+                    availableLinkedMapConfigName: ['temple']
+                },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.site,
+                    availableLinkedMapConfigName: ['cave']
+                },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.site,
+                    availableLinkedMapConfigName: ['settlement']
+                },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.site,
+                    availableLinkedMapConfigName: ['bog']
                 },
                 {
                     placement: 'floor',
@@ -68,7 +89,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     maxSize: 10,
                     linkedMapConfigType: SITE_TYPES.gatedSite,
                     availableLinkedMapConfigName: ['supreme_settlement'],
-                    requiredTokens: { crown: 4 }
+                    requiredTokens: { scales: 4 }
                 },
                 {
                     placement: 'floor',
@@ -76,7 +97,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     maxSize: 10,
                     linkedMapConfigType: SITE_TYPES.gatedSite,
                     availableLinkedMapConfigName: ['supreme_bog'],
-                    requiredTokens: { pearl: 4 }
+                    requiredTokens: { fasces: 4 }
                 },
             ],
             maxExitAreaCount: 3,
@@ -156,7 +177,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     maxSize: 10,
                     linkedMapConfigType: SITE_TYPES.gatedSite,
                     availableLinkedMapConfigName: ['supreme_settlement'],
-                    requiredTokens: { crown: 4 }
+                    requiredTokens: { scales: 4 }
                 },
                 {
                     placement: 'floor',
@@ -164,7 +185,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     maxSize: 10,
                     linkedMapConfigType: SITE_TYPES.gatedSite,
                     availableLinkedMapConfigName: ['supreme_bog'],
-                    requiredTokens: { pearl: 4 }
+                    requiredTokens: { fasces: 4 }
                 },
             ],
             maxExitAreaCount: 4,
@@ -259,7 +280,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ancestorTypeWeights: [
                 {
                     key: 'basic_ancestor',
-                    weight: 3,
+                    weight: 0,
                 },
                 {
                     key: 'cave_ancestor',
@@ -553,11 +574,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
         {
             ancestorTypeWeights: [
                 {
-                    key: 'basic_ancestor',
-                    weight: 3,
-                },
-                {
-                    key: 'cave_ancestor',
+                    key: 'supreme_cave_ancestor',
                     weight: 1,
                 }
             ],
@@ -624,11 +641,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
         {
             ancestorTypeWeights: [
                 {
-                    key: 'basic_ancestor',
-                    weight: 3,
-                },
-                {
-                    key: 'settlement_ancestor',
+                    key: 'supreme_settlement_ancestor',
                     weight: 1,
                 }
             ],
@@ -702,11 +715,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
         {
             ancestorTypeWeights: [
                 {
-                    key: 'basic_ancestor',
-                    weight: 3,
-                },
-                {
-                    key: 'bog_ancestor',
+                    key: 'supreme_bog_ancestor',
                     weight: 1,
                 }
             ],
