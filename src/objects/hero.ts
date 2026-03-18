@@ -102,19 +102,31 @@ export class Hero {
             } else {
                 // maintain straight line velocity during dash
                 const speed = this.velocity * 4;
-                switch (this.dashDir) {
-                    case CARDINAL_DIRECTION.LEFT:
-                        this.heroSprite.setVelocityX(-speed);
-                        break;
-                    case CARDINAL_DIRECTION.RIGHT:
-                        this.heroSprite.setVelocityX(speed);
-                        break;
-                    case CARDINAL_DIRECTION.UP:
-                        this.heroSprite.setVelocityY(-speed);
-                        break;
-                    case CARDINAL_DIRECTION.DOWN:
-                        this.heroSprite.setVelocityY(speed);
-                        break;
+                
+                // Check for upcoming wall collisions to prevent tunneling at high speeds
+                if (this.willCollideWithWall(this.dashDir, speed)) {
+                    // Stop the dash immediately if we're about to hit a wall
+                    this.isDashing = false;
+                    this.isBoosting = true;
+                    this.dashPhaseEndTime = now + this.boostDuration;
+                    this.heroSprite.setVelocity(0);
+                    this.startBoostBlinking();
+                } else {
+                    // maintain straight line velocity during dash
+                    switch (this.dashDir) {
+                        case CARDINAL_DIRECTION.LEFT:
+                            this.heroSprite.setVelocityX(-speed);
+                            break;
+                        case CARDINAL_DIRECTION.RIGHT:
+                            this.heroSprite.setVelocityX(speed);
+                            break;
+                        case CARDINAL_DIRECTION.UP:
+                            this.heroSprite.setVelocityY(-speed);
+                            break;
+                        case CARDINAL_DIRECTION.DOWN:
+                            this.heroSprite.setVelocityY(speed);
+                            break;
+                    }
                 }
             }
 
@@ -510,8 +522,48 @@ export class Hero {
         }
     }
 
+    private willCollideWithWall(direction: CARDINAL_DIRECTION, speed: number): boolean {
+        // Check ahead in the dash direction for wall tiles to prevent tunneling
+        const checkDistance = speed * 0.016; // Check about 1 frame ahead (assuming 60fps)
+        let checkX = this.heroSprite.x;
+        let checkY = this.heroSprite.y;
+
+        switch (direction) {
+            case CARDINAL_DIRECTION.LEFT:
+                checkX -= checkDistance;
+                break;
+            case CARDINAL_DIRECTION.RIGHT:
+                checkX += checkDistance;
+                break;
+            case CARDINAL_DIRECTION.UP:
+                checkY -= checkDistance;
+                break;
+            case CARDINAL_DIRECTION.DOWN:
+                checkY += checkDistance;
+                break;
+        }
+
+        // Find tilemap layers in the scene and check for collisions
+        const tilemapLayers = this.scene.children.list.filter(child => 
+            child instanceof Phaser.Tilemaps.TilemapLayer
+        ) as Phaser.Tilemaps.TilemapLayer[];
+
+        for (const layer of tilemapLayers) {
+            // Use hasTileAtWorldXY to check for wall collision
+            if (layer.hasTileAtWorldXY(checkX, checkY)) {
+                const tile = layer.getTileAtWorldXY(checkX, checkY);
+                if (tile && tile.collides) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     private getDaggerQuantity(): number {
         const relics = this.scene.registry.get(INVENTORY_RELICS_REGISTRY_KEY) || [];
         const dagger = relics.find((item: any) => item.inventoryItemKey === 'dagger');
         return dagger ? dagger.quantity : 0;
-    }}
+    }
+}
