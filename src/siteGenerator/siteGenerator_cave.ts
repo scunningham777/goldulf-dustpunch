@@ -88,7 +88,14 @@ export const caveGenerator: SiteGenerator =
             areas.unshift(entranceArea);
 
             if (siteConfig.maxExitAreaCount > 0) {
-                const countExits = Phaser.Math.RND.integerInRange(1, siteConfig.maxExitAreaCount);
+                let countExits = Phaser.Math.RND.integerInRange(1, siteConfig.maxExitAreaCount);
+                // Add extra exits for Orbs if allowed and overworld
+                if (siteConfig.allowExtraExitAreas && inventoryTokens) {
+                    const orb = inventoryTokens.find(i => i.inventoryItemKey === 'orb');
+                    if (orb && orb.quantity > 0) {
+                        countExits += orb.quantity;
+                    }
+                }
                 for (let i = 0; i < countExits; i++) {
                     let exitArea: MapArea;
                     do {

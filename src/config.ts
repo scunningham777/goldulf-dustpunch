@@ -115,6 +115,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             dustWeight: 0,
             availableDustFrames: [],
             stuffTypeWeights: [],
+            allowExtraExitAreas: true,
         },
         {
             ancestorTypeWeights: [],
@@ -189,6 +190,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                 },
             ],
             maxExitAreaCount: 4,
+            allowExtraExitAreas: true,
             otherAreaConfigs: [
                 {
                     placement: 'floor',
@@ -903,34 +905,34 @@ export const RELIC_CONFIGS: RelicConfig[] = [
         frameIndex: 28,
         points: 100,
         tint: SETTLEMENT_TINT,
-        description: 'A winged sandal. Activate it to dash!'
+        description: 'A winged sandal. Double-tap any direction to dash!'
     },
     {
         key: 'dagger',
         frameIndex: 29,
         points: 100,
         tint: TEMPLE_TINT,
-        description: 'A winged sandal. Activate it to dash!'
+        description: 'A ceremonial dagger. Space to sacrifice all the dust around you!'
     },
     {
         key: 'crown',
         frameIndex: 30,
         points: 100,
         tint: CAVE_TINT,
-        description: 'A winged sandal. Activate it to dash!'
+        description: 'The Diadem of Detritus. Bestows the authority to use dust against dust!'
     },
     {
         key: 'orb',
         frameIndex: 31,
         points: 100,
         tint: BOG_TINT,
-        description: 'A winged sandal. Activate it to dash!'
+        description: 'Ponder the Orb of Deobfuscation! Helps you track down more of the places your ancestors died in.'
     },
     {
         key: 'cestus',
         frameIndex: 32,
         points: 100,
         tint: HERO_TINT,
-        description: 'A winged sandal. Activate it to dash!'
+        description: 'Cestus of the Yesterpunch. Now you can punch something other than dust: walls!'
     },
 ];

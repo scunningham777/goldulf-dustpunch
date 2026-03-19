@@ -32,4 +32,5 @@ export interface SiteConfig {
     maxCountAreas: number;
     defaultTileTint: number;
     tileTintOverrides?: {index: number, tintValue: number}[];
+    allowExtraExitAreas?: boolean;
 }
