@@ -3,19 +3,19 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
+  mode: 'development',
   entry: './src/game.ts',
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'www/build'),
-    clean: true
+    clean: true,
+    publicPath: '/build/'
   },
   devServer: {
     static: {
       directory: path.resolve(__dirname, './www'),
     },
-    devMiddleware: {
-      publicPath: '/build/',
-    },
+    // hot: true,
     host: '0.0.0.0',
     port: 8080,
     open: true

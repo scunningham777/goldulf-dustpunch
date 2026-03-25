@@ -301,10 +301,16 @@ export class SiteScene extends Phaser.Scene {
                 });
                 this.time.delayedCall(1000, () => {
                     this.hero.unfreeze();
+                    if (!this.sound.isPlaying('duty')) {
+                        this.sound.play('duty', {loop: true, volume: .7 });
+                    }
                 });
             } else {
                 this.time.delayedCall(200, () => {
                     this.hero.unfreeze();
+                    if (!this.sound.isPlaying('duty')) {
+                        this.sound.play('duty', {loop: true, volume: .7 });
+                    }
                 });
             }
         });
@@ -408,7 +414,6 @@ export class SiteScene extends Phaser.Scene {
             }
             
             if (this.dustGroup.getChildren().length == 0) {
-            // if (this.dustGroup.getChildren().length >= 0) {
                 this.performSiteCompleteEmitterBurst(dust.x, dust.y);
                 this.sound.play('dust', {rate: .4});
                 this.sound.play('dust', {delay: .5, rate: .5});
@@ -614,6 +619,9 @@ export class SiteScene extends Phaser.Scene {
 
     completeSite() {
         this.hasHeroReachedExit = true;
+        this.sound.getAll('duty').forEach(s => {
+            s.stop();
+        });
         this.hero.freeze();
         this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection]);
         this.time.delayedCall(2000, () => {

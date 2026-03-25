@@ -27,6 +27,7 @@ export class PreloadScene extends Phaser.Scene {
         this.load.audio('type', 'assets/sounds/type.wav');
         this.load.audio('glory', 'assets/sounds/deep_glory.wav');
         this.load.audio('spirit', 'assets/sounds/spirited_away.wav');
+        this.load.audio('duty', 'assets/music/duty.mp3');
 
         this.load.script('webfont', 'https://cdnjs.cloudflare.com/ajax/libs/webfont/1.6.28/webfontloader.js');
     }

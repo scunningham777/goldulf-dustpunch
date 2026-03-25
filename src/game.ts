@@ -142,4 +142,24 @@ export class Game extends Phaser.Game {
     }
 }
 
+// (async () => {
+//     const existingGame = (window as any).__phaserGame;
+//     if (existingGame) {
+//         try {
+//             await new Promise<void>(resolve => {
+//                 existingGame.events.once('destroy', () => resolve());
+//                 existingGame.sound?.unlockAudioContext?.();
+//                 existingGame.destroy(true, true);
+//             });
+
+//         } catch (e) {}
+//     }
+
+//     const game = new Game(config);
+//     (window as any).__phaserGame = game;
+// })();
 new Game(config);
+
+// if ((module as any).hot) {
+//     (module as any).hot.accept();
+// }

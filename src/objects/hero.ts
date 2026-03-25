@@ -36,7 +36,7 @@ export class Hero {
     private spinStep = 0;
     private originalDirection: CARDINAL_DIRECTION = null;
     private spinTimer: Phaser.Time.TimerEvent;
-    private spinDustRadius = 96; // pixels, roughly 2 tiles
+    private spinDustRadius = 4 * 16 * GAME_SCALE; // pixels
     // mobile double tap for spin
     private lastPointerUpTime = 0;
 

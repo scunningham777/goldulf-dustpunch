@@ -1,12 +1,11 @@
-import * as LocalForage from 'localforage';
-import * as CordovaSQLiteDriver from 'localforage-cordovasqlitedriver';
+import LocalForage from 'localforage';
+import CordovaSQLiteDriver from 'localforage-cordovasqlitedriver';
  
 export class Storage {
  
     dbPromise: Promise<LocalForage>;
  
     constructor(){
- 
         this.dbPromise = new Promise((resolve, reject) => {
  
             let db: LocalForage;
