@@ -1,5 +1,5 @@
 import { SiteConfig } from "./interfaces/siteConfig";
-import { BOG_TINT, CAVE_TINT, HERO_TINT, OVERWORLD_TINT, SETTLEMENT_TINT, SITE_GENERATION_TYPES, SITE_TYPES, TEMPLE_TINT, TERRAIN_TEXTURE_KEY } from './constants';
+import { BOG_TINT, CAVE_TINT, HERO_TINT, OVERWORLD_TINT, SETTLEMENT_TINT, SITE_GENERATION_TYPES, SITE_TYPES, SUPREME_SITE_TINT, TEMPLE_TINT, TERRAIN_TEXTURE_KEY } from './constants';
 import { StuffConfig } from "./interfaces/stuffConfig";
 import { AncestorConfig } from "./interfaces/ancestorConfig";
 import { TokenConfig } from "./interfaces/tokenConfig";
@@ -72,7 +72,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     minSize: 5,
                     maxSize: 10,
                     linkedMapConfigType: SITE_TYPES.gatedSite,
-                    availableLinkedMapConfigName: ['temple_special'],
+                    availableLinkedMapConfigName: ['supreme_temple'],
                     requiredTokens: { ring: 3 }
                 },
                 {
@@ -99,8 +99,16 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     availableLinkedMapConfigName: ['supreme_bog'],
                     requiredTokens: { fasces: 3 }
                 },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.gatedSite,
+                    availableLinkedMapConfigName: ['ultimate'],
+                    requiredTokens: { ring: 1, diamond: 1, scales: 1, fasces: 1 }
+                },
             ],
-            maxExitAreaCount: 3,
+            maxExitAreaCount: 8,
             otherAreaConfigs: [
                 {
                     placement: 'floor',
@@ -111,7 +119,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ],
             minCountAreas: 2,
             maxCountAreas: 4,
-            defaultTileTint: OVERWORLD_TINT,
+            tileTints: [OVERWORLD_TINT],
             dustWeight: 0,
             availableDustFrames: [],
             stuffTypeWeights: [],
@@ -154,7 +162,28 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     minSize: 5,
                     maxSize: 10,
                     linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: ['temple', 'cave', 'settlement', 'bog']
+                    availableLinkedMapConfigName: ['temple']
+                },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.site,
+                    availableLinkedMapConfigName: ['cave']
+                },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.site,
+                    availableLinkedMapConfigName: ['settlement']
+                },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.site,
+                    availableLinkedMapConfigName: ['bog']
                 },
                 {
                     placement: 'floor',
@@ -188,6 +217,14 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     availableLinkedMapConfigName: ['supreme_bog'],
                     requiredTokens: { fasces: 3 }
                 },
+                {
+                    placement: 'floor',
+                    minSize: 5,
+                    maxSize: 10,
+                    linkedMapConfigType: SITE_TYPES.gatedSite,
+                    availableLinkedMapConfigName: ['ultimate'],
+                    requiredTokens: { ring: 1, diamond: 1, scales: 1, fasces: 1 }
+                },
             ],
             maxExitAreaCount: 4,
             allowExtraExitAreas: true,
@@ -201,7 +238,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ],
             minCountAreas: 2,
             maxCountAreas: 4,
-            defaultTileTint: OVERWORLD_TINT,
+            tileTints: [OVERWORLD_TINT],
             dustWeight: 0,
             availableDustFrames: [],
             stuffTypeWeights: [],
@@ -256,7 +293,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ],
             minCountAreas: 5,
             maxCountAreas: 8,
-            defaultTileTint: TEMPLE_TINT,
+            tileTints: [TEMPLE_TINT],
             dustWeight: 20,
             availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
@@ -327,7 +364,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ],
             minCountAreas: 2,
             maxCountAreas: 3,
-            defaultTileTint: CAVE_TINT,
+            tileTints: [CAVE_TINT],
             dustWeight: 15,
             availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
@@ -405,7 +442,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ],
             minCountAreas: 2,
             maxCountAreas: 4,
-            defaultTileTint: SETTLEMENT_TINT,
+            tileTints: [SETTLEMENT_TINT],
             dustWeight: 15,
             availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
@@ -483,7 +520,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ],
             minCountAreas: 2,
             maxCountAreas: 4,
-            defaultTileTint: BOG_TINT,
+            tileTints: [BOG_TINT],
             dustWeight: 15,
             availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
@@ -551,7 +588,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ],
             minCountAreas: 6,
             maxCountAreas: 9,
-            defaultTileTint: TEMPLE_TINT,
+            tileTints: [TEMPLE_TINT, TEMPLE_TINT, SUPREME_SITE_TINT],
             dustWeight: 20,
             availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
@@ -618,7 +655,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ],
             minCountAreas: 3,
             maxCountAreas: 5,
-            defaultTileTint: CAVE_TINT,
+            tileTints: [CAVE_TINT, CAVE_TINT, SUPREME_SITE_TINT],
             dustWeight: 15,
             availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
@@ -692,7 +729,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ],
             minCountAreas: 4,
             maxCountAreas: 7,
-            defaultTileTint: SETTLEMENT_TINT,
+            tileTints: [SETTLEMENT_TINT, SETTLEMENT_TINT, SUPREME_SITE_TINT],
             dustWeight: 15,
             availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
@@ -766,7 +803,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ],
             minCountAreas: 6,
             maxCountAreas: 9,
-            defaultTileTint: BOG_TINT,
+            tileTints: [BOG_TINT, BOG_TINT, SUPREME_SITE_TINT],
             dustWeight: 15,
             availableDustFrames: [0, 1, 2, 3],
             stuffTypeWeights: [
@@ -785,6 +822,89 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                 {
                     key: '',
                     weight: 63
+                }
+            ],
+        },
+        {
+            ancestorTypeWeights: [
+                {
+                    key: 'ultimate_ancestor',
+                    weight: 1,
+                }
+            ],
+            siteType: SITE_TYPES.gatedSite,
+            mapConfigName: 'ultimate',
+            siteGenerationType: SITE_GENERATION_TYPES.settlement,
+            tileWidth: 16,
+            tileHeight: 16,
+            tilesetKey: TERRAIN_TEXTURE_KEY,
+            tilesetMargin: 1,
+            tileSpacing: 2,
+            minMapWidth: 80,
+            minMapHeight: 60,
+            maxMapWidth: 120,
+            maxMapHeight: 90,
+            externalIconTileIndex: 25,
+            wallTileWeights: [
+                { index: 7, weight: 10 },
+                { index: 8, weight: 1 },
+                { index: 9, weight: 4 },
+            ],
+            floorTileWeights: [
+                { index: 59, weight: 20 },
+                { index: 11, weight: 4 },
+                { index: 12, weight: 1 },
+            ],
+            pathObstructionTileWeights: [
+                { index: 10, weight: 1 },
+            ],
+            entranceAreaConfig: {
+                placement: 'wall',
+                minSize: 8,
+                maxSize: 8,
+                focusTileIndex: 4,
+            },
+            exitAreaConfigs: [],
+            maxExitAreaCount: 0,
+            otherAreaConfigs: [
+                {
+                    placement: 'floor',
+                    minSize: 6,
+                    maxSize: 12,
+                    focusTileIndex: null,
+                    obstructionTileWeights: [{ index: 10, weight: 1 }],
+                }
+            ],
+            minCountAreas: 7,
+            maxCountAreas: 10,
+            tileTints: [
+                TEMPLE_TINT, 
+                TEMPLE_TINT,
+                CAVE_TINT, 
+                CAVE_TINT,
+                BOG_TINT,
+                BOG_TINT,
+                SETTLEMENT_TINT, 
+                SETTLEMENT_TINT,
+            ],
+            dustWeight: 60,
+            availableDustFrames: [0, 1, 2, 3],
+            stuffTypeWeights: [
+                {
+                    key: 'chest',
+                    weight: 4
+                },
+                {
+                    key: 'urn',
+                    weight: 2
+                },
+                {
+                    key: 'trophy',
+                    weight: 1
+                },
+                {
+                    key: '',
+                    weight: 40
                 }
             ],
         },
@@ -850,26 +970,36 @@ export const ANCESTOR_CONFIGS: AncestorConfig[] = [
         key: 'supreme_temple_ancestor',
         tokenKey: '',
         relicKey: 'dagger',
-        frameIndex: 1
+        frameIndex: 1,
+        overrideTint: TEMPLE_TINT
     },
     {
         key: 'supreme_cave_ancestor',
         tokenKey: '',
         relicKey: 'crown',
-        frameIndex: 1
+        frameIndex: 1,
+        overrideTint: CAVE_TINT
     },
     {
         key: 'supreme_settlement_ancestor',
         tokenKey: '',
         relicKey: 'sandal',
-        frameIndex: 1
+        frameIndex: 1,
+        overrideTint: SETTLEMENT_TINT
     },
     {
         key: 'supreme_bog_ancestor',
         tokenKey: '',
         relicKey: 'orb',
-        frameIndex: 1
+        frameIndex: 1,
+        overrideTint: BOG_TINT
     },
+    {
+        key: 'ultimate_ancestor',
+        tokenKey: '',
+        relicKey: 'cestus',
+        frameIndex: 1
+    }
 ]
 
 export const TOKEN_CONFIGS: TokenConfig[] = [

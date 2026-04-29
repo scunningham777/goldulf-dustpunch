@@ -30,7 +30,7 @@ export class Exit extends Phaser.Physics.Arcade.Image {
         if (this.linkedMapSceneType === SITE_TYPES.gatedSite) {
             // derive tint from target config if available
             const cfg = MAP_CONFIGS[this.linkedMapSceneType].find(mc => mc.mapConfigName == this.linkedMapConfigName);
-            this.blinkTint = cfg?.defaultTileTint ?? 0xffffff;
+            this.blinkTint = cfg?.tileTints?.[0] ?? 0xffffff;
             this.blink();
         }
     }

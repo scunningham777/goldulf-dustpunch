@@ -11,8 +11,19 @@
     ],
     "rewrites": [
       {
-        "source": "**",
+        "source": "!/assets/**",
         "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.mp3",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "audio/mpeg"
+          }
+        ]
       }
     ]
   }

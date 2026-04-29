@@ -91,8 +91,6 @@ export class SiteScene extends Phaser.Scene {
             inventoryTokens
         );
 
-        // console.log(siteData.tileIndexData);
-
         if (!useSavedSite) {
             // persist mapData
             this.registry.set(SITE_DATA_REGISTRY_KEY, siteData);
@@ -163,7 +161,8 @@ export class SiteScene extends Phaser.Scene {
             emitting: false,
             emitZone: {
                 type: 'random',
-                source: new Phaser.Geom.Rectangle(-8 * GAME_SCALE, -8 * GAME_SCALE, 16 * GAME_SCALE, 16 * GAME_SCALE)
+                source: new Phaser.Geom.Rectangle(-8 * GAME_SCALE, -8 * GAME_SCALE, 16 * GAME_SCALE, 16 * GAME_SCALE),
+                quantity: 1
             }
         });
     }
@@ -242,55 +241,6 @@ export class SiteScene extends Phaser.Scene {
         const cam = this.cameras.main;
         cam.fadeIn(500)
         cam.once('camerafadeincomplete', () => {
-            // special tint flash for gated entrances to reinforce the colour change
-            if (this.mapConfig.siteType === SITE_TYPES.gatedSite) {
-                // tween the mapLayer tint between the default tile tint and hero tint
-                const dest = Phaser.Display.Color.ValueToColor(HERO_TINT);
-                const source = Phaser.Display.Color.ValueToColor(this.mapConfig.defaultTileTint);
-                let lastUpdateTime = 0;
-
-            //     // fade the camera background toward a color partway between the
-            //     // default bg color and the hero tint.  the tween updates the
-            //     // camera's backgroundColor object directly.
-            //     const midRed = Math.floor((source.red + dest.red) * .7);
-            //     const midGreen = Math.floor((source.green + dest.green) * .7);
-            //     const midBlue = Math.floor((source.blue + dest.blue) * .7);
-
-            //     this.tweens.add({
-            //         targets: cam.backgroundColor,
-            //         red: midRed,
-            //         green: midGreen,
-            //         blue: midBlue,
-            //         duration: 1600,
-            //         ease: 'Linear',
-            //         yoyo: true,
-            //         repeat: -1,
-            //     });
-                
-                this.tweens.add({
-                    targets: source,
-                    red: dest.red,
-                    green: dest.green,
-                    blue: dest.blue,
-                    duration: 1600,
-                    ease: 'Linear',
-                    yoyo: true,
-                    repeat: -1,
-                    onUpdate: () => {
-                        const currentTime = Date.now();
-                        if (currentTime - lastUpdateTime >= 400) {
-                            const tweenedTint = Phaser.Display.Color.GetColor(
-                                Math.floor(source.red),
-                                Math.floor(source.green),
-                                Math.floor(source.blue)
-                            );
-                            this.mapLayer.forEachTile(t => t.tint = tweenedTint);
-                            lastUpdateTime = currentTime;
-                        }
-                    }
-                });
-            }
-
             if (this.mapConfig.mapConfigName != 'new_game') {
                 this.sound.play('dust', {rate: .2});
                 this.sound.play('dust', {delay: .5, rate: .4});
@@ -357,13 +307,58 @@ export class SiteScene extends Phaser.Scene {
     }
 
     tintMap() {
-        this.mapLayer.forEachTile(t => t.tint = this.mapConfig.defaultTileTint);
+        // Initialize with first tint
+        this.mapLayer.forEachTile(t => t.tint = this.mapConfig.tileTints[0]);
         this.exitGroup.children.iterate((exit: Phaser.GameObjects.GameObject) => {
             const exitMapConfig: SiteConfig = MAP_CONFIGS.site.find(mc => mc.mapConfigName == (exit as Exit).linkedMapConfigName);
-            const exitTint = !!exitMapConfig ? exitMapConfig.defaultTileTint : this.mapConfig.defaultTileTint;
+            const exitTint = !!exitMapConfig ? exitMapConfig.tileTints[0] : this.mapConfig.tileTints[0];
             (exit as Exit).setTint(exitTint);
             return true;
         }, this);
+
+        // If multiple tints exist, set up cycling tween
+        if (this.mapConfig.tileTints.length > 1) {
+            let currentTintIndex = 0;
+            let lastUpdateTime = 0;
+
+            const tweenToNext = () => {
+                const source = Phaser.Display.Color.ValueToColor(this.mapConfig.tileTints[currentTintIndex]);
+                const nextIndex = (currentTintIndex + 1) % this.mapConfig.tileTints.length;
+                const dest = Phaser.Display.Color.ValueToColor(this.mapConfig.tileTints[nextIndex]);
+
+                this.tweens.add({
+                    targets: source,
+                    red: dest.red,
+                    green: dest.green,
+                    blue: dest.blue,
+                    duration: 1200,
+                    ease: 'Linear',
+                    onUpdate: () => {
+                        const currentTime = Date.now();
+                        if (currentTime - lastUpdateTime >= 300) {
+                            const tweenedTint = Phaser.Display.Color.GetColor(
+                                Math.floor(source.red),
+                                Math.floor(source.green),
+                                Math.floor(source.blue)
+                            );
+                            this.mapLayer.forEachTile(t => t.tint = tweenedTint);
+                            this.exitGroup.children.iterate((exit: Phaser.GameObjects.GameObject) => {
+                                (exit as Exit).setTint(tweenedTint);
+                                return true;
+                            }, this);
+                            lastUpdateTime = currentTime;
+                        }
+                    },
+                    onComplete: () => {
+                        currentTintIndex = nextIndex;
+                        lastUpdateTime = 0;
+                        tweenToNext();
+                    }
+                });
+            };
+
+            tweenToNext();
+        }
     }
 
     nextMap(exitConfig?: {linkedMapSceneType: SITE_TYPES, linkedMapConfigName: string, linkedMapConfigCategory: string, requiredTokens?: { [tokenKey: string]: number }}) {

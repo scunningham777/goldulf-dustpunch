@@ -1,6 +1,13 @@
 {
   "compilerOptions": {
     "target": "es2017",
-    "module": "nodenext"
+    "module": "nodenext",
+    "skipLibCheck": true,
+    "noEmit": true,
+    "noImplicitAny": false,
+    "strictPropertyInitialization": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "lib": ["es2017", "dom"]
   }
 }

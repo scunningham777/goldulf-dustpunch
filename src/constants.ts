@@ -22,6 +22,7 @@ export const CAVE_TINT = 0xa1102D;
 // export const CAVE_TINT = 0xb40421;
 export const SETTLEMENT_TINT = 0xffc44c;
 export const BOG_TINT = 0x68a12D;
+export const SUPREME_SITE_TINT = 0x49ddd3;
 // export const BOG_TINT = 0x10a12D;
 export const INVENTORY_STUFF_REGISTRY_KEY = 'inventory_stuff';
 export const INVENTORY_STUFF_REGISTRY_KEY__OLD = 'inventory';

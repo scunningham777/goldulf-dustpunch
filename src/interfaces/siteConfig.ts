@@ -30,7 +30,7 @@ export interface SiteConfig {
     otherAreaConfigs: AreaConfig[];
     minCountAreas: number;
     maxCountAreas: number;
-    defaultTileTint: number;
+    tileTints: number[];
     tileTintOverrides?: {index: number, tintValue: number}[];
     allowExtraExitAreas?: boolean;
 }

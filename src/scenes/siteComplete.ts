@@ -118,7 +118,7 @@ export class SiteCompleteScene extends Phaser.Scene {
         const ancestorConfig = ANCESTOR_CONFIGS.find(ac => ac.key == ancestorConfigTypeKey) ?? ANCESTOR_CONFIGS[0];
         const ancestorImage = this.add.image(ancestorPlacementX, ancestorPlacementY, ANCESTORS_TEXTURE_KEY, 0);
         ancestorImage.setScale(GAME_SCALE);
-        ancestorImage.setTint(ancestorConfig.overrideTint ?? siteConfig.defaultTileTint);
+        ancestorImage.setTint(ancestorConfig.overrideTint ?? siteConfig.tileTints[0]);
         const ancestorMaskShape = this.make.graphics({});
         ancestorMaskShape.fillStyle(0xffffff);
         ancestorMaskShape.fillRect(ancestorPlacementX - ancestorImage.displayWidth / 2, this.hero.entity.y - ancestorImage.displayHeight / 2, ancestorImage.displayWidth, ancestorImage.displayHeight);
