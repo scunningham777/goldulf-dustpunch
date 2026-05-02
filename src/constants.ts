@@ -31,6 +31,8 @@ export const INVENTORY_RELICS_REGISTRY_KEY = 'inventory_relics';
 export const SITE_DATA_REGISTRY_KEY = 'site_data';
 export const DUST_PUNCH_EVENT_KEY = 'dustpunch';
 export const SPIN_DUST_BREAK_EVENT_KEY = 'spin_dust_break';
+export const WALL_BREAK_EVENT_KEY = 'wall_break';
+export const WALL_BREAK_PUSH_THRESHOLD = 1000; // ms before wall breaks
 export const STATIC_TEXTURE_KEY = 'static_images';
 export const TERRAIN_TEXTURE_KEY = 'terrain';
 export const UI_TEXTURE_KEY = 'ui_texture';
@@ -117,6 +119,5 @@ export const HERO_MOVEMENT_CONTROLLER: 'follow' | 'joystick' = 'follow';
 
 // dash / double-tap settings
 export const DOUBLE_TAP_THRESHOLD = 250; // ms allowed between taps
-export const DASH_SPEED_MULT = 3;          // multiplier applied to base velocity
 export const SWIPE_MAX_TIME = 300;        // max duration for a swipe gesture
 export const SWIPE_MIN_DISTANCE = 40;     // min pixel distance for a swipe

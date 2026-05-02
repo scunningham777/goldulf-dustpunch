@@ -1,5 +1,5 @@
 import { Hero } from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY, INVENTORY_RELICS_REGISTRY_KEY } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY, INVENTORY_RELICS_REGISTRY_KEY, WALL_BREAK_EVENT_KEY } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
@@ -61,6 +61,22 @@ export class SiteScene extends Phaser.Scene {
 
         if (!!this.hero) {
             this.hero.update(this.cursors, this.input.gamepad.gamepads[0]);
+            
+            // check if hero has broken out of map bounds (cestus ability)
+            if (!this.hasHeroReachedExit && this.scene.key !== SITE_TYPES.overworld) {
+                const mapWidthPixels = this.map.widthInPixels * GAME_SCALE;
+                const mapHeightPixels = this.map.heightInPixels * GAME_SCALE;
+                
+                if (this.hero.entity.x < 0 || this.hero.entity.x > mapWidthPixels ||
+                    this.hero.entity.y < 0 || this.hero.entity.y > mapHeightPixels) {
+                    // hero broke through map boundary - transition to new overworld
+                    this.nextMap({
+                        linkedMapSceneType: SITE_TYPES.overworld,
+                        linkedMapConfigName: undefined,
+                        linkedMapConfigCategory: undefined,
+                    });
+                }
+            }
         }
     }
     /* end lifecycle */
@@ -171,12 +187,14 @@ export class SiteScene extends Phaser.Scene {
         this.registry.events.on(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
         this.registry.events.on('changedata', this.registryChangeHandler, this);
         this.registry.events.on(SPIN_DUST_BREAK_EVENT_KEY, this.spinDustBreakHandler, this);
+        this.registry.events.on(WALL_BREAK_EVENT_KEY, this.wallBreakHandler, this);
         this.input.gamepad.on('down', this.gamepadDownHandler, this);
     }
     clearListeners() {
         this.registry.events.off(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
         this.registry.events.off('changedata', this.registryChangeHandler);
         this.registry.events.off(SPIN_DUST_BREAK_EVENT_KEY, this.spinDustBreakHandler);
+        this.registry.events.off(WALL_BREAK_EVENT_KEY, this.wallBreakHandler, this);
         this.input.gamepad.off('down', this.gamepadDownHandler);
     }
 
@@ -565,6 +583,66 @@ export class SiteScene extends Phaser.Scene {
                     }
                 }
             });
+        }
+    }
+
+    wallBreakHandler = (tileX: number, tileY: number) => {
+        // Check if player has cestus relic
+        const relics = this.registry.get(INVENTORY_RELICS_REGISTRY_KEY) || [];
+        const cestus = relics.find((item: any) => item.inventoryItemKey === 'cestus');
+        if (!cestus || cestus.quantity === 0) {
+            return;
+        }
+
+        // Ability doesn't work in overworld
+        if (this.scene.key === SITE_TYPES.overworld) {
+            return;
+        }
+
+        // Get tile at coordinates
+        const tile = this.mapLayer.getTileAt(tileX, tileY);
+        if (!tile) {
+            return;
+        }
+
+        // Check if it's a wall tile (wallTileWeights or pathObstructionTileWeights)
+        const isWallTile = this.mapConfig.wallTileWeights.some(w => w.index === tile.index) ||
+                          (this.mapConfig.pathObstructionTileWeights?.some(w => w.index === tile.index) ?? false);
+        
+        if (isWallTile) {
+            this.destroyWallTile(tileX, tileY);
+        }
+    }
+
+    destroyWallTile(tileX: number, tileY: number) {
+        // Get a random floor tile from mapConfig
+        const floorTileIndex = weightedRandomizeAnything(
+            this.mapConfig.floorTileWeights.map(ftw => ({key: ftw.index, weight: ftw.weight}))
+        );
+
+        // Replace the wall tile with floor tile
+        this.mapLayer.putTileAt(floorTileIndex, tileX, tileY);
+
+        // Remove collision from this tile
+        const tile = this.mapLayer.getTileAt(tileX, tileY);
+        if (tile) {
+            tile.setCollision(false, false, false, false);
+        }
+
+        // Play particle effect at tile center (convert tile to pixel coords)
+        const tileWidthPixels = this.map.tileWidth * GAME_SCALE;
+        const tileHeightPixels = this.map.tileHeight * GAME_SCALE;
+        const effectX = (tileX + 0.5) * tileWidthPixels;
+        const effectY = (tileY + 0.5) * tileHeightPixels;
+        
+        this.burstEmitter.explode(28, effectX, effectY);
+        this.sound.play('dust');
+
+        // Update saved site data
+        const savedSiteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
+        if (savedSiteData && savedSiteData.tileIndexData) {
+            savedSiteData.tileIndexData[tileY][tileX] = floorTileIndex;
+            this.registry.set(SITE_DATA_REGISTRY_KEY, {...savedSiteData});
         }
     }
 

@@ -1,6 +1,6 @@
 import { CARDINAL_DIRECTION } from '../utils';
 import { GAME_SCALE, HERO_ANIM_FRAME_RATES, HERO_FRAMES, HERO_TINT, HERO_OFFSETS, HERO_TEXTURE_KEY,
-         DOUBLE_TAP_THRESHOLD, DASH_SPEED_MULT, SWIPE_MAX_TIME, SWIPE_MIN_DISTANCE, INVENTORY_RELICS_REGISTRY_KEY, SHOW_MENU_REGISTRY_KEY, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY } from '../constants';
+         DOUBLE_TAP_THRESHOLD, SWIPE_MAX_TIME, SWIPE_MIN_DISTANCE, INVENTORY_RELICS_REGISTRY_KEY, SHOW_MENU_REGISTRY_KEY, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY, WALL_BREAK_EVENT_KEY, WALL_BREAK_PUSH_THRESHOLD } from '../constants';
 import { HERO_MOVEMENT_CONTROLLER_MAP, HERO_MOVEMENT_CONTROLLERS, HeroMovementController } from '../interfaces/heroMovementController';
 import { FOLLOW_HERO_MOVEMENT_CONTROLLER } from './followHeroMovmentController';
 
@@ -39,6 +39,15 @@ export class Hero {
     private spinDustRadius = 4 * 16 * GAME_SCALE; // pixels
     // mobile double tap for spin
     private lastPointerUpTime = 0;
+
+    // wall break state (cestus relic)
+    private wallPushTimer = 0; // how long (ms) hero has been pushing into wall
+    private wallPushCoords: {x: number, y: number} = null; // tile coords of wall being pushed
+    private wallBreakCooldownEndsAt = 0; // timestamp when cooldown expires (0 = no cooldown)
+    private wallPushOverlaySprite: Phaser.GameObjects.Sprite = null; // overlay sprite to lock hero tint on the pushed wall tile
+    private heroShakeOverlay: Phaser.GameObjects.Sprite = null; // non-physics overlay for hero shake visual
+    private heroShakeTween: Phaser.Tweens.Tween = null; // tween for hero shaking effect
+    private heroShakeOffset = { x: 0, y: 0 }; // current shake offset for overlay sprite
 
     private pointerDownX: number = null;
     private pointerDownY: number = null;
@@ -236,6 +245,16 @@ export class Hero {
                 const cooldownMs = this.calculateDashCooldownMs(sandalQuantity);
                 this.dashCooldownEndsAt = this.scene.time.now + cooldownMs;
             }
+
+            // wall push tracking (cestus relic ability)
+            this.updateWallPushState();
+        }
+
+        if (this.heroShakeOverlay) {
+            this.heroShakeOverlay.setPosition(
+                this.heroSprite.x + this.heroShakeOffset.x,
+                this.heroSprite.y + this.heroShakeOffset.y
+            );
         }
 
         this.mvtCtrl.update(this);
@@ -333,6 +352,7 @@ export class Hero {
         if (!this.canDash()) {
             return;
         }
+        this.stopWallPushEffects();
         this.isDashing = true;
         this.dashDir = direction;
         this.currentDirection = direction;
@@ -361,10 +381,10 @@ export class Hero {
         return Math.max(1, cooldownSeconds) * 1000;  // minimum 1 second, convert to ms
     }
 
-    private calculateSpinCooldownMs(daggerQuantity: number): number {
+    private calculateAbilityCooldownMs(relicQuantity: number): number {
         let cooldownSeconds = 20;
-        // Half the cooldown for each dagger beyond the first, rounded up each time
-        for (let i = 1; i < daggerQuantity; i++) {
+        // Half the cooldown for each relic beyond the first, rounded up each time
+        for (let i = 1; i < relicQuantity; i++) {
             cooldownSeconds = Math.ceil(cooldownSeconds / 2);
         }
         return Math.max(1, cooldownSeconds) * 1000;  // minimum 1 second, convert to ms
@@ -442,6 +462,7 @@ export class Hero {
 
     // ---------- boost blinking methods ----------
     private startBoostBlinking() {
+        this.stopWallPushEffects();
         this.blinkState = false;
         this.heroSprite.setTint(HERO_TINT);
         this.blinkTimer = this.scene.time.delayedCall(this.blinkDelay, this.boostBlink, [], this);
@@ -462,12 +483,13 @@ export class Hero {
     }
     // ---------- spin move methods ----------
     private tryStartSpin() {
-        if (this.getDaggerQuantity() > 0 && !this.isDashing && !this.isBoosting && !this.isSpinning && this.scene.time.now >= this.spinCooldownEndsAt) {
+        if (this.getRelicQuantity('dagger') > 0 && !this.isDashing && !this.isBoosting && !this.isSpinning && this.scene.time.now >= this.spinCooldownEndsAt) {
             this.startSpin();
         }
     }
 
     private startSpin() {
+        this.stopWallPushEffects();
         this.isSpinning = true;
         this.spinStep = 0;
         this.originalDirection = this.currentDirection;
@@ -516,8 +538,8 @@ export class Hero {
             this.heroSprite.anims.play((this.isPunching ? 'punch' : 'walk') + animDirection, true);
             
             // set cooldown after spin completes
-            const daggerQuantity = this.getDaggerQuantity();
-            const cooldownMs = this.calculateSpinCooldownMs(daggerQuantity);
+            const daggerQuantity = this.getRelicQuantity('dagger');
+            const cooldownMs = this.calculateAbilityCooldownMs(daggerQuantity);
             this.spinCooldownEndsAt = this.scene.time.now + cooldownMs;
         }
     }
@@ -561,9 +583,187 @@ export class Hero {
         return false;
     }
 
-    private getDaggerQuantity(): number {
+    private getRelicQuantity(relicName: string): number {
         const relics = this.scene.registry.get(INVENTORY_RELICS_REGISTRY_KEY) || [];
-        const dagger = relics.find((item: any) => item.inventoryItemKey === 'dagger');
-        return dagger ? dagger.quantity : 0;
+        const relic = relics.find((item: any) => item.inventoryItemKey === relicName);
+        return relic ? relic.quantity : 0;
+    }
+
+    // ---------- wall break tracking methods (cestus relic) ----------
+    private updateWallPushState() {
+        const body = this.heroSprite.body as Phaser.Physics.Arcade.Body;
+        const isBlocked = body.blocked.left || body.blocked.right || body.blocked.up || body.blocked.down;
+        const isMoving = this.heroSprite.body.velocity.x !== 0 || this.heroSprite.body.velocity.y !== 0;
+        const wasPushing = this.wallPushTimer > 0;
+        
+        // check if hero is pushing into wall while moving and not in another special state
+        if (isBlocked && isMoving && !this.isDashing && !this.isBoosting && !this.isSpinning && this.scene.time.now >= this.wallBreakCooldownEndsAt) {
+            // increment push timer
+            this.wallPushTimer += this.scene.game.loop.delta;
+            
+            // start effects if we just started pushing
+            if (!wasPushing && this.wallPushTimer > 0) {
+                this.startWallPushEffects();
+            }
+            
+            // if we've been pushing long enough, emit wall break event
+            if (this.wallPushTimer >= WALL_BREAK_PUSH_THRESHOLD) {
+                const coords = this.getWallTileCoords();
+                if (coords) {
+                    console.log('Updating wall push state')
+                    this.scene.registry.events.emit(WALL_BREAK_EVENT_KEY, coords.x, coords.y);
+                    
+                    // set cooldown based on cestus quantity
+                    const cestusQuantity = this.getRelicQuantity('cestus');
+                    const cooldownMs = this.calculateAbilityCooldownMs(cestusQuantity);
+                    this.wallBreakCooldownEndsAt = this.scene.time.now + cooldownMs;
+                    
+                    // reset push timer
+                    this.wallPushTimer = 0;
+                    this.wallPushCoords = null;
+                    this.stopWallPushEffects();
+                }
+            }
+        } else {
+            // reset push timer if not pushing anymore
+            if (wasPushing) {
+                this.stopWallPushEffects();
+            }
+            this.wallPushTimer = 0;
+            this.wallPushCoords = null;
+        }
+    }
+
+    private getWallTileCoords(): {x: number, y: number} | null {
+        // Find the tilemap layer and determine which wall tile the hero is pushing into
+        const tilemapLayers = this.scene.children.list.filter(child =>
+            child instanceof Phaser.Tilemaps.TilemapLayer
+        ) as Phaser.Tilemaps.TilemapLayer[];
+
+        if (tilemapLayers.length === 0) {
+            return null;
+        }
+
+        const body = this.heroSprite.body as Phaser.Physics.Arcade.Body;
+        const layer = tilemapLayers[0]; // assume single layer
+        const scaleX = layer.scale;
+        const scaleY = layer.scale;
+
+        // Determine which direction hero is being blocked and get tile coords
+        let tileX: number, tileY: number;
+
+        if (body.blocked.left) {
+            tileX = Math.floor((this.heroSprite.x - this.heroSprite.displayWidth / 2) / (layer.tilemap.tileWidth * scaleX));
+            tileY = Math.floor(this.heroSprite.y / (layer.tilemap.tileHeight * scaleY));
+        } else if (body.blocked.right) {
+            tileX = Math.floor((this.heroSprite.x + this.heroSprite.displayWidth / 2) / (layer.tilemap.tileWidth * scaleX));
+            tileY = Math.floor(this.heroSprite.y / (layer.tilemap.tileHeight * scaleY));
+        } else if (body.blocked.up) {
+            tileX = Math.floor(this.heroSprite.x / (layer.tilemap.tileWidth * scaleX));
+            tileY = Math.floor((this.heroSprite.y - this.heroSprite.displayHeight / 2) / (layer.tilemap.tileHeight * scaleY));
+        } else if (body.blocked.down) {
+            tileX = Math.floor(this.heroSprite.x / (layer.tilemap.tileWidth * scaleX));
+            tileY = Math.floor((this.heroSprite.y + this.heroSprite.displayHeight / 2) / (layer.tilemap.tileHeight * scaleY));
+        } else {
+            return null;
+        }
+
+        // clamp to valid tile coordinates
+        const mapWidth = layer.tilemap.width;
+        const mapHeight = layer.tilemap.height;
+        tileX = Math.max(0, Math.min(mapWidth - 1, tileX));
+        tileY = Math.max(0, Math.min(mapHeight - 1, tileY));
+
+        return {x: tileX, y: tileY};
+    }
+
+    private startWallPushEffects() {
+        const coords = this.getWallTileCoords();
+        if (!coords) return;
+
+        this.wallPushCoords = coords;
+
+        // Find the tilemap layer
+        const tilemapLayers = this.scene.children.list.filter(child =>
+            child instanceof Phaser.Tilemaps.TilemapLayer
+        ) as Phaser.Tilemaps.TilemapLayer[];
+        
+        if (tilemapLayers.length === 0) return;
+        
+        const layer = tilemapLayers[0];
+        const tile = layer.getTileAt(coords.x, coords.y);
+        if (!tile) return;
+
+        // Create overlay sprite on top of the wall tile and tint it HERO_TINT
+        const scaleX = layer.scaleX || layer.scale || 1;
+        const scaleY = layer.scaleY || layer.scale || 1;
+        const tileWidth = layer.tilemap.tileWidth * scaleX;
+        const tileHeight = layer.tilemap.tileHeight * scaleY;
+        const spriteX = (coords.x + 0.5) * tileWidth;
+        const spriteY = (coords.y + 0.5) * tileHeight;
+
+        const tileset = layer.tilemap.tilesets[0];
+        if (!tileset) return;
+
+        this.wallPushOverlaySprite = this.scene.add.sprite(spriteX, spriteY, tileset.image.key, tile.index)
+            .setScale(scaleX, scaleY)
+            .setTint(HERO_TINT)
+            .setDepth(0.5);
+
+        // Shake the hero visually using a separate non-physics overlay sprite
+        const punchFrame = HERO_FRAMES.punchAnimStart[this.currentDirection];
+        this.heroSprite.setFrame(punchFrame);
+        this.heroSprite.anims.pause();
+        this.heroSprite.visible = false;
+
+        this.heroShakeOverlay = this.scene.add.sprite(this.heroSprite.x, this.heroSprite.y, HERO_TEXTURE_KEY)
+            .setScale(this.heroSprite.scaleX, this.heroSprite.scaleY)
+            .setFrame(punchFrame)
+            .setFlipX(this.heroSprite.flipX)
+            .setTint(HERO_TINT)
+            .setDepth(this.heroSprite.depth + 0.1);
+
+        this.heroShakeOffset = { x: 0, y: 0 };
+
+        this.heroShakeTween = this.scene.tweens.addCounter({
+            from: 0,
+            to: 1,
+            duration: 100,
+            repeat: -1,
+            ease: 'Linear',
+            onUpdate: (tween) => {
+                const progress = tween.getValue();
+                this.heroShakeOffset.x = Math.sin(progress * Math.PI * 4) * 2;
+                this.heroShakeOffset.y = Math.cos(progress * Math.PI * 6) * 2;
+            }
+        });
+    }
+
+    private stopWallPushEffects() {
+        // Destroy overlay sprites if present
+        if (this.wallPushOverlaySprite) {
+            this.wallPushOverlaySprite.destroy();
+            this.wallPushOverlaySprite = null;
+        }
+        if (this.heroShakeOverlay) {
+            this.heroShakeOverlay.destroy();
+            this.heroShakeOverlay = null;
+        }
+
+        this.wallPushCoords = null;
+
+        if (this.heroShakeTween) {
+            this.heroShakeTween.stop();
+            this.heroShakeTween = null;
+        }
+
+        this.heroSprite.visible = true;
+        this.heroSprite.anims.resume();
+    }
+
+    private getCestusQuantity(): number {
+        const relics = this.scene.registry.get(INVENTORY_RELICS_REGISTRY_KEY) || [];
+        const cestus = relics.find((item: any) => item.inventoryItemKey === 'cestus');
+        return cestus ? cestus.quantity : 0;
     }
 }

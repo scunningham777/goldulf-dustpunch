@@ -3,7 +3,6 @@
     "target": "es2017",
     "module": "nodenext",
     "skipLibCheck": true,
-    "noEmit": true,
     "noImplicitAny": false,
     "strictPropertyInitialization": false,
     "strictNullChecks": false,
