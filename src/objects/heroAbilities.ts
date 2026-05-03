@@ -406,7 +406,7 @@ export class HeroAbilities {
         });
     }
 
-    private stopWallPushEffects() {
+    private stopWallPushEffects(resumeAnimation: boolean = true) {
         // Destroy overlay sprites if present
         if (this.wallPushOverlaySprite) {
             this.wallPushOverlaySprite.destroy();
@@ -425,7 +425,9 @@ export class HeroAbilities {
         }
 
         this.heroSprite.visible = true;
-        this.heroSprite.anims.resume();
+        if (resumeAnimation) {
+            this.heroSprite.anims.resume();
+        }
     }
 
     // ---------- boost blinking methods ----------
@@ -461,6 +463,6 @@ export class HeroAbilities {
     stopAll() {
         this.stopBoostBlinking();
         this.stopSpin();
-        this.stopWallPushEffects();
+        this.stopWallPushEffects(false);
     }
 }

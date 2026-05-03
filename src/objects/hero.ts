@@ -240,8 +240,8 @@ export class Hero {
 
     freeze() {
         (this.entity.body as Phaser.Physics.Arcade.Body).moves = false;
-        this.heroSprite.anims.pause();
         this.abilities.stopAll();
+        this.heroSprite.anims.pause();
         this.isFrozen = true;
     }
     unfreeze() {
