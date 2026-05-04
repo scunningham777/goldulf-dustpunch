@@ -7,7 +7,7 @@ import { GameTitleScene } from './scenes/gameTitle';
 import { SiteScene } from './scenes/site';
 import { GameOverScene } from './scenes/gameOver';
 
-import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_STUFF_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR_HEX_STRING, SITE_TYPES, IS_DEBUG, SITE_COMPLETE_SCENE_KEY, SITE_DATA_REGISTRY_KEY, INVENTORY_STUFF_REGISTRY_KEY__OLD, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY } from './constants';
+import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_STUFF_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR_HEX_STRING, SITE_TYPES, IS_DEBUG, SITE_COMPLETE_SCENE_KEY, SITE_DATA_REGISTRY_KEY, INVENTORY_STUFF_REGISTRY_KEY__OLD, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, AUDIO_MUTE_REGISTRY_KEY } from './constants';
 
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar } from '@capacitor/status-bar';
@@ -90,8 +90,9 @@ export class Game extends Phaser.Game {
             this.dataStore.get(INVENTORY_TOKENS_REGISTRY_KEY),
             this.dataStore.get(INVENTORY_RELICS_REGISTRY_KEY),
             this.dataStore.get(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY),
+            this.dataStore.get(AUDIO_MUTE_REGISTRY_KEY),
         ])
-        .then(([siteData, inventoryStuff, inventoryTokens, inventoryRelics, heroMovementController]: [(SiteGenerationData | null), (InventoryItem[] | null), (InventoryItem[] | null), (InventoryItem[] | null), (HERO_MOVEMENT_CONTROLLERS | null)]) => {
+        .then(([siteData, inventoryStuff, inventoryTokens, inventoryRelics, heroMovementController, audioMute]: [(SiteGenerationData | null), (InventoryItem[] | null), (InventoryItem[] | null), (InventoryItem[] | null), (HERO_MOVEMENT_CONTROLLERS | null), (boolean | null)]) => {
             if (!!siteData) {
                 this.registry.set(SITE_DATA_REGISTRY_KEY, siteData);
             }
@@ -99,6 +100,7 @@ export class Game extends Phaser.Game {
             this.registry.set(INVENTORY_TOKENS_REGISTRY_KEY, inventoryTokens || []);
             this.registry.set(INVENTORY_RELICS_REGISTRY_KEY, inventoryRelics || []);
             this.registry.set(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, heroMovementController || HERO_MOVEMENT_CONTROLLERS.FOLLOW_HERO);
+            this.registry.set(AUDIO_MUTE_REGISTRY_KEY, audioMute ?? false);
     
             this.registry.events.on('changedata', this.updateDataStore, this);
 
@@ -129,6 +131,9 @@ export class Game extends Phaser.Game {
         }
         if (key === HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY) {
             this.dataStore.set(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, data);
+        }
+        if (key === AUDIO_MUTE_REGISTRY_KEY) {
+            this.dataStore.set(AUDIO_MUTE_REGISTRY_KEY, data);
         }
     }
 

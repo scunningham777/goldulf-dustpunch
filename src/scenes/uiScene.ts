@@ -1,5 +1,5 @@
 import { STUFF_CONFIGS, TOKEN_CONFIGS, RELIC_CONFIGS } from "../config";
-import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, UI_BAR_HEIGHT } from "../constants";
+import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, UI_BAR_HEIGHT, AUDIO_MUTE_REGISTRY_KEY, TEXT_TINT, TEXT_TINT_HEX } from "../constants";
 import { HERO_MOVEMENT_CONTROLLERS } from "../interfaces/heroMovementController";
 import { InventoryItem } from "../interfaces/stuffInInventory";
 import { TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT } from "../text";
@@ -33,6 +33,7 @@ export class UIScene extends Phaser.Scene {
     private mvtCtrlHeaderText: Phaser.GameObjects.Text;
     private mvtCtrlFollowBtn: Phaser.GameObjects.Text;
     private mvtCtrlJoystickBtn: Phaser.GameObjects.Text;
+    private muteBtn: Phaser.GameObjects.Text;
     private menuBtn: Phaser.GameObjects.Rectangle;
     private menuBtnImage: Phaser.GameObjects.Image;
     private isHidingMenu: boolean = false;
@@ -85,6 +86,7 @@ export class UIScene extends Phaser.Scene {
         this.createSettingsSection();
         this.createMovementControls();
         this.createCloseButton();
+        this.createMuteButton();
         this.assembleMenuLayer();
     }
 
@@ -96,7 +98,7 @@ export class UIScene extends Phaser.Scene {
     private createMenuHeader(): void {
         this.menuHeaderText = this.add.text(this.menuBackground.x + this.menuBackground.width / 2, HEADER_TEXT_OFFSET, TEXT_INVENTORY_HEADER_TEXT, {
             font: `${TITLE_FONT_SIZE}px '7_12'`,
-            color: '#fff'
+            color: TEXT_TINT_HEX
         }).setOrigin(0.5, 0);
     }
 
@@ -104,7 +106,7 @@ export class UIScene extends Phaser.Scene {
         const menuBodyOffsetX = this.menuBackground.width * MENU_BODY_OFFSET_X_RATIO;
         this.pointsText = this.add.text(menuBodyOffsetX, this.menuHeaderText.y + this.menuHeaderText.displayHeight + POINTS_TEXT_OFFSET, 'Points: 0', {
             font: `${STANDARD_FONT_SIZE}px '7_12'`,
-            color: '#fff'
+            color: TEXT_TINT_HEX
         });
     }
 
@@ -116,7 +118,7 @@ export class UIScene extends Phaser.Scene {
         this.menuSections[INVENTORY_STUFF_REGISTRY_KEY] = {
             headerText: this.add.text(menuBodyOffsetX, currentY, 'Your Stuff: ', {
                 font: `${STANDARD_FONT_SIZE}px '7_12'`,
-                color: '#fff'
+                color: TEXT_TINT_HEX
             }),
             displayGroup: this.add.group()
         };
@@ -126,7 +128,7 @@ export class UIScene extends Phaser.Scene {
         this.menuSections[INVENTORY_TOKENS_REGISTRY_KEY] = {
             headerText: this.add.text(menuBodyOffsetX, currentY, 'Your Tokens: ', {
                 font: `${STANDARD_FONT_SIZE}px '7_12'`,
-                color: '#fff'
+                color: TEXT_TINT_HEX
             }),
             displayGroup: this.add.group()
         };
@@ -136,7 +138,7 @@ export class UIScene extends Phaser.Scene {
         this.menuSections[INVENTORY_RELICS_REGISTRY_KEY] = {
             headerText: this.add.text(menuBodyOffsetX, currentY, 'Your Relics: ', {
                 font: `${STANDARD_FONT_SIZE}px '7_12'`,
-                color: '#fff'
+                color: TEXT_TINT_HEX
             }),
             displayGroup: this.add.group()
         };
@@ -147,7 +149,7 @@ export class UIScene extends Phaser.Scene {
             this.menuSections[INVENTORY_RELICS_REGISTRY_KEY].headerText.y + this.menuSections[INVENTORY_RELICS_REGISTRY_KEY].headerText.displayHeight + SECTION_VERTICAL_SPACING,
             'Settings', {
             font: `${HEADER_FONT_SIZE}px '7_12'`,
-            color: '#fff'
+            color: TEXT_TINT_HEX
         }).setOrigin(0.5, 0);
     }
 
@@ -155,12 +157,12 @@ export class UIScene extends Phaser.Scene {
         const menuBodyOffsetX = this.menuBackground.width * MENU_BODY_OFFSET_X_RATIO;
         this.mvtCtrlHeaderText = this.add.text(menuBodyOffsetX, this.settingsHeaderText.y + this.settingsHeaderText.displayHeight + TEXT_VERTICAL_SPACING, 'Player Movement: ', {
             font: `${STANDARD_FONT_SIZE}px '7_12'`,
-            color: '#fff'
+            color: TEXT_TINT_HEX
         });
 
         this.mvtCtrlFollowBtn = this.add.text(menuBodyOffsetX + TEXT_VERTICAL_SPACING, this.mvtCtrlHeaderText.y + this.mvtCtrlHeaderText.displayHeight + TEXT_VERTICAL_SPACING, 'Follow Cursor', {
             font: `${STANDARD_FONT_SIZE}px '7_12'`,
-            color: '#fff'
+            color: TEXT_TINT_HEX
         });
         this.mvtCtrlFollowBtn.setInteractive();
         this.mvtCtrlFollowBtn.on('pointerdown', () => {
@@ -169,7 +171,7 @@ export class UIScene extends Phaser.Scene {
 
         this.mvtCtrlJoystickBtn = this.add.text(this.mvtCtrlFollowBtn.x + this.mvtCtrlFollowBtn.displayWidth + TEXT_VERTICAL_SPACING, this.mvtCtrlFollowBtn.y, 'Joystick', {
             font: `${STANDARD_FONT_SIZE}px '7_12'`,
-            color: '#fff'
+            color: TEXT_TINT_HEX
         });
         this.mvtCtrlJoystickBtn.setInteractive();
         this.mvtCtrlJoystickBtn.on('pointerdown', () => {
@@ -181,9 +183,23 @@ export class UIScene extends Phaser.Scene {
         this.closeImage = this.add.image(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 1).setScale(GAME_SCALE);
     }
 
+    private createMuteButton(): void {
+        this.muteBtn = this.add.text(MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2, 'MUTE', {
+            font: `${STANDARD_FONT_SIZE}px '7_12'`,
+            color: TEXT_TINT_HEX
+        }).setOrigin(0.5, 0.5);
+
+        this.muteBtn.setInteractive();
+        this.muteBtn.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+            if (pointer.event) pointer.event.stopPropagation();
+            const isMuted = this.registry.get(AUDIO_MUTE_REGISTRY_KEY) ?? false;
+            this.registry.set(AUDIO_MUTE_REGISTRY_KEY, !isMuted);
+        });
+    }
+
     private assembleMenuLayer(): void {
         const menuElements: Phaser.GameObjects.GameObject[] = [
-            this.menuBackground, this.menuHeaderText, this.pointsText, this.closeImage, this.settingsHeaderText,
+            this.menuBackground, this.menuHeaderText, this.pointsText, this.closeImage, this.muteBtn, this.settingsHeaderText,
             this.mvtCtrlHeaderText, this.mvtCtrlFollowBtn, this.mvtCtrlJoystickBtn
         ];
 
@@ -211,7 +227,8 @@ export class UIScene extends Phaser.Scene {
                 else this.hideVirtualJoystick();
             },
             [HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY]: (data: HERO_MOVEMENT_CONTROLLERS) => this.updateMenuMvtCtrlSelection(data),
-            [SHOW_MENU_REGISTRY_KEY]: (data: boolean) => this.showInventory(data)
+            [SHOW_MENU_REGISTRY_KEY]: (data: boolean) => this.showInventory(data),
+            [AUDIO_MUTE_REGISTRY_KEY]: (data: boolean) => this.updateMuteButtonState(data)
         };
 
         // Initial updates
@@ -262,7 +279,7 @@ export class UIScene extends Phaser.Scene {
             const config = configs.find(c => (c.stuffName || c.key) === item.inventoryItemKey);
             if (!config) return;
 
-            const tint = config.tint !== undefined ? config.tint : (defaultTint || 0xffffff);
+            const tint = config.tint !== undefined ? config.tint : (defaultTint || TEXT_TINT);
             const img = this.add.image(x, y, STATIC_TEXTURE_KEY, config.frameIndex).setScale(GAME_SCALE).setTint(tint).setOrigin(0, 0);
             const qtyText = this.add.text(img.x, img.y + img.displayHeight, 'x' + item.quantity, {
                 font: `${STANDARD_FONT_SIZE}px '7_12'`,
@@ -278,14 +295,19 @@ export class UIScene extends Phaser.Scene {
 
     private updateMenuMvtCtrlSelection(currentMvtCtrl: HERO_MOVEMENT_CONTROLLERS): void {
         const isFollow = currentMvtCtrl === HERO_MOVEMENT_CONTROLLERS.FOLLOW_HERO;
-        this.mvtCtrlFollowBtn.setAlpha(isFollow ? 1 : 0.8).setTint(isFollow ? HERO_TINT : 0xffffff);
-        this.mvtCtrlJoystickBtn.setAlpha(isFollow ? 0.8 : 1).setTint(isFollow ? 0xffffff : HERO_TINT);
+        this.mvtCtrlFollowBtn.setAlpha(isFollow ? 1 : 0.8).setTint(isFollow ? HERO_TINT : TEXT_TINT);
+        this.mvtCtrlJoystickBtn.setAlpha(isFollow ? 0.8 : 1).setTint(isFollow ? TEXT_TINT : HERO_TINT);
+    }
+
+    private updateMuteButtonState(isMuted: boolean): void {
+        this.muteBtn.setTint(isMuted ? HERO_TINT : TEXT_TINT);
     }
 
     private resizeMenu(): void {
         this.menuBtn.setPosition(0, this.scale.height - MENU_BTN_DIMENSION).setSize(this.scale.width, MENU_BTN_DIMENSION);
         this.menuBtnImage.setPosition(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
         this.closeImage.setPosition(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
+        this.muteBtn.setPosition(MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
 
         const menuBGWidth = this.calculateMenuBGWidth();
         this.menuBackground.setPosition(window.innerWidth - menuBGWidth, 0).setSize(menuBGWidth, window.innerHeight);

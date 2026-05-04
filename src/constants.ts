@@ -44,6 +44,7 @@ export const SHOW_MENU_REGISTRY_KEY = 'do_show_menu';
 export const HERO_VELOCITY = 250;
 export const HERO_DEBUG_VELOCITY_MULTIPLIER = 1.5;
 export const HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY = 'hero_mvt_ctrl';
+export const AUDIO_MUTE_REGISTRY_KEY = 'audio_mute';
 export const DUNGEON_LAYER_KEYS = {
     BG_LAYER: 'bg-layer',
     STUFF_LAYER: 'stuff-layer',
@@ -111,6 +112,8 @@ export const enum SITE_GENERATION_TYPES {
     bog = 'bog',
 }
 export const TYPEWRITER_WORD_INTERVAL = 80;
+export const TEXT_TINT = 0xffffff;
+export const TEXT_TINT_HEX = '#ffffff';
 
 // "ENVIRONMENT"
 export const IS_DEBUG = false;
