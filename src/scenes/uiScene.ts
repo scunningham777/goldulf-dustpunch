@@ -6,6 +6,21 @@ import { TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT } from "../text
 
 const VIRTUAL_JOYSTICK_DIAMETER = 16;
 const MENU_BTN_DIMENSION = UI_BAR_HEIGHT;
+const MENU_BG_WIDTH_RATIO = 1; // Full width
+const MENU_BODY_OFFSET_X_RATIO = 0.06;
+const STANDARD_FONT_SIZE = 8 * GAME_SCALE;
+const HEADER_FONT_SIZE = 12 * GAME_SCALE;
+const TITLE_FONT_SIZE = 16 * GAME_SCALE;
+const ITEM_SPACING = 24 * GAME_SCALE;
+const SECTION_VERTICAL_SPACING = 36 * GAME_SCALE;
+const TEXT_VERTICAL_SPACING = 8 * GAME_SCALE;
+const POINTS_TEXT_OFFSET = 16;
+const HEADER_TEXT_OFFSET = 16;
+
+interface MenuSection {
+    headerText: Phaser.GameObjects.Text;
+    displayGroup: Phaser.GameObjects.Group;
+}
 
 export class UIScene extends Phaser.Scene {
     private pointsText: Phaser.GameObjects.Text;
@@ -13,13 +28,7 @@ export class UIScene extends Phaser.Scene {
     private menuLayer: Phaser.GameObjects.Layer;
     private menuBackground: Phaser.GameObjects.Rectangle;
     private closeImage: Phaser.GameObjects.Image;
-    private menuStuffDisplayGroup: Phaser.GameObjects.Group;
-    private menuTokensDisplayGroup: Phaser.GameObjects.Group;
-    private menuRelicsDisplayGroup: Phaser.GameObjects.Group;
     private menuHeaderText: Phaser.GameObjects.Text;
-    private stuffHeaderText: Phaser.GameObjects.Text;
-    private tokensHeaderText: Phaser.GameObjects.Text;
-    private relicsHeaderText: Phaser.GameObjects.Text;
     private settingsHeaderText: Phaser.GameObjects.Text;
     private mvtCtrlHeaderText: Phaser.GameObjects.Text;
     private mvtCtrlFollowBtn: Phaser.GameObjects.Text;
@@ -28,22 +37,25 @@ export class UIScene extends Phaser.Scene {
     private menuBtnImage: Phaser.GameObjects.Image;
     private isHidingMenu: boolean = false;
 
+    private menuSections: { [key: string]: MenuSection } = {};
+
+    private uiUpdateHandlers: { [key: string]: (data: any) => void } = {};
+
     create(): void {
-        // full-width bottom bar instead of a small square
-        this.menuBtn = this.add.rectangle(0, this.scale.height - MENU_BTN_DIMENSION, this.scale.width, MENU_BTN_DIMENSION, 0x000000)
-            .setOrigin(0,0);
-        // inventory icon stays flush to the right edge of the bar
-        this.menuBtnImage = this.add.image(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 0)
-            .setScale(GAME_SCALE);
+        this.initMenuButton();
+        this.initVirtualJoystick();
+        this.initMenu();
+        this.initEventListeners();
+        this.initUIUpdates();
+    }
+
+    private initMenuButton(): void {
+        this.menuBtn = this.add.rectangle(0, this.scale.height - MENU_BTN_DIMENSION, this.scale.width, MENU_BTN_DIMENSION, 0x000000).setOrigin(0, 0);
+        this.menuBtnImage = this.add.image(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 0).setScale(GAME_SCALE);
         this.menuBtn.setInteractive();
 
-        // prevent pointer events from bubbling to the scene (which would start
-        // hero movement while the pointer is held). Show the menu immediately
-        // on pointerdown and hide it on pointerup.
         this.menuBtn.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-            if (pointer.event) {
-                pointer.event.stopPropagation();
-            }
+            if (pointer.event) pointer.event.stopPropagation();
             if (!this.registry.get(SHOW_MENU_REGISTRY_KEY)) {
                 this.registry.set(SHOW_MENU_REGISTRY_KEY, true);
             } else {
@@ -52,195 +64,247 @@ export class UIScene extends Phaser.Scene {
         });
 
         this.menuBtn.on('pointerup', (pointer: Phaser.Input.Pointer) => {
-            if (pointer.event) {
-                pointer.event.stopPropagation();
-            }
+            if (pointer.event) pointer.event.stopPropagation();
             if (this.isHidingMenu) {
                 this.isHidingMenu = false;
                 this.registry.set(SHOW_MENU_REGISTRY_KEY, false);
             }
         });
+    }
 
+    private initVirtualJoystick(): void {
         this.virtualJoystick = this.add.ellipse(10, 50, VIRTUAL_JOYSTICK_DIAMETER * GAME_SCALE, VIRTUAL_JOYSTICK_DIAMETER * GAME_SCALE, 0x000000, 1);
         this.hideVirtualJoystick();
-        
-        this.menuLayer = this.generateMenu();
-        this.menuStuffDisplayGroup = this.add.group()
-        this.menuTokensDisplayGroup = this.add.group()
-        this.menuRelicsDisplayGroup = this.add.group()
-        this.updateUI(null, INVENTORY_STUFF_REGISTRY_KEY, this.registry.values[INVENTORY_STUFF_REGISTRY_KEY]);
-        this.updateUI(null, INVENTORY_TOKENS_REGISTRY_KEY, this.registry.values[INVENTORY_TOKENS_REGISTRY_KEY]);
-        this.updateUI(null, INVENTORY_RELICS_REGISTRY_KEY, this.registry.values[INVENTORY_RELICS_REGISTRY_KEY]);
-        this.updateUI(null, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, this.registry.values[HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY]);
-        
-        // maybe a hack to clean up duplicate listeners - shouldn't be necessary after fixing issue #26, but leave in case
-        this.registry.events.off('changedata', this.updateUI, this);
-        this.registry.events.on('changedata', this.updateUI, this);
+    }
 
-        this.scale.on('resize', () => {
-            this.resizeMenu();
+    private initMenu(): void {
+        this.createMenuBackground();
+        this.createMenuHeader();
+        this.createPointsText();
+        this.createInventorySections();
+        this.createSettingsSection();
+        this.createMovementControls();
+        this.createCloseButton();
+        this.assembleMenuLayer();
+    }
+
+    private createMenuBackground(): void {
+        const menuBGWidth = this.calculateMenuBGWidth();
+        this.menuBackground = this.add.rectangle(window.innerWidth - menuBGWidth, 0, menuBGWidth, window.innerHeight, 0x000000).setOrigin(0, 0);
+    }
+
+    private createMenuHeader(): void {
+        this.menuHeaderText = this.add.text(this.menuBackground.x + this.menuBackground.width / 2, HEADER_TEXT_OFFSET, TEXT_INVENTORY_HEADER_TEXT, {
+            font: `${TITLE_FONT_SIZE}px '7_12'`,
+            color: '#fff'
+        }).setOrigin(0.5, 0);
+    }
+
+    private createPointsText(): void {
+        const menuBodyOffsetX = this.menuBackground.width * MENU_BODY_OFFSET_X_RATIO;
+        this.pointsText = this.add.text(menuBodyOffsetX, this.menuHeaderText.y + this.menuHeaderText.displayHeight + POINTS_TEXT_OFFSET, 'Points: 0', {
+            font: `${STANDARD_FONT_SIZE}px '7_12'`,
+            color: '#fff'
         });
     }
 
-    generateMenu(): Phaser.GameObjects.Layer {
-        const menuBGWidth = this.calculateMenuBGWidth();
-        this.menuBackground = this.add.rectangle(window.innerWidth - menuBGWidth, 0, menuBGWidth, window.innerHeight, 0x000000);
-        this.menuBackground.setOrigin(0,0);
+    private createInventorySections(): void {
+        const menuBodyOffsetX = this.menuBackground.width * MENU_BODY_OFFSET_X_RATIO;
+        let currentY = this.pointsText.y + this.pointsText.displayHeight + TEXT_VERTICAL_SPACING;
 
-        this.menuHeaderText = this.add.text(this.menuBackground.x + this.menuBackground.width / 2, 16, TEXT_INVENTORY_HEADER_TEXT, {font: `${16 * GAME_SCALE}px '7_12'`, color: '#fff'})
-            .setOrigin(.5, 0);
+        // Stuff section
+        this.menuSections[INVENTORY_STUFF_REGISTRY_KEY] = {
+            headerText: this.add.text(menuBodyOffsetX, currentY, 'Your Stuff: ', {
+                font: `${STANDARD_FONT_SIZE}px '7_12'`,
+                color: '#fff'
+            }),
+            displayGroup: this.add.group()
+        };
+        currentY += this.menuSections[INVENTORY_STUFF_REGISTRY_KEY].headerText.displayHeight + SECTION_VERTICAL_SPACING;
 
-        const menuBodyOffsetX = menuBGWidth * .06;
-        const standardFontSize = 8 * GAME_SCALE;
-        this.pointsText = this.add.text(menuBodyOffsetX, this.menuHeaderText.y + this.menuHeaderText.displayHeight + 16, 'Points: 0', {font: `${standardFontSize}px '7_12'`, color: '#fff'});
-    
-        this.stuffHeaderText = this.add.text(menuBodyOffsetX, this.pointsText.y + this.pointsText.displayHeight + 8, 'Your Stuff: ', {font: `${standardFontSize}px '7_12'`, color: `#fff`});
-        this.tokensHeaderText = this.add.text(menuBodyOffsetX, this.stuffHeaderText.y + this.stuffHeaderText.displayHeight + 36 * GAME_SCALE, 'Your Tokens: ', {font: `${standardFontSize}px '7_12'`, color: `#fff`});
-        this.relicsHeaderText = this.add.text(menuBodyOffsetX, this.tokensHeaderText.y + this.tokensHeaderText.displayHeight + 36 * GAME_SCALE, 'Your Relics: ', {font: `${standardFontSize}px '7_12'`, color: `#fff`});
-        
-        this.settingsHeaderText = this.add.text(this.menuBackground.x + this.menuBackground.width / 2, this.relicsHeaderText.y + this.relicsHeaderText.displayHeight + 36 * GAME_SCALE, 'Settings', {font: `${12 * GAME_SCALE}px '7_12'`, color: `#fff`}).setOrigin(.5, 0);
-        this.mvtCtrlHeaderText = this.add.text(menuBodyOffsetX, this.settingsHeaderText.y + this.settingsHeaderText.displayHeight + 8 * GAME_SCALE, 'Player Movement: ', {font: `${standardFontSize}px '7_12'`, color: `#fff`});
-        this.mvtCtrlFollowBtn = this.add.text(menuBodyOffsetX + 8 * GAME_SCALE, this.mvtCtrlHeaderText.y + this.mvtCtrlHeaderText.displayHeight + 8 * GAME_SCALE, 'Follow Cursor', {font: `${standardFontSize}px '7_12'`, color: `#fff`});
-        this.mvtCtrlJoystickBtn = this.add.text(this.mvtCtrlFollowBtn.x + this.mvtCtrlFollowBtn.displayWidth + 8, this.mvtCtrlFollowBtn.y, 'Joystick', {font: `${standardFontSize}px '7_12'`, color: `#fff`});
-        
+        // Tokens section
+        this.menuSections[INVENTORY_TOKENS_REGISTRY_KEY] = {
+            headerText: this.add.text(menuBodyOffsetX, currentY, 'Your Tokens: ', {
+                font: `${STANDARD_FONT_SIZE}px '7_12'`,
+                color: '#fff'
+            }),
+            displayGroup: this.add.group()
+        };
+        currentY += this.menuSections[INVENTORY_TOKENS_REGISTRY_KEY].headerText.displayHeight + SECTION_VERTICAL_SPACING;
+
+        // Relics section
+        this.menuSections[INVENTORY_RELICS_REGISTRY_KEY] = {
+            headerText: this.add.text(menuBodyOffsetX, currentY, 'Your Relics: ', {
+                font: `${STANDARD_FONT_SIZE}px '7_12'`,
+                color: '#fff'
+            }),
+            displayGroup: this.add.group()
+        };
+    }
+
+    private createSettingsSection(): void {
+        this.settingsHeaderText = this.add.text(this.menuBackground.x + this.menuBackground.width / 2,
+            this.menuSections[INVENTORY_RELICS_REGISTRY_KEY].headerText.y + this.menuSections[INVENTORY_RELICS_REGISTRY_KEY].headerText.displayHeight + SECTION_VERTICAL_SPACING,
+            'Settings', {
+            font: `${HEADER_FONT_SIZE}px '7_12'`,
+            color: '#fff'
+        }).setOrigin(0.5, 0);
+    }
+
+    private createMovementControls(): void {
+        const menuBodyOffsetX = this.menuBackground.width * MENU_BODY_OFFSET_X_RATIO;
+        this.mvtCtrlHeaderText = this.add.text(menuBodyOffsetX, this.settingsHeaderText.y + this.settingsHeaderText.displayHeight + TEXT_VERTICAL_SPACING, 'Player Movement: ', {
+            font: `${STANDARD_FONT_SIZE}px '7_12'`,
+            color: '#fff'
+        });
+
+        this.mvtCtrlFollowBtn = this.add.text(menuBodyOffsetX + TEXT_VERTICAL_SPACING, this.mvtCtrlHeaderText.y + this.mvtCtrlHeaderText.displayHeight + TEXT_VERTICAL_SPACING, 'Follow Cursor', {
+            font: `${STANDARD_FONT_SIZE}px '7_12'`,
+            color: '#fff'
+        });
         this.mvtCtrlFollowBtn.setInteractive();
         this.mvtCtrlFollowBtn.on('pointerdown', () => {
             this.registry.set(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLERS.FOLLOW_HERO);
+        });
+
+        this.mvtCtrlJoystickBtn = this.add.text(this.mvtCtrlFollowBtn.x + this.mvtCtrlFollowBtn.displayWidth + TEXT_VERTICAL_SPACING, this.mvtCtrlFollowBtn.y, 'Joystick', {
+            font: `${STANDARD_FONT_SIZE}px '7_12'`,
+            color: '#fff'
         });
         this.mvtCtrlJoystickBtn.setInteractive();
         this.mvtCtrlJoystickBtn.on('pointerdown', () => {
             this.registry.set(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLERS.JOYSTICK);
         });
+    }
 
-        // use same positioning logic as the visible icon so the close button lines up
+    private createCloseButton(): void {
         this.closeImage = this.add.image(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 1).setScale(GAME_SCALE);
-
-        const menuLayer = this.add.layer([this.menuBackground, this.menuHeaderText, this.pointsText, this.stuffHeaderText, this.tokensHeaderText, this.closeImage, this.relicsHeaderText, this.settingsHeaderText, this.mvtCtrlHeaderText, this.mvtCtrlFollowBtn, this.mvtCtrlJoystickBtn]);
-        menuLayer.setVisible(false);
-
-        return menuLayer;
     }
 
-    updateUI(_parent: any, key: string, data: any) {
-        if (key === INVENTORY_STUFF_REGISTRY_KEY) {
-            const totalPoints =  (data as InventoryItem[]).reduce((points: number, s) => {
-                const stuffConfig = STUFF_CONFIGS.find(sC => sC.stuffName === s.inventoryItemKey);
-                if (stuffConfig === undefined) {
-                    return points;
-                }
-                return (points + (stuffConfig.points * s.quantity)); 
-            }, 0)
-            this.pointsText.setText('Points: ' + totalPoints);
-            this.updateMenuStuff(data);
-        } else if (key === INVENTORY_TOKENS_REGISTRY_KEY) {
-            this.updateMenuTokens(data);
-        } else if (key === INVENTORY_RELICS_REGISTRY_KEY) {
-            this.updateMenuRelics(data);
-        } else if (key === TOUCH_MOVEMENT_REGISTRY_KEY) {
-            if (data != null) {
-                this.showVirtualJoystick(data);
-            } else {
-                this.hideVirtualJoystick();
+    private assembleMenuLayer(): void {
+        const menuElements: Phaser.GameObjects.GameObject[] = [
+            this.menuBackground, this.menuHeaderText, this.pointsText, this.closeImage, this.settingsHeaderText,
+            this.mvtCtrlHeaderText, this.mvtCtrlFollowBtn, this.mvtCtrlJoystickBtn
+        ];
+
+        // Add section headers and groups
+        Object.values(this.menuSections).forEach(section => {
+            menuElements.push(section.headerText);
+            section.displayGroup.getChildren().forEach(child => menuElements.push(child));
+        });
+
+        this.menuLayer = this.add.layer(menuElements);
+        this.menuLayer.setVisible(false);
+    }
+
+    private initEventListeners(): void {
+        this.scale.on('resize', () => this.resizeMenu());
+    }
+
+    private initUIUpdates(): void {
+        this.uiUpdateHandlers = {
+            [INVENTORY_STUFF_REGISTRY_KEY]: (data: InventoryItem[]) => this.updateInventorySection(INVENTORY_STUFF_REGISTRY_KEY, data, STUFF_CONFIGS, STUFF_TINT),
+            [INVENTORY_TOKENS_REGISTRY_KEY]: (data: InventoryItem[]) => this.updateInventorySection(INVENTORY_TOKENS_REGISTRY_KEY, data, TOKEN_CONFIGS, null),
+            [INVENTORY_RELICS_REGISTRY_KEY]: (data: InventoryItem[]) => this.updateInventorySection(INVENTORY_RELICS_REGISTRY_KEY, data, RELIC_CONFIGS, null),
+            [TOUCH_MOVEMENT_REGISTRY_KEY]: (data: { startX: number, startY: number } | null) => {
+                if (data) this.showVirtualJoystick(data);
+                else this.hideVirtualJoystick();
+            },
+            [HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY]: (data: HERO_MOVEMENT_CONTROLLERS) => this.updateMenuMvtCtrlSelection(data),
+            [SHOW_MENU_REGISTRY_KEY]: (data: boolean) => this.showInventory(data)
+        };
+
+        // Initial updates
+        Object.keys(this.uiUpdateHandlers).forEach(key => {
+            if (this.registry.values[key] !== undefined) {
+                this.uiUpdateHandlers[key](this.registry.values[key]);
             }
-        } else if (key === HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY) {
-            this.updateMenuMvtCtrlSelection(data);
-        } else if (key === SHOW_MENU_REGISTRY_KEY) {
-            this.showInventory(data);
-        }
+        });
+
+        // Remove duplicate listeners
+        this.registry.events.off('changedata', this.updateUI, this);
+        this.registry.events.on('changedata', this.updateUI, this);
     }
 
-    showVirtualJoystick(data: {startX: number, startY: number}) {
-        this.virtualJoystick
-            .setX(data.startX)
-            .setY(data.startY)
-            .setAlpha(.4)
-            ;
+    private updateUI(_parent: any, key: string, data: any): void {
+        const handler = this.uiUpdateHandlers[key];
+        if (handler) handler(data);
     }
 
-    hideVirtualJoystick() {
+    private showVirtualJoystick(data: { startX: number, startY: number }): void {
+        this.virtualJoystick.setPosition(data.startX, data.startY).setAlpha(0.4);
+    }
+
+    private hideVirtualJoystick(): void {
         this.virtualJoystick.setAlpha(0);
     }
 
-    showInventory(doShow: boolean) {
-        if (doShow === null || doShow === undefined) {
-            doShow = !this.menuLayer.visible;
+    private showInventory(doShow: boolean): void {
+        this.menuLayer.setVisible(doShow ?? !this.menuLayer.visible);
+    }
+
+    private updateInventorySection(registryKey: string, items: InventoryItem[], configs: any[], defaultTint?: number): void {
+        if (registryKey === INVENTORY_STUFF_REGISTRY_KEY) {
+            const totalPoints = items.reduce((points: number, item) => {
+                const config = configs.find(c => c.stuffName === item.inventoryItemKey);
+                return config ? points + (config.points * item.quantity) : points;
+            }, 0);
+            this.pointsText.setText('Points: ' + totalPoints);
         }
-        this.menuLayer.setVisible(doShow);
+
+        const section = this.menuSections[registryKey];
+        if (!section) return;
+
+        section.displayGroup.clear(true, true);
+        items.forEach((item, index) => {
+            const x = section.headerText.x + (ITEM_SPACING * index);
+            const y = section.headerText.y + section.headerText.height + TEXT_VERTICAL_SPACING;
+            const config = configs.find(c => (c.stuffName || c.key) === item.inventoryItemKey);
+            if (!config) return;
+
+            const tint = config.tint !== undefined ? config.tint : (defaultTint || 0xffffff);
+            const img = this.add.image(x, y, STATIC_TEXTURE_KEY, config.frameIndex).setScale(GAME_SCALE).setTint(tint).setOrigin(0, 0);
+            const qtyText = this.add.text(img.x, img.y + img.displayHeight, 'x' + item.quantity, {
+                font: `${STANDARD_FONT_SIZE}px '7_12'`,
+                color: '#' + HERO_TINT.toString(16)
+            });
+
+            section.displayGroup.add(img);
+            section.displayGroup.add(qtyText);
+            this.menuLayer.add(img as any);
+            this.menuLayer.add(qtyText as any);
+        });
     }
 
-    updateMenuStuff(currentStuff: InventoryItem[]) {
-        this.menuStuffDisplayGroup.clear(true, true);
-        currentStuff.forEach((stuff, index) => {
-            const x = this.stuffHeaderText.x + (24 * index * GAME_SCALE);
-            const y = this.stuffHeaderText.y + this.stuffHeaderText.height + 4 * GAME_SCALE;
-            const stuffType = STUFF_CONFIGS.find(sC => sC.stuffName === stuff.inventoryItemKey)
-            const stuffImg = this.add.image(x, y, STATIC_TEXTURE_KEY, stuffType.frameIndex).setScale(GAME_SCALE).setTint(STUFF_TINT).setOrigin(0, 0);
-            const stuffQtyText = this.add.text(stuffImg.x, stuffImg.y + stuffImg.displayHeight, 'x' + stuff.quantity, {font: `${8 * GAME_SCALE}px '7_12'`, color: '#' + HERO_TINT.toString(16)});
-            this.menuStuffDisplayGroup.add(stuffImg);
-            this.menuStuffDisplayGroup.add(stuffQtyText);
-            this.menuLayer.add(stuffImg);
-            this.menuLayer.add(stuffQtyText);
-        })
+    private updateMenuMvtCtrlSelection(currentMvtCtrl: HERO_MOVEMENT_CONTROLLERS): void {
+        const isFollow = currentMvtCtrl === HERO_MOVEMENT_CONTROLLERS.FOLLOW_HERO;
+        this.mvtCtrlFollowBtn.setAlpha(isFollow ? 1 : 0.8).setTint(isFollow ? HERO_TINT : 0xffffff);
+        this.mvtCtrlJoystickBtn.setAlpha(isFollow ? 0.8 : 1).setTint(isFollow ? 0xffffff : HERO_TINT);
     }
 
-    updateMenuTokens(currentTokens: InventoryItem[]) {
-        this.menuTokensDisplayGroup.clear(true, true);
-        currentTokens.forEach((token, index) => {
-            const x = this.tokensHeaderText.x + (24 * index * GAME_SCALE);
-            const y = this.tokensHeaderText.y + this.tokensHeaderText.height + 4 * GAME_SCALE;
-            const tokenType = TOKEN_CONFIGS.find(tC => tC.key === token.inventoryItemKey)
-            const tokenImg = this.add.image(x, y, STATIC_TEXTURE_KEY, tokenType.frameIndex).setScale(GAME_SCALE).setTint(tokenType.tint).setOrigin(0, 0);
-            const tokenQtyText = this.add.text(tokenImg.x, tokenImg.y + tokenImg.displayHeight, 'x' + token.quantity, {font: `${8 * GAME_SCALE}px '7_12'`, color: '#' + HERO_TINT.toString(16)});
-            this.menuTokensDisplayGroup.add(tokenImg);
-            this.menuTokensDisplayGroup.add(tokenQtyText);
-            this.menuLayer.add(tokenImg);
-            this.menuLayer.add(tokenQtyText);
-        })
-    }
-
-    updateMenuRelics(currentRelics: InventoryItem[]) {
-        this.menuRelicsDisplayGroup.clear(true, true);
-        currentRelics.forEach((relic, index) => {
-            const x = this.relicsHeaderText.x + (24 * index * GAME_SCALE);
-            const y = this.relicsHeaderText.y + this.relicsHeaderText.height + 4 * GAME_SCALE;
-            const relicType = RELIC_CONFIGS.find(rC => rC.key === relic.inventoryItemKey)
-            const relicImg = this.add.image(x, y, STATIC_TEXTURE_KEY, relicType.frameIndex).setScale(GAME_SCALE).setTint(relicType.tint).setOrigin(0, 0);
-            const relicQtyText = this.add.text(relicImg.x, relicImg.y + relicImg.displayHeight, 'x' + relic.quantity, {font: `${8 * GAME_SCALE}px '7_12'`, color: '#' + HERO_TINT.toString(16)});
-            this.menuRelicsDisplayGroup.add(relicImg);
-            this.menuRelicsDisplayGroup.add(relicQtyText);
-            this.menuLayer.add(relicImg);
-            this.menuLayer.add(relicQtyText);
-        })
-    }
-
-    updateMenuMvtCtrlSelection(currentMvtCtrl: HERO_MOVEMENT_CONTROLLERS) {
-        if (currentMvtCtrl === HERO_MOVEMENT_CONTROLLERS.FOLLOW_HERO) {
-            this.mvtCtrlFollowBtn.setAlpha(1);
-            this.mvtCtrlFollowBtn.setTint(HERO_TINT);
-            this.mvtCtrlJoystickBtn.setAlpha(.8);
-            this.mvtCtrlJoystickBtn.setTint(0xffffff);
-        } else if (currentMvtCtrl === HERO_MOVEMENT_CONTROLLERS.JOYSTICK) {
-            this.mvtCtrlFollowBtn.setAlpha(.8);
-            this.mvtCtrlFollowBtn.setTint(0xffffff);
-            this.mvtCtrlJoystickBtn.setAlpha(1);
-            this.mvtCtrlJoystickBtn.setTint(HERO_TINT);
-        }
-    }
-
-    private resizeMenu() {
-        // resize the bottom bar to span the full width and keep its height constant
-        this.menuBtn.setPosition(0, this.scale.height - MENU_BTN_DIMENSION)
-            .setSize(this.scale.width, MENU_BTN_DIMENSION);
+    private resizeMenu(): void {
+        this.menuBtn.setPosition(0, this.scale.height - MENU_BTN_DIMENSION).setSize(this.scale.width, MENU_BTN_DIMENSION);
         this.menuBtnImage.setPosition(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
         this.closeImage.setPosition(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
+
         const menuBGWidth = this.calculateMenuBGWidth();
-        this.menuBackground.setPosition(window.innerWidth - menuBGWidth, 0)
-            .setSize(menuBGWidth, window.innerHeight);
-        this.menuHeaderText.setPosition(this.menuBackground.x + this.menuBackground.width / 2, 16);
-        this.pointsText.setPosition(this.menuBackground.x + 20, this.menuHeaderText.y + this.menuHeaderText.displayHeight + 16)
-        this.stuffHeaderText.setPosition(this.menuBackground.x + 20, this.pointsText.y + this.pointsText.displayHeight + 8);
-        this.tokensHeaderText.setPosition(this.menuBackground.x + 20, this.stuffHeaderText.y + this.stuffHeaderText.displayHeight + 36 * GAME_SCALE);
-        this.relicsHeaderText.setPosition(this.menuBackground.x + 20, this.tokensHeaderText.y + this.tokensHeaderText.displayHeight + 36 * GAME_SCALE);
+        this.menuBackground.setPosition(window.innerWidth - menuBGWidth, 0).setSize(menuBGWidth, window.innerHeight);
+        this.menuHeaderText.setPosition(this.menuBackground.x + this.menuBackground.width / 2, HEADER_TEXT_OFFSET);
+
+        const menuBodyOffsetX = this.menuBackground.width * MENU_BODY_OFFSET_X_RATIO;
+        this.pointsText.setPosition(menuBodyOffsetX, this.menuHeaderText.y + this.menuHeaderText.displayHeight + POINTS_TEXT_OFFSET);
+
+        let currentY = this.pointsText.y + this.pointsText.displayHeight + TEXT_VERTICAL_SPACING;
+        Object.values(this.menuSections).forEach(section => {
+            section.headerText.setPosition(menuBodyOffsetX, currentY);
+            currentY += section.headerText.displayHeight + SECTION_VERTICAL_SPACING;
+        });
+
+        this.settingsHeaderText.setPosition(this.menuBackground.x + this.menuBackground.width / 2,
+            this.menuSections[INVENTORY_RELICS_REGISTRY_KEY].headerText.y + this.menuSections[INVENTORY_RELICS_REGISTRY_KEY].headerText.displayHeight + SECTION_VERTICAL_SPACING);
+        this.mvtCtrlHeaderText.setPosition(menuBodyOffsetX, this.settingsHeaderText.y + this.settingsHeaderText.displayHeight + TEXT_VERTICAL_SPACING);
+        this.mvtCtrlFollowBtn.setPosition(menuBodyOffsetX + TEXT_VERTICAL_SPACING, this.mvtCtrlHeaderText.y + this.mvtCtrlHeaderText.displayHeight + TEXT_VERTICAL_SPACING);
+        this.mvtCtrlJoystickBtn.setPosition(this.mvtCtrlFollowBtn.x + this.mvtCtrlFollowBtn.displayWidth + TEXT_VERTICAL_SPACING, this.mvtCtrlFollowBtn.y);
     }
 
     private calculateMenuBGWidth() {
