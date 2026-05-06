@@ -1,5 +1,5 @@
 import { STUFF_CONFIGS, TOKEN_CONFIGS, RELIC_CONFIGS } from "../config";
-import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, UI_BAR_HEIGHT, AUDIO_MUTE_REGISTRY_KEY, DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, DASH_ACTIVE_UNTIL_REGISTRY_KEY, SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, TEXT_TINT, TEXT_TINT_HEX } from "../constants";
+import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, UI_BAR_HEIGHT, AUDIO_MUTE_REGISTRY_KEY, DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, DASH_ACTIVE_UNTIL_REGISTRY_KEY, SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, TEXT_TINT, TEXT_TINT_HEX, IS_DEBUG } from "../constants";
 import { HERO_MOVEMENT_CONTROLLERS } from "../interfaces/heroMovementController";
 import { InventoryItem } from "../interfaces/stuffInInventory";
 import { TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT } from "../text";
@@ -55,6 +55,7 @@ export class UIScene extends Phaser.Scene {
         this.initMenu();
         this.initEventListeners();
         this.initUIUpdates();
+        this.initDebugKeyBinding();
     }
 
     private initMenuButton(): void {
@@ -323,6 +324,62 @@ export class UIScene extends Phaser.Scene {
         this.registry.events.on('changedata', this.updateUI, this);
     }
 
+    private initDebugKeyBinding(): void {
+        if (!IS_DEBUG) return;
+
+        this.input.keyboard.on('keydown', (event: KeyboardEvent) => {
+            if (event.ctrlKey && event.altKey && event.key === 't') {
+                event.preventDefault();
+                this.handleDebugTokenInput();
+            }
+        });
+
+        this.input.keyboard.on('keydown', (event: KeyboardEvent) => {
+            if (event.ctrlKey && event.altKey && event.key === 'r') {
+                event.preventDefault();
+                this.handleDebugRelicInput();
+            }
+        });
+    }
+
+    private handleDebugInventoryInput(configs: any[], registryKey: string, itemType: string): void {
+        const itemName = prompt(`Enter ${itemType} name:`);
+        if (!itemName) return;
+
+        const config = configs.find(c => c.key === itemName);
+        if (!config) {
+            alert(`${itemType} "${itemName}" not found.`);
+            return;
+        }
+
+        const quantityStr = prompt(`Enter quantity for ${itemName}:`);
+        if (quantityStr === null) return;
+
+        const quantity = parseInt(quantityStr, 10);
+        if (isNaN(quantity) || quantity < 0) {
+            alert('Invalid quantity.');
+            return;
+        }
+
+        // Update the registry
+        const currentItems: InventoryItem[] = this.registry.get(registryKey) || [];
+        const existingIndex = currentItems.findIndex(item => item.inventoryItemKey === itemName);
+        if (existingIndex >= 0) {
+            currentItems[existingIndex].quantity = quantity;
+        } else {
+            currentItems.push({ inventoryItemKey: itemName, quantity });
+        }
+        this.registry.set(registryKey, currentItems);
+    }
+
+    private handleDebugTokenInput(): void {
+        this.handleDebugInventoryInput(TOKEN_CONFIGS, INVENTORY_TOKENS_REGISTRY_KEY, 'token');
+    }
+
+    private handleDebugRelicInput(): void {
+        this.handleDebugInventoryInput(RELIC_CONFIGS, INVENTORY_RELICS_REGISTRY_KEY, 'relic');
+    }
+
     private updateUI(_parent: any, key: string, data: any): void {
         const handler = this.uiUpdateHandlers[key];
         if (handler) handler(data);
@@ -348,7 +405,7 @@ export class UIScene extends Phaser.Scene {
                 const config = configs.find(c => c.stuffName === item.inventoryItemKey);
                 return config ? points + (config.points * item.quantity) : points;
             }, 0);
-            this.pointsText.setText('Points: ' + totalPoints);
+            this.pointsText.setText('Your Points: ' + totalPoints);
         }
 
         const section = this.menuSections[registryKey];

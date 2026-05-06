@@ -595,11 +595,6 @@ export class SiteScene extends Phaser.Scene {
             return;
         }
 
-        // Ability doesn't work in overworld
-        if (this.scene.key === SITE_TYPES.overworld) {
-            return;
-        }
-
         // Get tile at coordinates
         const tile = this.mapLayer.getTileAt(tileX, tileY);
         if (!tile) {
