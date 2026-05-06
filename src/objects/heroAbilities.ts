@@ -1,5 +1,5 @@
 import { CARDINAL_DIRECTION } from '../utils';
-import { GAME_SCALE, HERO_FRAMES, HERO_TINT, INVENTORY_RELICS_REGISTRY_KEY, SPIN_DUST_BREAK_EVENT_KEY, WALL_BREAK_EVENT_KEY, WALL_BREAK_PUSH_THRESHOLD } from '../constants';
+import { GAME_SCALE, HERO_FRAMES, HERO_TINT, INVENTORY_RELICS_REGISTRY_KEY, DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, DASH_ACTIVE_UNTIL_REGISTRY_KEY, SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, SPIN_DUST_BREAK_EVENT_KEY, WALL_BREAK_EVENT_KEY, WALL_BREAK_PUSH_THRESHOLD } from '../constants';
 
 export class HeroAbilities {
     // ---- dash / special move state ----
@@ -23,18 +23,21 @@ export class HeroAbilities {
 
     // wall break state (cestus relic)
     private wallPushTimer = 0; // how long (ms) hero has been pushing into wall
-    private wallPushCoords: {x: number, y: number} = null; // tile coords of wall being pushed
     private wallBreakCooldownEndsAt = 0; // timestamp when cooldown expires (0 = no cooldown)
     private wallPushOverlaySprite: Phaser.GameObjects.Sprite = null; // overlay sprite to lock hero tint on the pushed wall tile
     private heroShakeOverlay: Phaser.GameObjects.Sprite = null; // non-physics overlay for hero shake visual
     private heroShakeTween: Phaser.Tweens.Tween = null; // tween for hero shaking effect
     private _heroShakeOffset = { x: 0, y: 0 }; // current shake offset for overlay sprite
 
-    constructor(private scene: Phaser.Scene, private heroSprite: Phaser.Physics.Arcade.Sprite) {}
+    constructor(private scene: Phaser.Scene, private heroSprite: Phaser.Physics.Arcade.Sprite) {
+        this.scene.registry.set(DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, 0);
+        this.scene.registry.set(SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, 0);
+        this.scene.registry.set(WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, 0);
+    }
 
     // ---------- dash methods ----------
     canDash(): boolean {
-        return !this._isDashing && !this._isBoosting && this.getSandalQuantity() > 0 && this.scene.time.now >= this.dashCooldownEndsAt;
+        return !this._isDashing && !this._isBoosting && this.getRelicQuantity('sandal') > 0 && this.scene.time.now >= this.dashCooldownEndsAt;
     }
 
     startDash(direction: CARDINAL_DIRECTION) {
@@ -48,6 +51,8 @@ export class HeroAbilities {
         const animDir = direction === CARDINAL_DIRECTION.LEFT ? CARDINAL_DIRECTION.RIGHT : direction;
         this.heroSprite.anims.play('walk' + animDir, true);
         this.heroSprite.setTint(0xFFFFFF);
+        // Mark when the dash+boost phase ends (so UI knows when to show icon)
+        this.scene.registry.set(DASH_ACTIVE_UNTIL_REGISTRY_KEY, this._dashPhaseEndTime + this.boostDuration);
     }
 
     updateDash(): boolean {
@@ -100,7 +105,7 @@ export class HeroAbilities {
         }
     }
 
-    updateBoost(velocity: number): boolean {
+    updateBoost(): boolean {
         if (!this._isBoosting) return false;
 
         // apply boost multiplier if in boost phase
@@ -113,9 +118,10 @@ export class HeroAbilities {
         if (this.scene.time.now >= this._dashPhaseEndTime) {
             this._isBoosting = false;
             this.stopBoostBlinking();
-            const sandalQuantity = this.getSandalQuantity();
+            const sandalQuantity = this.getRelicQuantity('sandal');
             const cooldownMs = this.calculateDashCooldownMs(sandalQuantity);
             this.dashCooldownEndsAt = this.scene.time.now + cooldownMs;
+            this.scene.registry.set(DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, this.dashCooldownEndsAt);
             return true;
         }
         return false;
@@ -175,6 +181,7 @@ export class HeroAbilities {
             const daggerQuantity = this.getRelicQuantity('dagger');
             const cooldownMs = this.calculateAbilityCooldownMs(daggerQuantity);
             this.spinCooldownEndsAt = this.scene.time.now + cooldownMs;
+            this.scene.registry.set(SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, this.spinCooldownEndsAt);
         }
     }
 
@@ -186,7 +193,7 @@ export class HeroAbilities {
         const wasPushing = this.wallPushTimer > 0;
 
         // check if hero is pushing into wall while moving and not in another special state
-        if (isBlocked && isMoving && !this._isDashing && !this._isBoosting && !this._isSpinning && this.scene.time.now >= this.wallBreakCooldownEndsAt) {
+        if (isBlocked && isMoving && !this._isDashing && !this._isSpinning && this.scene.time.now >= this.wallBreakCooldownEndsAt) {
             // increment push timer
             this.wallPushTimer += this.scene.game.loop.delta;
 
@@ -205,10 +212,10 @@ export class HeroAbilities {
                     const cestusQuantity = this.getRelicQuantity('cestus');
                     const cooldownMs = this.calculateAbilityCooldownMs(cestusQuantity);
                     this.wallBreakCooldownEndsAt = this.scene.time.now + cooldownMs;
+                    this.scene.registry.set(WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, this.wallBreakCooldownEndsAt);
 
                     // reset push timer
                     this.wallPushTimer = 0;
-                    this.wallPushCoords = null;
                     this.stopWallPushEffects();
                 }
             }
@@ -218,7 +225,6 @@ export class HeroAbilities {
                 this.stopWallPushEffects();
             }
             this.wallPushTimer = 0;
-            this.wallPushCoords = null;
         }
     }
 
@@ -232,12 +238,6 @@ export class HeroAbilities {
     }
 
     // ---------- private helpers ----------
-    private getSandalQuantity(): number {
-        const relics = this.scene.registry.get(INVENTORY_RELICS_REGISTRY_KEY) || [];
-        const sandal = relics.find((item: any) => item.inventoryItemKey === 'sandal');
-        return sandal ? sandal.quantity : 0;
-    }
-
     private getRelicQuantity(relicName: string): number {
         const relics = this.scene.registry.get(INVENTORY_RELICS_REGISTRY_KEY) || [];
         const relic = relics.find((item: any) => item.inventoryItemKey === relicName);
@@ -348,8 +348,6 @@ export class HeroAbilities {
         const coords = this.getWallTileCoords();
         if (!coords) return;
 
-        this.wallPushCoords = coords;
-
         // Find the tilemap layer
         const tilemapLayers = this.scene.children.list.filter(child =>
             child instanceof Phaser.Tilemaps.TilemapLayer
@@ -416,8 +414,6 @@ export class HeroAbilities {
             this.heroShakeOverlay.destroy();
             this.heroShakeOverlay = null;
         }
-
-        this.wallPushCoords = null;
 
         if (this.heroShakeTween) {
             this.heroShakeTween.stop();

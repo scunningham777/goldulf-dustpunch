@@ -162,7 +162,7 @@ export class Hero {
             }
 
             // apply boost multiplier if in boost phase
-            this.abilities.updateBoost(this.velocity);
+            this.abilities.updateBoost();
 
             // fix #17 - cap linear velocity at 1 x this.velocity
             if (this.heroSprite.body.velocity.x != 0 && this.heroSprite.body.velocity.y != 0) {

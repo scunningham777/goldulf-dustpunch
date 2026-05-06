@@ -1,5 +1,5 @@
 import { STUFF_CONFIGS, TOKEN_CONFIGS, RELIC_CONFIGS } from "../config";
-import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, UI_BAR_HEIGHT, AUDIO_MUTE_REGISTRY_KEY, TEXT_TINT, TEXT_TINT_HEX } from "../constants";
+import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, UI_BAR_HEIGHT, AUDIO_MUTE_REGISTRY_KEY, DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, DASH_ACTIVE_UNTIL_REGISTRY_KEY, SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, TEXT_TINT, TEXT_TINT_HEX } from "../constants";
 import { HERO_MOVEMENT_CONTROLLERS } from "../interfaces/heroMovementController";
 import { InventoryItem } from "../interfaces/stuffInInventory";
 import { TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT } from "../text";
@@ -36,6 +36,12 @@ export class UIScene extends Phaser.Scene {
     private muteBtn: Phaser.GameObjects.Text;
     private menuBtn: Phaser.GameObjects.Rectangle;
     private menuBtnImage: Phaser.GameObjects.Image;
+    private sandalCooldownIcon: Phaser.GameObjects.Image;
+    private sandalCooldownText: Phaser.GameObjects.Text;
+    private daggerCooldownIcon: Phaser.GameObjects.Image;
+    private daggerCooldownText: Phaser.GameObjects.Text;
+    private cestusCooldownIcon: Phaser.GameObjects.Image;
+    private cestusCooldownText: Phaser.GameObjects.Text;
     private isHidingMenu: boolean = false;
 
     private menuSections: { [key: string]: MenuSection } = {};
@@ -44,6 +50,7 @@ export class UIScene extends Phaser.Scene {
 
     create(): void {
         this.initMenuButton();
+        this.initCooldownDisplay();
         this.initVirtualJoystick();
         this.initMenu();
         this.initEventListeners();
@@ -197,6 +204,79 @@ export class UIScene extends Phaser.Scene {
         });
     }
 
+    private initCooldownDisplay(): void {
+        const sandalConfig = RELIC_CONFIGS.find(relic => relic.key === 'sandal');
+        const daggerConfig = RELIC_CONFIGS.find(relic => relic.key === 'dagger');
+        const cestusConfig = RELIC_CONFIGS.find(relic => relic.key === 'cestus');
+        if (!sandalConfig || !daggerConfig || !cestusConfig) return;
+
+        const iconY = this.scale.height - MENU_BTN_DIMENSION / 2;
+        const sandalX = MENU_BTN_DIMENSION / 2;
+        const daggerX = sandalX + MENU_BTN_DIMENSION + 32;
+        const cestusX = daggerX + MENU_BTN_DIMENSION + 32;
+
+        this.sandalCooldownIcon = this.add.image(sandalX, iconY, STATIC_TEXTURE_KEY, sandalConfig.frameIndex)
+            .setScale(GAME_SCALE)
+            .setTint(sandalConfig.tint)
+            .setOrigin(0.5, 0.5)
+            .setVisible(false);
+
+        this.sandalCooldownText = this.add.text(sandalX + (MENU_BTN_DIMENSION / 2) + 4, iconY, '', {
+            font: `${STANDARD_FONT_SIZE}px '7_12'`,
+            color: TEXT_TINT_HEX
+        }).setOrigin(0, 0.5).setVisible(false);
+
+        this.daggerCooldownIcon = this.add.image(daggerX, iconY, STATIC_TEXTURE_KEY, daggerConfig.frameIndex)
+            .setScale(GAME_SCALE)
+            .setTint(daggerConfig.tint)
+            .setOrigin(0.5, 0.5)
+            .setVisible(false);
+
+        this.daggerCooldownText = this.add.text(daggerX + (MENU_BTN_DIMENSION / 2) + 4, iconY, '', {
+            font: `${STANDARD_FONT_SIZE}px '7_12'`,
+            color: TEXT_TINT_HEX
+        }).setOrigin(0, 0.5).setVisible(false);
+
+        this.cestusCooldownIcon = this.add.image(cestusX, iconY, STATIC_TEXTURE_KEY, cestusConfig.frameIndex)
+            .setScale(GAME_SCALE)
+            .setTint(cestusConfig.tint)
+            .setOrigin(0.5, 0.5)
+            .setVisible(false);
+
+        this.cestusCooldownText = this.add.text(cestusX + (MENU_BTN_DIMENSION / 2) + 4, iconY, '', {
+            font: `${STANDARD_FONT_SIZE}px '7_12'`,
+            color: TEXT_TINT_HEX
+        }).setOrigin(0, 0.5).setVisible(false);
+    }
+
+    private updateCooldownDisplayVisibility(): void {
+        if (!this.sandalCooldownIcon || !this.sandalCooldownText || !this.daggerCooldownIcon || !this.daggerCooldownText || !this.cestusCooldownIcon || !this.cestusCooldownText) return;
+
+        const menuOpen = this.menuLayer?.visible;
+        const dashActiveUntil = this.registry.get(DASH_ACTIVE_UNTIL_REGISTRY_KEY) || 0;
+        const dashCooldownEndsAt = this.registry.get(DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY) || 0;
+        const spinCooldownEndsAt = this.registry.get(SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY) || 0;
+        const wallBreakCooldownEndsAt = this.registry.get(WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY) || 0;
+
+        // Sandal icon shows during dash/boost OR during cooldown; text only shows during cooldown
+        const sandalActive = dashActiveUntil > this.time.now || dashCooldownEndsAt > this.time.now;
+        const sandalShowText = dashCooldownEndsAt > this.time.now;
+        const showSandalIcon = sandalActive && !menuOpen;
+        const showSandalText = sandalShowText && !menuOpen;
+
+        const daggerOnCooldown = spinCooldownEndsAt > this.time.now;
+        const cestusOnCooldown = wallBreakCooldownEndsAt > this.time.now;
+        const showDagger = daggerOnCooldown && !menuOpen;
+        const showCestus = cestusOnCooldown && !menuOpen;
+
+        this.sandalCooldownIcon.setVisible(showSandalIcon);
+        this.sandalCooldownText.setVisible(showSandalText);
+        this.daggerCooldownIcon.setVisible(showDagger);
+        this.daggerCooldownText.setVisible(showDagger);
+        this.cestusCooldownIcon.setVisible(showCestus);
+        this.cestusCooldownText.setVisible(showCestus);
+    }
+
     private assembleMenuLayer(): void {
         const menuElements: Phaser.GameObjects.GameObject[] = [
             this.menuBackground, this.menuHeaderText, this.pointsText, this.closeImage, this.muteBtn, this.settingsHeaderText,
@@ -257,7 +337,9 @@ export class UIScene extends Phaser.Scene {
     }
 
     private showInventory(doShow: boolean): void {
-        this.menuLayer.setVisible(doShow ?? !this.menuLayer.visible);
+        const visible = doShow ?? !this.menuLayer.visible;
+        this.menuLayer.setVisible(visible);
+        this.updateCooldownDisplayVisibility();
     }
 
     private updateInventorySection(registryKey: string, items: InventoryItem[], configs: any[], defaultTint?: number): void {
@@ -309,6 +391,25 @@ export class UIScene extends Phaser.Scene {
         this.closeImage.setPosition(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
         this.muteBtn.setPosition(MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
 
+        if (this.sandalCooldownIcon) {
+            this.sandalCooldownIcon.setPosition(MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
+        }
+        if (this.sandalCooldownText) {
+            this.sandalCooldownText.setPosition(MENU_BTN_DIMENSION, this.menuBtn.y + this.menuBtn.height / 2);
+        }
+        if (this.daggerCooldownIcon) {
+            this.daggerCooldownIcon.setPosition(MENU_BTN_DIMENSION / 2 + MENU_BTN_DIMENSION + 8, this.menuBtn.y + this.menuBtn.height / 2);
+        }
+        if (this.daggerCooldownText) {
+            this.daggerCooldownText.setPosition(MENU_BTN_DIMENSION * 2 + 8 + (MENU_BTN_DIMENSION / 2) + 4, this.menuBtn.y + this.menuBtn.height / 2);
+        }
+        if (this.cestusCooldownIcon) {
+            this.cestusCooldownIcon.setPosition(MENU_BTN_DIMENSION / 2 + (MENU_BTN_DIMENSION + 8) * 2, this.menuBtn.y + this.menuBtn.height / 2);
+        }
+        if (this.cestusCooldownText) {
+            this.cestusCooldownText.setPosition(MENU_BTN_DIMENSION / 2 + (MENU_BTN_DIMENSION + 8) * 2 + (MENU_BTN_DIMENSION / 2) + 4, this.menuBtn.y + this.menuBtn.height / 2);
+        }
+
         const menuBGWidth = this.calculateMenuBGWidth();
         this.menuBackground.setPosition(window.innerWidth - menuBGWidth, 0).setSize(menuBGWidth, window.innerHeight);
         this.menuHeaderText.setPosition(this.menuBackground.x + this.menuBackground.width / 2, HEADER_TEXT_OFFSET);
@@ -327,6 +428,36 @@ export class UIScene extends Phaser.Scene {
         this.mvtCtrlHeaderText.setPosition(menuBodyOffsetX, this.settingsHeaderText.y + this.settingsHeaderText.displayHeight + TEXT_VERTICAL_SPACING);
         this.mvtCtrlFollowBtn.setPosition(menuBodyOffsetX + TEXT_VERTICAL_SPACING, this.mvtCtrlHeaderText.y + this.mvtCtrlHeaderText.displayHeight + TEXT_VERTICAL_SPACING);
         this.mvtCtrlJoystickBtn.setPosition(this.mvtCtrlFollowBtn.x + this.mvtCtrlFollowBtn.displayWidth + TEXT_VERTICAL_SPACING, this.mvtCtrlFollowBtn.y);
+    }
+
+    update(): void {
+        this.updateCooldownDisplayVisibility();
+
+        if (!this.sandalCooldownText || !this.sandalCooldownIcon || !this.daggerCooldownText || !this.daggerCooldownIcon || !this.cestusCooldownText || !this.cestusCooldownIcon) return;
+
+        // Sandal: show cooldown text only during cooldown phase (not during dash/boost)
+        const dashCooldownEndsAt = this.registry.get(DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY) || 0;
+        const dashRemainingMs = Math.max(0, dashCooldownEndsAt - this.time.now);
+        if (dashRemainingMs > 0) {
+            const secondsRemaining = Math.ceil(dashRemainingMs / 1000);
+            this.sandalCooldownText.setText(`${secondsRemaining}s`);
+        } else {
+            this.sandalCooldownText.setText('');
+        }
+
+        const spinCooldownEndsAt = this.registry.get(SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY) || 0;
+        const spinRemainingMs = Math.max(0, spinCooldownEndsAt - this.time.now);
+        if (spinRemainingMs > 0) {
+            const secondsRemaining = Math.ceil(spinRemainingMs / 1000);
+            this.daggerCooldownText.setText(`${secondsRemaining}s`);
+        }
+
+        const wallBreakCooldownEndsAt = this.registry.get(WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY) || 0;
+        const wallBreakRemainingMs = Math.max(0, wallBreakCooldownEndsAt - this.time.now);
+        if (wallBreakRemainingMs > 0) {
+            const secondsRemaining = Math.ceil(wallBreakRemainingMs / 1000);
+            this.cestusCooldownText.setText(`${secondsRemaining}s`);
+        }
     }
 
     private calculateMenuBGWidth() {
