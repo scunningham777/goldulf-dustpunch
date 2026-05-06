@@ -193,7 +193,7 @@ export class HeroAbilities {
         const wasPushing = this.wallPushTimer > 0;
 
         // check if hero is pushing into wall while moving and not in another special state
-        if (isBlocked && isMoving && !this._isDashing && !this._isSpinning && this.scene.time.now >= this.wallBreakCooldownEndsAt) {
+        if (isBlocked && isMoving && !this._isDashing && !this._isSpinning && this.getRelicQuantity('cestus') > 0 && this.scene.time.now >= this.wallBreakCooldownEndsAt) {
             // increment push timer
             this.wallPushTimer += this.scene.game.loop.delta;
 
