@@ -6,7 +6,6 @@ import { TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT } from "../text
 
 const VIRTUAL_JOYSTICK_DIAMETER = 16;
 const MENU_BTN_DIMENSION = UI_BAR_HEIGHT;
-const MENU_BG_WIDTH_RATIO = 1; // Full width
 const MENU_BODY_OFFSET_X_RATIO = 0.06;
 const STANDARD_FONT_SIZE = 8 * GAME_SCALE;
 const HEADER_FONT_SIZE = 12 * GAME_SCALE;
@@ -33,7 +32,6 @@ export class UIScene extends Phaser.Scene {
     private mvtCtrlHeaderText: Phaser.GameObjects.Text;
     private mvtCtrlFollowBtn: Phaser.GameObjects.Text;
     private mvtCtrlJoystickBtn: Phaser.GameObjects.Text;
-    private fleeSiteBtnOutline: Phaser.GameObjects.Rectangle;
     private fleeSiteBtnText: Phaser.GameObjects.Text;
     private muteBtn: Phaser.GameObjects.Text;
     private menuBtn: Phaser.GameObjects.Rectangle;
@@ -191,21 +189,15 @@ export class UIScene extends Phaser.Scene {
         const fleeBtnTextY = this.mvtCtrlFollowBtn.y + this.mvtCtrlFollowBtn.displayHeight + TEXT_VERTICAL_SPACING;
         this.fleeSiteBtnText = this.add.text(menuBodyOffsetX + 4, fleeBtnTextY, 'Flee This Place!', {
             font: `${STANDARD_FONT_SIZE}px '7_12'`,
-            color: TEXT_TINT_HEX
+            color: '#' + STUFF_TINT.toString(16)
         }).setOrigin(0, 0).setInteractive();
 
-        // this.fleeSiteBtnOutline = this.add.rectangle(menuBodyOffsetX, fleeBtnTextY - (TEXT_VERTICAL_SPACING / 2), this.fleeSiteBtnText.displayWidth + 16, this.fleeSiteBtnText.displayHeight + TEXT_VERTICAL_SPACING, 0x000000, 0)
-        //     .setOrigin(0, 0)
-        //     .setStrokeStyle(1 * GAME_SCALE, TEXT_TINT)
-        //     .setInteractive();
 
-        this.fleeSiteBtnText.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-            // if (pointer.event) pointer.event.stopPropagation();
+        this.fleeSiteBtnText.on('pointerdown', () => {
             this.registry.events.emit(EXIT_SITE_REQUEST_KEY);
         });
 
         this.fleeSiteBtnText.setVisible(false);
-        // this.fleeSiteBtnOutline.setVisible(false);
     }
 
     private createCloseButton(): void {
@@ -302,7 +294,7 @@ export class UIScene extends Phaser.Scene {
     private assembleMenuLayer(): void {
         const menuElements: Phaser.GameObjects.GameObject[] = [
             this.menuBackground, this.menuHeaderText, this.pointsText, this.closeImage, this.muteBtn, this.settingsHeaderText,
-            this.mvtCtrlHeaderText, this.mvtCtrlFollowBtn, this.mvtCtrlJoystickBtn, /*this.fleeSiteBtnOutline,*/ this.fleeSiteBtnText
+            this.mvtCtrlHeaderText, this.mvtCtrlFollowBtn, this.mvtCtrlJoystickBtn, this.fleeSiteBtnText
         ];
 
         // Add section headers and groups
@@ -462,7 +454,6 @@ export class UIScene extends Phaser.Scene {
 
     private updateFleeButtonVisibility(siteData: any): void {
         const visible = !!siteData && siteData.siteType !== SITE_TYPES.overworld;
-        if (this.fleeSiteBtnOutline) this.fleeSiteBtnOutline.setVisible(visible);
         if (this.fleeSiteBtnText) this.fleeSiteBtnText.setVisible(visible);
     }
 
@@ -514,11 +505,9 @@ export class UIScene extends Phaser.Scene {
         this.mvtCtrlFollowBtn.setPosition(menuBodyOffsetX + TEXT_VERTICAL_SPACING, this.mvtCtrlHeaderText.y + this.mvtCtrlHeaderText.displayHeight + TEXT_VERTICAL_SPACING);
         this.mvtCtrlJoystickBtn.setPosition(this.mvtCtrlFollowBtn.x + this.mvtCtrlFollowBtn.displayWidth + TEXT_VERTICAL_SPACING, this.mvtCtrlFollowBtn.y);
 
-        if (this.fleeSiteBtnText /*&& this.fleeSiteBtnOutline*/) {
+        if (this.fleeSiteBtnText) {
             const fleeBtnY = this.mvtCtrlFollowBtn.y + this.mvtCtrlFollowBtn.displayHeight + TEXT_VERTICAL_SPACING;
             this.fleeSiteBtnText.setPosition(menuBodyOffsetX + 4, fleeBtnY);
-            // this.fleeSiteBtnOutline.setPosition(menuBodyOffsetX, fleeBtnY - (TEXT_VERTICAL_SPACING / 2))
-            //     .setSize(this.fleeSiteBtnText.displayWidth + 8, this.fleeSiteBtnText.displayHeight + TEXT_VERTICAL_SPACING);
         }
     }
 
