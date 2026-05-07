@@ -7,7 +7,6 @@ export interface MapArea {
     focusTileIndex: number;
     linkedMapConfigType: SITE_TYPES;
     linkedMapConfigName?: string;
-    linkedMapConfigCategory?: string;
     /** optional token deduction that should happen when the player uses this exit */
     requiredTokens?: { [tokenKey: string]: number };
     isAccessible: boolean;

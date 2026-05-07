@@ -12,7 +12,6 @@ export class Exit extends Phaser.Physics.Arcade.Image {
         public id: string,
         private linkedMapSceneType?: SITE_TYPES,
         public linkedMapConfigName?: string,
-        private linkedMapConfigCategory?: string,
         public requiredTokens?: { [tokenKey: string]: number },
     ) {
         super(scene, x, y, key, frame);
@@ -39,7 +38,6 @@ export class Exit extends Phaser.Physics.Arcade.Image {
         this.scene.registry.events.emit(EXIT_COLLISION_EVENT_KEY, {
             linkedMapSceneType: this.linkedMapSceneType,
             linkedMapConfigName: this.linkedMapConfigName,
-            linkedMapConfigCategory: this.linkedMapConfigCategory,
             requiredTokens: this.requiredTokens
         });
     }

@@ -49,6 +49,7 @@ export const HERO_VELOCITY = 250;
 export const HERO_DEBUG_VELOCITY_MULTIPLIER = 1.5;
 export const HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY = 'hero_mvt_ctrl';
 export const AUDIO_MUTE_REGISTRY_KEY = 'audio_mute';
+export const EXIT_SITE_REQUEST_KEY = 'exit_site_request';
 export const DUNGEON_LAYER_KEYS = {
     BG_LAYER: 'bg-layer',
     STUFF_LAYER: 'stuff-layer',
@@ -128,3 +129,4 @@ export const HERO_MOVEMENT_CONTROLLER: 'follow' | 'joystick' = 'follow';
 export const DOUBLE_TAP_THRESHOLD = 250; // ms allowed between taps
 export const SWIPE_MAX_TIME = 300;        // max duration for a swipe gesture
 export const SWIPE_MIN_DISTANCE = 40;     // min pixel distance for a swipe
+export const DASH_LOOKAHEAD_MULTIPLIER = 0.032; // multiplier for dash lookahead distance (frames ahead)

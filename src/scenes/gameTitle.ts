@@ -161,7 +161,6 @@ export class GameTitleScene extends Phaser.Scene {
 
         const initialMapSceneConfig = {
             mapConfigName: SKIP_OVERWORLD ? 'temple' : 'new_game',
-            mapConfigCategory: null,
         };
         this.cleanup();
         

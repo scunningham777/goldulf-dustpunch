@@ -28,6 +28,8 @@ export class PreloadScene extends Phaser.Scene {
         this.load.audio('glory', 'assets/sounds/deep_glory.wav');
         this.load.audio('spirit', 'assets/sounds/spirited_away.wav');
         this.load.audio('duty', 'assets/music/duty.mp3');
+        this.load.audio('dredger', 'assets/music/dredger.mp3');
+        this.load.audio('ramble', 'assets/music/ramble.mp3');
 
         this.load.script('webfont', 'https://cdnjs.cloudflare.com/ajax/libs/webfont/1.6.28/webfontloader.js');
     }
@@ -41,7 +43,7 @@ export class PreloadScene extends Phaser.Scene {
                 const siteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
                 if (!!siteData) {
                     this.scene.launch(UI_SCENE_KEY);
-                    this.scene.start(siteData.siteType, {mapConfigName: siteData.siteConfigName, mapConfigCategory: null});
+                    this.scene.start(siteData.siteType, {mapConfigName: siteData.siteConfigName});
                 } else {
                     this.scene.start('GameTitle');
                 }

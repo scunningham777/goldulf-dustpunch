@@ -8,7 +8,6 @@ export interface AreaConfig {
     focusTileIndex?: number;
     linkedMapConfigType?: SITE_TYPES;
     availableLinkedMapConfigName?: string[];
-    availableLinkedMapConfigCategory?: string[];
     obstructionTileWeights?: IndexedWeightRecord[];
     /**
      * When provided the generator will only consider this config if the

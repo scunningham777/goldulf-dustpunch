@@ -1,5 +1,5 @@
 import { CARDINAL_DIRECTION } from '../utils';
-import { GAME_SCALE, HERO_FRAMES, HERO_TINT, INVENTORY_RELICS_REGISTRY_KEY, DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, DASH_ACTIVE_UNTIL_REGISTRY_KEY, SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, SPIN_DUST_BREAK_EVENT_KEY, WALL_BREAK_EVENT_KEY, WALL_BREAK_PUSH_THRESHOLD } from '../constants';
+import { GAME_SCALE, HERO_FRAMES, HERO_TINT, INVENTORY_RELICS_REGISTRY_KEY, DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, DASH_ACTIVE_UNTIL_REGISTRY_KEY, SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, SPIN_DUST_BREAK_EVENT_KEY, WALL_BREAK_EVENT_KEY, WALL_BREAK_PUSH_THRESHOLD, DASH_LOOKAHEAD_MULTIPLIER } from '../constants';
 
 export class HeroAbilities {
     // ---- dash / special move state ----
@@ -199,7 +199,7 @@ export class HeroAbilities {
 
             // start effects if we just started pushing
             if (!wasPushing && this.wallPushTimer > 0) {
-                this.startWallPushEffects(this.heroSprite.flipX ? CARDINAL_DIRECTION.LEFT : CARDINAL_DIRECTION.RIGHT);
+                this.startWallPushEffects();
             }
 
             // if we've been pushing long enough, emit wall break event
@@ -264,7 +264,7 @@ export class HeroAbilities {
 
     private willCollideWithWall(direction: CARDINAL_DIRECTION, speed: number): boolean {
         // Check ahead in the dash direction for wall tiles to prevent tunneling
-        const checkDistance = speed * 0.016; // Check about 1 frame ahead (assuming 60fps)
+        const checkDistance = speed * DASH_LOOKAHEAD_MULTIPLIER; // Check about 2 frames ahead (assuming 60fps)
         let checkX = this.heroSprite.x;
         let checkY = this.heroSprite.y;
 
@@ -344,7 +344,7 @@ export class HeroAbilities {
         return {x: tileX, y: tileY};
     }
 
-    private startWallPushEffects(currentDirection: CARDINAL_DIRECTION) {
+    private startWallPushEffects() {
         const coords = this.getWallTileCoords();
         if (!coords) return;
 

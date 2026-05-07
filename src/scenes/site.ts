@@ -1,5 +1,5 @@
 import { Hero } from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY, INVENTORY_RELICS_REGISTRY_KEY, AUDIO_MUTE_REGISTRY_KEY, WALL_BREAK_EVENT_KEY } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY, INVENTORY_RELICS_REGISTRY_KEY, AUDIO_MUTE_REGISTRY_KEY, WALL_BREAK_EVENT_KEY, EXIT_SITE_REQUEST_KEY } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
@@ -61,29 +61,12 @@ export class SiteScene extends Phaser.Scene {
 
         if (!!this.hero) {
             this.hero.update(this.cursors, this.input.gamepad.gamepads[0]);
-            
-            // check if hero has broken out of map bounds (cestus ability)
-            if (!this.hasHeroReachedExit && this.scene.key !== SITE_TYPES.overworld) {
-                const mapWidthPixels = this.map.widthInPixels * GAME_SCALE;
-                const mapHeightPixels = this.map.heightInPixels * GAME_SCALE;
-                
-                if (this.hero.entity.x < 0 || this.hero.entity.x > mapWidthPixels ||
-                    this.hero.entity.y < 0 || this.hero.entity.y > mapHeightPixels) {
-                    // hero broke through map boundary - transition to new overworld
-                    this.nextMap({
-                        linkedMapSceneType: SITE_TYPES.overworld,
-                        linkedMapConfigName: undefined,
-                        linkedMapConfigCategory: undefined,
-                    });
-                }
-            }
         }
     }
     /* end lifecycle */
 
     selectMapConfig() {
         this.mapConfig = MAP_CONFIGS[this.scene.key].find(mc => mc.mapConfigName == this.scene.settings.data['mapConfigName'])
-            ?? Phaser.Math.RND.pick(MAP_CONFIGS[this.scene.key].filter(mc => mc.mapConfigCategories.some(mcc => mcc == this.scene.settings.data['mapConfigCategory'])) ?? [])
             ?? Phaser.Math.RND.pick(MAP_CONFIGS[this.scene.key]);
     }
 
@@ -133,7 +116,7 @@ export class SiteScene extends Phaser.Scene {
         this.mapLayer.setScale(GAME_SCALE);
 
         this.areas = siteData.areas;
-        this.exitGroup = this.createExits(siteData.areas.filter(a => a.linkedMapConfigName != null || a.linkedMapConfigCategory != null))
+        this.exitGroup = this.createExits(siteData.areas.filter(a => a.linkedMapConfigName != null))
         if (siteData.dust.length > 0){
             this.dustGroup = this.createDust(siteData.dust);
         }
@@ -188,6 +171,7 @@ export class SiteScene extends Phaser.Scene {
         this.registry.events.on('changedata', this.registryChangeHandler, this);
         this.registry.events.on(SPIN_DUST_BREAK_EVENT_KEY, this.spinDustBreakHandler, this);
         this.registry.events.on(WALL_BREAK_EVENT_KEY, this.wallBreakHandler, this);
+        this.registry.events.on(EXIT_SITE_REQUEST_KEY, this.exitToOverworld, this);
         this.input.gamepad.on('down', this.gamepadDownHandler, this);
     }
     clearListeners() {
@@ -195,6 +179,7 @@ export class SiteScene extends Phaser.Scene {
         this.registry.events.off('changedata', this.registryChangeHandler);
         this.registry.events.off(SPIN_DUST_BREAK_EVENT_KEY, this.spinDustBreakHandler);
         this.registry.events.off(WALL_BREAK_EVENT_KEY, this.wallBreakHandler, this);
+        this.registry.events.off(EXIT_SITE_REQUEST_KEY, this.exitToOverworld, this);
         this.input.gamepad.off('down', this.gamepadDownHandler);
     }
 
@@ -270,15 +255,15 @@ export class SiteScene extends Phaser.Scene {
                 });
                 this.time.delayedCall(1000, () => {
                     this.hero.unfreeze();
-                    if (!this.sound.isPlaying('duty')) {
-                        this.sound.play('duty', {loop: true, volume: .7 });
+                    if (!this.sound.isPlaying(this.mapConfig.songTitle)) {
+                        this.sound.play(this.mapConfig.songTitle, {loop: true, volume: .7 });
                     }
                 });
             } else {
                 this.time.delayedCall(200, () => {
                     this.hero.unfreeze();
-                    if (!this.sound.isPlaying('duty')) {
-                        this.sound.play('duty', {loop: true, volume: .7 });
+                    if (!this.sound.isPlaying(this.mapConfig.songTitle)) {
+                        this.sound.play(this.mapConfig.songTitle, {loop: true, volume: .7 });
                     }
                 });
             }
@@ -299,7 +284,7 @@ export class SiteScene extends Phaser.Scene {
                 exitX, exitY,
                 this.mapConfig.tilesetKey, imageIndex,
                 '' + new Date().getTime(),
-                exit.linkedMapConfigType, exit.linkedMapConfigName, exit.linkedMapConfigCategory,
+                exit.linkedMapConfigType, exit.linkedMapConfigName,
                 exit.requiredTokens
             );
             exitGroup.add(newExit);
@@ -380,7 +365,7 @@ export class SiteScene extends Phaser.Scene {
         }
     }
 
-    nextMap(exitConfig?: {linkedMapSceneType: SITE_TYPES, linkedMapConfigName: string, linkedMapConfigCategory: string, requiredTokens?: { [tokenKey: string]: number }}) {
+    nextMap(exitConfig?: {linkedMapSceneType: SITE_TYPES, linkedMapConfigName: string, requiredTokens?: { [tokenKey: string]: number }}) {
         this.hasHeroReachedExit = true;
         this.hero.freeze();
         this.clearListeners();
@@ -390,6 +375,7 @@ export class SiteScene extends Phaser.Scene {
                 
             }
         });
+        this.stopAudio();
         cam.once('camerafadeoutcomplete', () => {
             // deduct any tokens required by the exit before changing scenes
             if (exitConfig?.requiredTokens) {
@@ -407,7 +393,6 @@ export class SiteScene extends Phaser.Scene {
 
             const sceneConfig = {
                 mapConfigName: exitConfig?.linkedMapConfigName,
-                mapConfigCategory: exitConfig?.linkedMapConfigCategory
             };
             this.scene.start(exitConfig.linkedMapSceneType, sceneConfig);
         });
@@ -667,7 +652,7 @@ export class SiteScene extends Phaser.Scene {
         }
     }
 
-    gamepadDownHandler(pad: Phaser.Input.Gamepad.Gamepad, button: Phaser.Input.Gamepad.Button, value: number) {
+    gamepadDownHandler(_pad: Phaser.Input.Gamepad.Gamepad, button: Phaser.Input.Gamepad.Button, _value: number) {
         if (button.index == 8 || button.index == 9 && button.pressed && !this.hasHeroReachedExit) {
             this.registry.set(SHOW_MENU_REGISTRY_KEY, !this.registry.get(SHOW_MENU_REGISTRY_KEY));
         }
@@ -691,9 +676,7 @@ export class SiteScene extends Phaser.Scene {
 
     completeSite() {
         this.hasHeroReachedExit = true;
-        this.sound.getAll('duty').forEach(s => {
-            s.stop();
-        });
+        this.stopAudio();
         this.hero.freeze();
         this.hero.entity.setFrame(HERO_FRAMES.punchAnimStart[this.hero.currentDirection]);
         this.time.delayedCall(2000, () => {
@@ -708,5 +691,20 @@ export class SiteScene extends Phaser.Scene {
             
             this.hero.entity.setVisible(false);
         })
+    }
+
+    stopAudio() {
+        this.sound.getAll(this.mapConfig.songTitle).forEach(s => {
+            s.stop();
+        });
+    }
+
+    exitToOverworld() {
+        if (this.mapConfig.siteType !== SITE_TYPES.overworld) {
+            this.nextMap({
+                linkedMapSceneType: SITE_TYPES.overworld,
+                linkedMapConfigName: 'new_game',
+            });
+        }
     }
 }

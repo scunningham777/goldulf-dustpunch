@@ -78,7 +78,6 @@ export function generateRandomArea(
         focusTileIndex: areaConfig.focusTileIndex,
         linkedMapConfigType: areaConfig.linkedMapConfigType,
         linkedMapConfigName: Phaser.Math.RND.pick(areaConfig.availableLinkedMapConfigName ?? []),
-        linkedMapConfigCategory: Phaser.Math.RND.pick(areaConfig.availableLinkedMapConfigCategory ?? []),
         requiredTokens: areaConfig.requiredTokens,
         isAccessible: false,
     };

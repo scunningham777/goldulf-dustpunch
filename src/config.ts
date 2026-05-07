@@ -108,7 +108,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     requiredTokens: { ring: 1, diamond: 1, scales: 1, fasces: 1 }
                 },
             ],
-            maxExitAreaCount: 8,
+            maxExitAreaCount: 1,
             otherAreaConfigs: [
                 {
                     placement: 'floor',
@@ -124,6 +124,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             availableDustFrames: [],
             stuffTypeWeights: [],
             allowExtraExitAreas: true,
+            songTitle: 'ramble'
         },
         {
             ancestorTypeWeights: [],
@@ -200,7 +201,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     linkedMapConfigType: SITE_TYPES.gatedSite,
                     availableLinkedMapConfigName: ['supreme_cave'],
                     requiredTokens: { diamond: 3 }
-                },
+                },  
                 {
                     placement: 'floor',
                     minSize: 5,
@@ -226,7 +227,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     requiredTokens: { ring: 1, diamond: 1, scales: 1, fasces: 1 }
                 },
             ],
-            maxExitAreaCount: 4,
+            maxExitAreaCount: 2,
             allowExtraExitAreas: true,
             otherAreaConfigs: [
                 {
@@ -242,6 +243,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             dustWeight: 0,
             availableDustFrames: [],
             stuffTypeWeights: [],
+            songTitle: 'ramble'
         }
     ],
     'site': [
@@ -314,6 +316,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     weight: 36
                 }
             ],
+            songTitle: 'duty'
         },
         {
             ancestorTypeWeights: [
@@ -385,6 +388,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     weight: 63
                 }
             ],
+            songTitle: 'duty'
         },
         {
             ancestorTypeWeights: [
@@ -463,6 +467,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     weight: 63
                 }
             ],
+            songTitle: 'duty'
         },
         {
             ancestorTypeWeights: [
@@ -541,6 +546,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     weight: 63
                 }
             ],
+            songTitle: 'dredger'
         },
     ],
     'gatedSite': [
@@ -609,6 +615,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     weight: 36
                 }
             ],
+            songTitle: 'duty'
         },
         {
             ancestorTypeWeights: [
@@ -676,6 +683,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     weight: 63
                 }
             ],
+            songTitle: 'duty'
         },
         {
             ancestorTypeWeights: [
@@ -750,6 +758,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     weight: 63
                 }
             ],
+            songTitle: 'duty'
         },
         {
             ancestorTypeWeights: [
@@ -824,6 +833,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     weight: 63
                 }
             ],
+            songTitle: 'dredger'
         },
         {
             ancestorTypeWeights: [
@@ -907,6 +917,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     weight: 40
                 }
             ],
+            songTitle: 'duty'
         },
     ],
 }

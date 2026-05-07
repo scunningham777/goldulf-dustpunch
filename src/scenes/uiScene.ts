@@ -1,5 +1,5 @@
 import { STUFF_CONFIGS, TOKEN_CONFIGS, RELIC_CONFIGS } from "../config";
-import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, UI_BAR_HEIGHT, AUDIO_MUTE_REGISTRY_KEY, DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, DASH_ACTIVE_UNTIL_REGISTRY_KEY, SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, TEXT_TINT, TEXT_TINT_HEX, IS_DEBUG } from "../constants";
+import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, UI_BAR_HEIGHT, AUDIO_MUTE_REGISTRY_KEY, DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, DASH_ACTIVE_UNTIL_REGISTRY_KEY, SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, TEXT_TINT, TEXT_TINT_HEX, SITE_DATA_REGISTRY_KEY, EXIT_SITE_REQUEST_KEY, SITE_TYPES, IS_DEBUG } from "../constants";
 import { HERO_MOVEMENT_CONTROLLERS } from "../interfaces/heroMovementController";
 import { InventoryItem } from "../interfaces/stuffInInventory";
 import { TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT } from "../text";
@@ -33,6 +33,8 @@ export class UIScene extends Phaser.Scene {
     private mvtCtrlHeaderText: Phaser.GameObjects.Text;
     private mvtCtrlFollowBtn: Phaser.GameObjects.Text;
     private mvtCtrlJoystickBtn: Phaser.GameObjects.Text;
+    private fleeSiteBtnOutline: Phaser.GameObjects.Rectangle;
+    private fleeSiteBtnText: Phaser.GameObjects.Text;
     private muteBtn: Phaser.GameObjects.Text;
     private menuBtn: Phaser.GameObjects.Rectangle;
     private menuBtnImage: Phaser.GameObjects.Image;
@@ -185,6 +187,25 @@ export class UIScene extends Phaser.Scene {
         this.mvtCtrlJoystickBtn.on('pointerdown', () => {
             this.registry.set(HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLERS.JOYSTICK);
         });
+
+        const fleeBtnTextY = this.mvtCtrlFollowBtn.y + this.mvtCtrlFollowBtn.displayHeight + TEXT_VERTICAL_SPACING;
+        this.fleeSiteBtnText = this.add.text(menuBodyOffsetX + 4, fleeBtnTextY, 'Flee This Place!', {
+            font: `${STANDARD_FONT_SIZE}px '7_12'`,
+            color: TEXT_TINT_HEX
+        }).setOrigin(0, 0).setInteractive();
+
+        // this.fleeSiteBtnOutline = this.add.rectangle(menuBodyOffsetX, fleeBtnTextY - (TEXT_VERTICAL_SPACING / 2), this.fleeSiteBtnText.displayWidth + 16, this.fleeSiteBtnText.displayHeight + TEXT_VERTICAL_SPACING, 0x000000, 0)
+        //     .setOrigin(0, 0)
+        //     .setStrokeStyle(1 * GAME_SCALE, TEXT_TINT)
+        //     .setInteractive();
+
+        this.fleeSiteBtnText.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+            // if (pointer.event) pointer.event.stopPropagation();
+            this.registry.events.emit(EXIT_SITE_REQUEST_KEY);
+        });
+
+        this.fleeSiteBtnText.setVisible(false);
+        // this.fleeSiteBtnOutline.setVisible(false);
     }
 
     private createCloseButton(): void {
@@ -281,7 +302,7 @@ export class UIScene extends Phaser.Scene {
     private assembleMenuLayer(): void {
         const menuElements: Phaser.GameObjects.GameObject[] = [
             this.menuBackground, this.menuHeaderText, this.pointsText, this.closeImage, this.muteBtn, this.settingsHeaderText,
-            this.mvtCtrlHeaderText, this.mvtCtrlFollowBtn, this.mvtCtrlJoystickBtn
+            this.mvtCtrlHeaderText, this.mvtCtrlFollowBtn, this.mvtCtrlJoystickBtn, /*this.fleeSiteBtnOutline,*/ this.fleeSiteBtnText
         ];
 
         // Add section headers and groups
@@ -309,7 +330,8 @@ export class UIScene extends Phaser.Scene {
             },
             [HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY]: (data: HERO_MOVEMENT_CONTROLLERS) => this.updateMenuMvtCtrlSelection(data),
             [SHOW_MENU_REGISTRY_KEY]: (data: boolean) => this.showInventory(data),
-            [AUDIO_MUTE_REGISTRY_KEY]: (data: boolean) => this.updateMuteButtonState(data)
+            [AUDIO_MUTE_REGISTRY_KEY]: (data: boolean) => this.updateMuteButtonState(data),
+            [SITE_DATA_REGISTRY_KEY]: (data: any) => this.updateFleeButtonVisibility(data)
         };
 
         // Initial updates
@@ -438,6 +460,12 @@ export class UIScene extends Phaser.Scene {
         this.mvtCtrlJoystickBtn.setAlpha(isFollow ? 0.8 : 1).setTint(isFollow ? TEXT_TINT : HERO_TINT);
     }
 
+    private updateFleeButtonVisibility(siteData: any): void {
+        const visible = !!siteData && siteData.siteType !== SITE_TYPES.overworld;
+        if (this.fleeSiteBtnOutline) this.fleeSiteBtnOutline.setVisible(visible);
+        if (this.fleeSiteBtnText) this.fleeSiteBtnText.setVisible(visible);
+    }
+
     private updateMuteButtonState(isMuted: boolean): void {
         this.muteBtn.setTint(isMuted ? HERO_TINT : TEXT_TINT);
     }
@@ -485,6 +513,13 @@ export class UIScene extends Phaser.Scene {
         this.mvtCtrlHeaderText.setPosition(menuBodyOffsetX, this.settingsHeaderText.y + this.settingsHeaderText.displayHeight + TEXT_VERTICAL_SPACING);
         this.mvtCtrlFollowBtn.setPosition(menuBodyOffsetX + TEXT_VERTICAL_SPACING, this.mvtCtrlHeaderText.y + this.mvtCtrlHeaderText.displayHeight + TEXT_VERTICAL_SPACING);
         this.mvtCtrlJoystickBtn.setPosition(this.mvtCtrlFollowBtn.x + this.mvtCtrlFollowBtn.displayWidth + TEXT_VERTICAL_SPACING, this.mvtCtrlFollowBtn.y);
+
+        if (this.fleeSiteBtnText /*&& this.fleeSiteBtnOutline*/) {
+            const fleeBtnY = this.mvtCtrlFollowBtn.y + this.mvtCtrlFollowBtn.displayHeight + TEXT_VERTICAL_SPACING;
+            this.fleeSiteBtnText.setPosition(menuBodyOffsetX + 4, fleeBtnY);
+            // this.fleeSiteBtnOutline.setPosition(menuBodyOffsetX, fleeBtnY - (TEXT_VERTICAL_SPACING / 2))
+            //     .setSize(this.fleeSiteBtnText.displayWidth + 8, this.fleeSiteBtnText.displayHeight + TEXT_VERTICAL_SPACING);
+        }
     }
 
     update(): void {
