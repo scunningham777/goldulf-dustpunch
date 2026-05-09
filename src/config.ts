@@ -24,13 +24,13 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             externalIconTileIndex: 2,
             wallTileWeights: [
                 { index: 7, weight: 10 },
-                { index: 8, weight: 4 },
+                { index: 17, weight: 10 },
+                { index: 8, weight: 3 },
                 { index: 9, weight: 1 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 20 },
                 { index: 11, weight: 4 },
-                { index: 12, weight: 1 },
             ],
             entranceAreaConfig: {
                 placement: 'floor',
@@ -143,13 +143,13 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             externalIconTileIndex: 2,
             wallTileWeights: [
                 { index: 7, weight: 10 },
-                { index: 8, weight: 4 },
+                { index: 17, weight: 10 },
+                { index: 8, weight: 3 },
                 { index: 9, weight: 1 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 20 },
                 { index: 11, weight: 4 },
-                { index: 12, weight: 1 },
             ],
             entranceAreaConfig: {
                 placement: 'floor',
@@ -273,6 +273,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             externalIconTileIndex: 5,
             wallTileWeights: [
                 { index: 10, weight: 1 },
+                { index: 20, weight: 1 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 1 },
@@ -297,7 +298,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxCountAreas: 8,
             tileTints: [TEMPLE_TINT],
             dustWeight: 20,
-            availableDustFrames: [0, 1, 2, 3],
+            availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
                 {
                     key: 'chest',
@@ -369,7 +370,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxCountAreas: 3,
             tileTints: [CAVE_TINT],
             dustWeight: 15,
-            availableDustFrames: [0, 1, 2, 3],
+            availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
                 {
                     key: 'chest',
@@ -448,7 +449,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxCountAreas: 4,
             tileTints: [SETTLEMENT_TINT],
             dustWeight: 15,
-            availableDustFrames: [0, 1, 2, 3],
+            availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
                 {
                     key: 'chest',
@@ -494,9 +495,10 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxMapHeight: 70,
             externalIconTileIndex: 25,
             wallTileWeights: [
-                { index: 7, weight: 10 },
-                { index: 8, weight: 1 },
-                { index: 9, weight: 4 },
+                { index: 7, weight: 1 },
+                { index: 8, weight: 4 },
+                { index: 9, weight: 2 },
+                { index: 18, weight: 4 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 20 },
@@ -527,7 +529,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxCountAreas: 4,
             tileTints: [BOG_TINT],
             dustWeight: 15,
-            availableDustFrames: [0, 1, 2, 3],
+            availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
                 {
                     key: 'chest',
@@ -596,7 +598,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxCountAreas: 9,
             tileTints: [TEMPLE_TINT, TEMPLE_TINT, SUPREME_SITE_TINT],
             dustWeight: 20,
-            availableDustFrames: [0, 1, 2, 3],
+            availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
                 {
                     key: 'chest',
@@ -664,7 +666,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxCountAreas: 5,
             tileTints: [CAVE_TINT, CAVE_TINT, SUPREME_SITE_TINT],
             dustWeight: 15,
-            availableDustFrames: [0, 1, 2, 3],
+            availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
                 {
                     key: 'chest',
@@ -739,7 +741,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxCountAreas: 7,
             tileTints: [SETTLEMENT_TINT, SETTLEMENT_TINT, SUPREME_SITE_TINT],
             dustWeight: 15,
-            availableDustFrames: [0, 1, 2, 3],
+            availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
                 {
                     key: 'chest',
@@ -814,7 +816,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxCountAreas: 9,
             tileTints: [BOG_TINT, BOG_TINT, SUPREME_SITE_TINT],
             dustWeight: 15,
-            availableDustFrames: [0, 1, 2, 3],
+            availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
                 {
                     key: 'chest',
@@ -898,7 +900,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                 SETTLEMENT_TINT,
             ],
             dustWeight: 60,
-            availableDustFrames: [0, 1, 2, 3],
+            availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
                 {
                     key: 'chest',
