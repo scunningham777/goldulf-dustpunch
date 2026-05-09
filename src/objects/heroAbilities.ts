@@ -186,7 +186,7 @@ export class HeroAbilities {
     }
 
     // ---------- wall push methods ----------
-    updateWallPush() {
+    updateWallPush(direction: CARDINAL_DIRECTION) {
         const body = this.heroSprite.body as Phaser.Physics.Arcade.Body;
         const isBlocked = body.blocked.left || body.blocked.right || body.blocked.up || body.blocked.down;
         const isMoving = this.heroSprite.body.velocity.x !== 0 || this.heroSprite.body.velocity.y !== 0;
@@ -199,7 +199,7 @@ export class HeroAbilities {
 
             // start effects if we just started pushing
             if (!wasPushing && this.wallPushTimer > 0) {
-                this.startWallPushEffects();
+                this.startWallPushEffects(direction);
             }
 
             // if we've been pushing long enough, emit wall break event
@@ -344,7 +344,7 @@ export class HeroAbilities {
         return {x: tileX, y: tileY};
     }
 
-    private startWallPushEffects() {
+    private startWallPushEffects(direction: CARDINAL_DIRECTION) {
         const coords = this.getWallTileCoords();
         if (!coords) return;
 
@@ -376,7 +376,7 @@ export class HeroAbilities {
             .setDepth(0.5);
 
         // Shake the hero visually using a separate non-physics overlay sprite
-        const punchFrame = HERO_FRAMES.punchAnimStart[this.heroSprite.flipX ? CARDINAL_DIRECTION.LEFT : CARDINAL_DIRECTION.RIGHT];
+        const punchFrame = HERO_FRAMES.punchAnimStart[direction];
         this.heroSprite.setFrame(punchFrame);
         this.heroSprite.anims.pause();
         this.heroSprite.visible = false;

@@ -171,7 +171,7 @@ export class Hero {
             }
 
             // wall push tracking (cestus relic ability)
-            this.abilities.updateWallPush();
+            this.abilities.updateWallPush(this.currentDirection);
         }
 
         this.abilities.updateShakeOverlay();

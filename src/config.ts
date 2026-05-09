@@ -1071,7 +1071,7 @@ export const RELIC_CONFIGS: RelicConfig[] = [
     },
     {
         key: 'cestus',
-        frameIndex: 32,
+        frameIndex: 37,
         points: 100,
         tint: HERO_TINT,
         description: 'Cestus of the Yesterpunch. Now you can punch something other than dust: walls!'

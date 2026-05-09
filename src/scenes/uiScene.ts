@@ -224,10 +224,13 @@ export class UIScene extends Phaser.Scene {
         const cestusConfig = RELIC_CONFIGS.find(relic => relic.key === 'cestus');
         if (!sandalConfig || !daggerConfig || !cestusConfig) return;
 
-        const iconY = this.scale.height - MENU_BTN_DIMENSION / 2;
-        const sandalX = MENU_BTN_DIMENSION / 2;
-        const daggerX = sandalX + MENU_BTN_DIMENSION + 32;
-        const cestusX = daggerX + MENU_BTN_DIMENSION + 32;
+        const iconY = this.calculateCooldownIconY();
+        const sandalX = this.calculateCooldownIconX(0);
+        const sandalTextX = this.calculateCooldownTextX(0);
+        const daggerX = this.calculateCooldownIconX(1);
+        const daggerTextX = this.calculateCooldownTextX(1);
+        const cestusX = this.calculateCooldownIconX(2);
+        const cestusTextX = this.calculateCooldownTextX(2);
 
         this.sandalCooldownIcon = this.add.image(sandalX, iconY, STATIC_TEXTURE_KEY, sandalConfig.frameIndex)
             .setScale(GAME_SCALE)
@@ -235,7 +238,7 @@ export class UIScene extends Phaser.Scene {
             .setOrigin(0.5, 0.5)
             .setVisible(false);
 
-        this.sandalCooldownText = this.add.text(sandalX + (MENU_BTN_DIMENSION / 2) + 4, iconY, '', {
+        this.sandalCooldownText = this.add.text(sandalTextX, iconY, '', {
             font: `${STANDARD_FONT_SIZE}px '7_12'`,
             color: TEXT_TINT_HEX
         }).setOrigin(0, 0.5).setVisible(false);
@@ -246,7 +249,7 @@ export class UIScene extends Phaser.Scene {
             .setOrigin(0.5, 0.5)
             .setVisible(false);
 
-        this.daggerCooldownText = this.add.text(daggerX + (MENU_BTN_DIMENSION / 2) + 4, iconY, '', {
+        this.daggerCooldownText = this.add.text(daggerTextX, iconY, '', {
             font: `${STANDARD_FONT_SIZE}px '7_12'`,
             color: TEXT_TINT_HEX
         }).setOrigin(0, 0.5).setVisible(false);
@@ -257,7 +260,7 @@ export class UIScene extends Phaser.Scene {
             .setOrigin(0.5, 0.5)
             .setVisible(false);
 
-        this.cestusCooldownText = this.add.text(cestusX + (MENU_BTN_DIMENSION / 2) + 4, iconY, '', {
+        this.cestusCooldownText = this.add.text(cestusTextX, iconY, '', {
             font: `${STANDARD_FONT_SIZE}px '7_12'`,
             color: TEXT_TINT_HEX
         }).setOrigin(0, 0.5).setVisible(false);
@@ -467,23 +470,30 @@ export class UIScene extends Phaser.Scene {
         this.closeImage.setPosition(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
         this.muteBtn.setPosition(MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
 
+        const cooldownIconY = this.calculateCooldownIconY();
+        const sandalX = this.calculateCooldownIconX(0);
+        const sandalTextX = this.calculateCooldownTextX(0);
+        const daggerX = this.calculateCooldownIconX(1);
+        const daggerTextX = this.calculateCooldownTextX(1);
+        const cestusX = this.calculateCooldownIconX(2);
+        const cestusTextX = this.calculateCooldownTextX(2);
         if (this.sandalCooldownIcon) {
-            this.sandalCooldownIcon.setPosition(MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
+            this.sandalCooldownIcon.setPosition(sandalX, cooldownIconY);
         }
         if (this.sandalCooldownText) {
-            this.sandalCooldownText.setPosition(MENU_BTN_DIMENSION, this.menuBtn.y + this.menuBtn.height / 2);
+            this.sandalCooldownText.setPosition(sandalTextX, cooldownIconY);
         }
         if (this.daggerCooldownIcon) {
-            this.daggerCooldownIcon.setPosition(MENU_BTN_DIMENSION / 2 + MENU_BTN_DIMENSION + 8, this.menuBtn.y + this.menuBtn.height / 2);
+            this.daggerCooldownIcon.setPosition(daggerX, cooldownIconY);
         }
         if (this.daggerCooldownText) {
-            this.daggerCooldownText.setPosition(MENU_BTN_DIMENSION * 2 + 8 + (MENU_BTN_DIMENSION / 2) + 4, this.menuBtn.y + this.menuBtn.height / 2);
+            this.daggerCooldownText.setPosition(daggerTextX, cooldownIconY);
         }
         if (this.cestusCooldownIcon) {
-            this.cestusCooldownIcon.setPosition(MENU_BTN_DIMENSION / 2 + (MENU_BTN_DIMENSION + 8) * 2, this.menuBtn.y + this.menuBtn.height / 2);
+            this.cestusCooldownIcon.setPosition(cestusX, cooldownIconY);
         }
         if (this.cestusCooldownText) {
-            this.cestusCooldownText.setPosition(MENU_BTN_DIMENSION / 2 + (MENU_BTN_DIMENSION + 8) * 2 + (MENU_BTN_DIMENSION / 2) + 4, this.menuBtn.y + this.menuBtn.height / 2);
+            this.cestusCooldownText.setPosition(cestusTextX, cooldownIconY);
         }
 
         const menuBGWidth = this.calculateMenuBGWidth();
@@ -544,5 +554,15 @@ export class UIScene extends Phaser.Scene {
     private calculateMenuBGWidth() {
         // return this.game.device.os.iOS ? window.innerWidth : 320;
         return window.innerWidth;
+    }
+
+    private calculateCooldownIconY(): number {
+        return this.scale.height - MENU_BTN_DIMENSION / 2;
+    }
+    private calculateCooldownIconX(index: number): number {
+        return (index + .5) * MENU_BTN_DIMENSION + (index * 32);
+    }
+    private calculateCooldownTextX(index: number): number {
+        return this.calculateCooldownIconX(index) + MENU_BTN_DIMENSION / 2 + 4;
     }
 }
