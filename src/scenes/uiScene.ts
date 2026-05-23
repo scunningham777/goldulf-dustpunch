@@ -1,5 +1,5 @@
-import { STUFF_CONFIGS, TOKEN_CONFIGS, RELIC_CONFIGS } from "../config";
-import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, UI_BAR_HEIGHT, AUDIO_MUTE_REGISTRY_KEY, DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, DASH_ACTIVE_UNTIL_REGISTRY_KEY, SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, TEXT_TINT, TEXT_TINT_HEX, SITE_DATA_REGISTRY_KEY, EXIT_SITE_REQUEST_KEY, SITE_TYPES, IS_DEBUG } from "../constants";
+import { MAP_CONFIGS, STUFF_CONFIGS, TOKEN_CONFIGS, RELIC_CONFIGS } from "../config";
+import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, UI_BAR_HEIGHT, AUDIO_MUTE_REGISTRY_KEY, DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, DASH_ACTIVE_UNTIL_REGISTRY_KEY, SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, TEXT_TINT, TEXT_TINT_HEX, SITE_DATA_REGISTRY_KEY, EXIT_SITE_REQUEST_KEY, JUMP_TO_SITE_REQUEST_KEY, SITE_TYPES, PLAY_MODE, PLAY_MODES } from "../constants";
 import { HERO_MOVEMENT_CONTROLLERS } from "../interfaces/heroMovementController";
 import { InventoryItem } from "../interfaces/stuffInInventory";
 import { TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT } from "../text";
@@ -342,7 +342,7 @@ export class UIScene extends Phaser.Scene {
     }
 
     private initDebugKeyBinding(): void {
-        if (!IS_DEBUG) return;
+        if (PLAY_MODE === PLAY_MODES.prod) return;
 
         this.input.keyboard.on('keydown', (event: KeyboardEvent) => {
             if (event.ctrlKey && event.altKey && event.key === 't') {
@@ -355,6 +355,13 @@ export class UIScene extends Phaser.Scene {
             if (event.ctrlKey && event.altKey && event.key === 'r') {
                 event.preventDefault();
                 this.handleDebugRelicInput();
+            }
+        });
+
+        this.input.keyboard.on('keydown', (event: KeyboardEvent) => {
+            if (event.ctrlKey && event.altKey && event.key === 's') {
+                event.preventDefault();
+                this.handleDebugSiteJump();
             }
         });
     }
@@ -395,6 +402,30 @@ export class UIScene extends Phaser.Scene {
 
     private handleDebugRelicInput(): void {
         this.handleDebugInventoryInput(RELIC_CONFIGS, INVENTORY_RELICS_REGISTRY_KEY, 'relic');
+    }
+
+    private handleDebugSiteJump(): void {
+        const mapConfigName = prompt('Enter mapConfigName to jump to:');
+        if (!mapConfigName) return;
+
+        let targetSiteType: SITE_TYPES | undefined;
+        Object.entries(MAP_CONFIGS).some(([siteType, configs]) => {
+            if (configs.some(config => config.mapConfigName === mapConfigName)) {
+                targetSiteType = siteType as SITE_TYPES;
+                return true;
+            }
+            return false;
+        });
+
+        if (!targetSiteType) {
+            alert(`Site config "${mapConfigName}" not found.`);
+            return;
+        }
+
+        this.registry.events.emit(JUMP_TO_SITE_REQUEST_KEY, {
+            linkedMapSceneType: targetSiteType,
+            linkedMapConfigName: mapConfigName,
+        });
     }
 
     private updateUI(_parent: any, key: string, data: any): void {

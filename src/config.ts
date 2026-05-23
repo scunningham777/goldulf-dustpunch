@@ -501,9 +501,8 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                 { index: 18, weight: 4 },
             ],
             floorTileWeights: [
-                { index: 59, weight: 20 },
-                { index: 11, weight: 4 },
-                { index: 12, weight: 1 },
+                { index: 59, weight: 2 },
+                { index: 11, weight: 1 },
             ],
             pathObstructionTileWeights: [
                 { index: 10, weight: 1 },
@@ -783,14 +782,14 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxMapHeight: 90,
             externalIconTileIndex: 25,
             wallTileWeights: [
-                { index: 7, weight: 10 },
-                { index: 8, weight: 1 },
-                { index: 9, weight: 4 },
+                { index: 7, weight: 1 },
+                { index: 8, weight: 4 },
+                { index: 9, weight: 2 },
+                { index: 18, weight: 4 },
             ],
             floorTileWeights: [
-                { index: 59, weight: 20 },
-                { index: 11, weight: 4 },
-                { index: 12, weight: 1 },
+                { index: 59, weight: 2 },
+                { index: 11, weight: 1 },
             ],
             pathObstructionTileWeights: [
                 { index: 10, weight: 1 },

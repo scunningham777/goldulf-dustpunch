@@ -1,5 +1,5 @@
 import { Hero } from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, IS_DEBUG, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY, INVENTORY_RELICS_REGISTRY_KEY, AUDIO_MUTE_REGISTRY_KEY, WALL_BREAK_EVENT_KEY, EXIT_SITE_REQUEST_KEY } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, PLAY_MODE, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY, INVENTORY_RELICS_REGISTRY_KEY, AUDIO_MUTE_REGISTRY_KEY, WALL_BREAK_EVENT_KEY, EXIT_SITE_REQUEST_KEY, JUMP_TO_SITE_REQUEST_KEY, PLAY_MODES } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
@@ -145,7 +145,7 @@ export class SiteScene extends Phaser.Scene {
             heroStartXInPixels,
             heroStartYInPixels,
             this,
-            HERO_VELOCITY * (IS_DEBUG ? HERO_DEBUG_VELOCITY_MULTIPLIER : 1),
+            HERO_VELOCITY * (PLAY_MODE !== PLAY_MODES.prod ? HERO_DEBUG_VELOCITY_MULTIPLIER : 1),
             heroStartDirection,
             heroMvtCtrl
         );
@@ -172,6 +172,7 @@ export class SiteScene extends Phaser.Scene {
         this.registry.events.on(SPIN_DUST_BREAK_EVENT_KEY, this.spinDustBreakHandler, this);
         this.registry.events.on(WALL_BREAK_EVENT_KEY, this.wallBreakHandler, this);
         this.registry.events.on(EXIT_SITE_REQUEST_KEY, this.exitToOverworld, this);
+        this.registry.events.on(JUMP_TO_SITE_REQUEST_KEY, this.jumpToSite, this);
         this.input.gamepad.on('down', this.gamepadDownHandler, this);
     }
     clearListeners() {
@@ -180,6 +181,7 @@ export class SiteScene extends Phaser.Scene {
         this.registry.events.off(SPIN_DUST_BREAK_EVENT_KEY, this.spinDustBreakHandler);
         this.registry.events.off(WALL_BREAK_EVENT_KEY, this.wallBreakHandler, this);
         this.registry.events.off(EXIT_SITE_REQUEST_KEY, this.exitToOverworld, this);
+        this.registry.events.off(JUMP_TO_SITE_REQUEST_KEY, this.jumpToSite, this);
         this.input.gamepad.off('down', this.gamepadDownHandler);
     }
 
@@ -697,6 +699,10 @@ export class SiteScene extends Phaser.Scene {
         this.sound.getAll(this.mapConfig.songTitle).forEach(s => {
             s.stop();
         });
+    }
+
+    jumpToSite(exitConfig: { linkedMapSceneType: SITE_TYPES, linkedMapConfigName: string }) {
+        this.nextMap(exitConfig);
     }
 
     exitToOverworld() {

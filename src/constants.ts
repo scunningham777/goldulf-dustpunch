@@ -50,6 +50,7 @@ export const HERO_DEBUG_VELOCITY_MULTIPLIER = 1.5;
 export const HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY = 'hero_mvt_ctrl';
 export const AUDIO_MUTE_REGISTRY_KEY = 'audio_mute';
 export const EXIT_SITE_REQUEST_KEY = 'exit_site_request';
+export const JUMP_TO_SITE_REQUEST_KEY = 'jump_to_site_request';
 export const DUNGEON_LAYER_KEYS = {
     BG_LAYER: 'bg-layer',
     STUFF_LAYER: 'stuff-layer',
@@ -121,7 +122,8 @@ export const TEXT_TINT = 0xffffff;
 export const TEXT_TINT_HEX = '#ffffff';
 
 // "ENVIRONMENT"
-export const IS_DEBUG = false;
+export enum PLAY_MODES {debug = 'DEBUG', dev = 'DEV', prod = 'PROD'};
+export const PLAY_MODE: PLAY_MODES = PLAY_MODES.dev; // set to PLAY_MODES.debug, PLAY_MODES.dev, or PLAY_MODES.prod
 export const SKIP_OVERWORLD = false;
 export const HERO_MOVEMENT_CONTROLLER: 'follow' | 'joystick' = 'follow';
 
