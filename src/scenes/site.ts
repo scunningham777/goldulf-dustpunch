@@ -83,11 +83,13 @@ export class SiteScene extends Phaser.Scene {
             key: this.mapKey,
         });
         const inventoryTokens: InventoryItem[] = this.registry.get(INVENTORY_TOKENS_REGISTRY_KEY) || [];
+        const inventoryRelics: InventoryItem[] = this.registry.get(INVENTORY_RELICS_REGISTRY_KEY) || [];
         const siteData: SiteGenerationData = useSavedSite ? savedSiteData : (GeneratorMapping[this.mapConfig.siteGenerationType])?.generateSite(
             this.mapConfig,
             siteWidth,
             siteHeight,
-            inventoryTokens
+            inventoryTokens,
+            inventoryRelics
         );
 
         if (!useSavedSite) {

@@ -1,5 +1,5 @@
 import { SiteConfig } from "./interfaces/siteConfig";
-import { BOG_TINT, CAVE_TINT, HERO_TINT, OVERWORLD_TINT, SETTLEMENT_TINT, SITE_GENERATION_TYPES, SITE_TYPES, SUPREME_SITE_TINT, TEMPLE_TINT, TERRAIN_TEXTURE_KEY } from './constants';
+import { BOG_TINT, CAVE_TINT, HERO_TINT, OVERWORLD_TINT, SETTLEMENT_TINT, SITE_GENERATION_TYPES, SITE_TYPES, STUFF_TINT, SUPREME_SITE_TINT, TEMPLE_TINT, TERRAIN_TEXTURE_KEY } from './constants';
 import { StuffConfig } from "./interfaces/stuffConfig";
 import { AncestorConfig } from "./interfaces/ancestorConfig";
 import { TokenConfig } from "./interfaces/tokenConfig";
@@ -857,9 +857,10 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxMapHeight: 90,
             externalIconTileIndex: 25,
             wallTileWeights: [
-                { index: 7, weight: 10 },
-                { index: 8, weight: 1 },
-                { index: 9, weight: 4 },
+                { index: 5, weight: 1 },
+                { index: 6, weight: 1 },
+                { index: 16, weight: 1 },
+                { index: 25, weight: 1 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 20 },
@@ -868,6 +869,8 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             ],
             pathObstructionTileWeights: [
                 { index: 10, weight: 1 },
+                { index: 1, weight: 1 },
+                { index: 7, weight: 1 },
             ],
             entranceAreaConfig: {
                 placement: 'wall',
@@ -1010,7 +1013,8 @@ export const ANCESTOR_CONFIGS: AncestorConfig[] = [
         key: 'ultimate_ancestor',
         tokenKey: '',
         relicKey: 'cestus',
-        frameIndex: 1
+        frameIndex: 1,
+        overrideTint: HERO_TINT
     }
 ]
 

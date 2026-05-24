@@ -7,7 +7,7 @@ import { settlementGenerator } from "./siteGenerator_settlement";
 import { templeGenerator } from "./siteGenerator_temple";
 
 export interface SiteGenerator {
-    generateSite(siteConfig: SiteConfig, instanceWidth: number, instanceHeight: number, inventoryTokens?: InventoryItem[]): SiteGenerationData;
+    generateSite(siteConfig: SiteConfig, instanceWidth: number, instanceHeight: number, inventoryTokens?: InventoryItem[], inventoryRelics?: InventoryItem[]): SiteGenerationData;
 }
 
 export const GeneratorMapping: {[key in SITE_GENERATION_TYPES]: SiteGenerator} = {

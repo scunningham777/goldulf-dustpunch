@@ -14,7 +14,8 @@ export const caveGenerator: SiteGenerator =
         siteConfig: SiteConfig,
         siteWidth: number,
         siteHeight: number,
-        inventoryTokens: InventoryItem[] = []
+        inventoryTokens: InventoryItem[] = [],
+        inventoryRelics: InventoryItem[] = []
     ): SiteGenerationData {
         const tileIndexData = generateTileIndexData(siteWidth, siteHeight, siteConfig.wallTileWeights.map(wTW => ({ key: wTW.index, weight: wTW.weight })));
         const canUse = tokenRequirementFilter(inventoryTokens);
@@ -90,8 +91,8 @@ export const caveGenerator: SiteGenerator =
             if (siteConfig.maxExitAreaCount > 0) {
                 let countExits = Phaser.Math.RND.integerInRange(1, siteConfig.maxExitAreaCount);
                 // Add extra exits for Orbs if allowed and overworld
-                if (siteConfig.allowExtraExitAreas && inventoryTokens) {
-                    const orb = inventoryTokens.find(i => i.inventoryItemKey === 'orb');
+                if (siteConfig.allowExtraExitAreas && inventoryRelics) {
+                    const orb = inventoryRelics.find(i => i.inventoryItemKey === 'orb');
                     if (orb && orb.quantity > 0) {
                         countExits += orb.quantity;
                     }

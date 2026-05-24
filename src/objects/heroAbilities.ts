@@ -129,7 +129,7 @@ export class HeroAbilities {
 
     // ---------- spin methods ----------
     canSpin(): boolean {
-        return this.getRelicQuantity('dagger') > 0 && !this._isDashing && !this._isBoosting && !this._isSpinning && this.scene.time.now >= this.spinCooldownEndsAt;
+        return this.getRelicQuantity('dagger') > 0 && !this._isDashing && !this._isSpinning && this.scene.time.now >= this.spinCooldownEndsAt;
     }
 
     startSpin(currentDirection: CARDINAL_DIRECTION) {
