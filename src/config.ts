@@ -4,6 +4,78 @@ import { StuffConfig } from "./interfaces/stuffConfig";
 import { AncestorConfig } from "./interfaces/ancestorConfig";
 import { TokenConfig } from "./interfaces/tokenConfig";
 import { RelicConfig } from "./interfaces/relicConfig";
+import { AreaConfig } from "./interfaces/areaConfig";
+
+const OVERWORLD_EXIT_AREA_CONFIGS: AreaConfig[] = [
+    {
+        placement: 'floor',
+        minSize: 5,
+        maxSize: 10,
+        linkedMapConfigType: SITE_TYPES.site,
+        availableLinkedMapConfigName: ['temple']
+    },
+    {
+        placement: 'floor',
+        minSize: 5,
+        maxSize: 10,
+        linkedMapConfigType: SITE_TYPES.site,
+        availableLinkedMapConfigName: ['cave']
+    },
+    {
+        placement: 'floor',
+        minSize: 5,
+        maxSize: 10,
+        linkedMapConfigType: SITE_TYPES.site,
+        availableLinkedMapConfigName: ['settlement']
+    },
+    {
+        placement: 'floor',
+        minSize: 5,
+        maxSize: 10,
+        linkedMapConfigType: SITE_TYPES.site,
+        availableLinkedMapConfigName: ['bog']
+    },
+    {
+        placement: 'floor',
+        minSize: 5,
+        maxSize: 10,
+        linkedMapConfigType: SITE_TYPES.gatedSite,
+        availableLinkedMapConfigName: ['supreme_temple'],
+        requiredTokens: { ring: 3 }
+    },
+    {
+        placement: 'floor',
+        minSize: 5,
+        maxSize: 10,
+        linkedMapConfigType: SITE_TYPES.gatedSite,
+        availableLinkedMapConfigName: ['supreme_cave'],
+        requiredTokens: { diamond: 3 }
+    },
+    {
+        placement: 'floor',
+        minSize: 5,
+        maxSize: 10,
+        linkedMapConfigType: SITE_TYPES.gatedSite,
+        availableLinkedMapConfigName: ['supreme_settlement'],
+        requiredTokens: { scales: 3 }
+    },
+    {
+        placement: 'floor',
+        minSize: 5,
+        maxSize: 10,
+        linkedMapConfigType: SITE_TYPES.gatedSite,
+        availableLinkedMapConfigName: ['supreme_bog'],
+        requiredTokens: { fasces: 3 }
+    },
+    {
+        placement: 'floor',
+        minSize: 5,
+        maxSize: 10,
+        linkedMapConfigType: SITE_TYPES.gatedSite,
+        availableLinkedMapConfigName: ['ultimate'],
+        requiredTokens: { ring: 1, diamond: 1, scales: 1, fasces: 1 }
+    },
+];
 
 export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
     'overworld': [
@@ -23,10 +95,10 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxMapHeight: 40,
             externalIconTileIndex: 2,
             wallTileWeights: [
-                { index: 7, weight: 10 },
-                { index: 17, weight: 10 },
-                { index: 8, weight: 3 },
-                { index: 9, weight: 1 },
+                { index: 45, weight: 3 },
+                { index: 46, weight: 1 },
+                { index: 47, weight: 3 },
+                { index: 48, weight: 2 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 20 },
@@ -38,76 +110,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                 maxSize: 10,
                 focusTileIndex: -1,
             },
-            exitAreaConfigs: [
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: ['temple']
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: ['cave']
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: ['settlement']
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: ['bog']
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.gatedSite,
-                    availableLinkedMapConfigName: ['supreme_temple'],
-                    requiredTokens: { ring: 3 }
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.gatedSite,
-                    availableLinkedMapConfigName: ['supreme_cave'],
-                    requiredTokens: { diamond: 3 }
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.gatedSite,
-                    availableLinkedMapConfigName: ['supreme_settlement'],
-                    requiredTokens: { scales: 3 }
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.gatedSite,
-                    availableLinkedMapConfigName: ['supreme_bog'],
-                    requiredTokens: { fasces: 3 }
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.gatedSite,
-                    availableLinkedMapConfigName: ['ultimate'],
-                    requiredTokens: { ring: 1, diamond: 1, scales: 1, fasces: 1 }
-                },
-            ],
+            exitAreaConfigs: OVERWORLD_EXIT_AREA_CONFIGS,
             maxExitAreaCount: 1,
             otherAreaConfigs: [
                 {
@@ -142,10 +145,10 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxMapHeight: 40,
             externalIconTileIndex: 2,
             wallTileWeights: [
-                { index: 7, weight: 10 },
-                { index: 17, weight: 10 },
-                { index: 8, weight: 3 },
-                { index: 9, weight: 1 },
+                { index: 45, weight: 3 },
+                { index: 46, weight: 1 },
+                { index: 47, weight: 3 },
+                { index: 48, weight: 2 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 20 },
@@ -157,76 +160,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                 maxSize: 10,
                 focusTileIndex: 4,
             },
-            exitAreaConfigs: [
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: ['temple']
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: ['cave']
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: ['settlement']
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.site,
-                    availableLinkedMapConfigName: ['bog']
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.gatedSite,
-                    availableLinkedMapConfigName: ['supreme_temple'],
-                    requiredTokens: { ring: 3 }
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.gatedSite,
-                    availableLinkedMapConfigName: ['supreme_cave'],
-                    requiredTokens: { diamond: 3 }
-                },  
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.gatedSite,
-                    availableLinkedMapConfigName: ['supreme_settlement'],
-                    requiredTokens: { scales: 3 }
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.gatedSite,
-                    availableLinkedMapConfigName: ['supreme_bog'],
-                    requiredTokens: { fasces: 3 }
-                },
-                {
-                    placement: 'floor',
-                    minSize: 5,
-                    maxSize: 10,
-                    linkedMapConfigType: SITE_TYPES.gatedSite,
-                    availableLinkedMapConfigName: ['ultimate'],
-                    requiredTokens: { ring: 1, diamond: 1, scales: 1, fasces: 1 }
-                },
-            ],
+            exitAreaConfigs: OVERWORLD_EXIT_AREA_CONFIGS,
             maxExitAreaCount: 2,
             allowExtraExitAreas: true,
             otherAreaConfigs: [
