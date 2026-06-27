@@ -25,10 +25,11 @@ export const settlementGenerator: SiteGenerator =
 
         const tileIndexData = generateTileIndexData(siteWidth, siteHeight, siteConfig.wallTileWeights.map(wTW => ({ key: wTW.index, weight: wTW.weight })));
         const floorTileWeights = siteConfig.floorTileWeights.map(ftw => ({ key: ftw.index, weight: ftw.weight }));
+        const obstructionTileWeights = (siteConfig.pathObstructionTileWeights ?? []).map(oTW => ({ key: oTW.index, weight: oTW.weight }));
         const canUse = tokenRequirementFilter(inventoryTokens);
         const newAreas: MapArea[] = generateAreas();
-        const clearings = carveClearings(tileIndexData, newAreas, floorTileWeights);
-        placeBuildings(tileIndexData, clearings, (siteConfig.pathObstructionTileWeights ?? []).map(oTW => ({ key: oTW.index, weight: oTW.weight })));
+        const clearings = carveClearings(tileIndexData, newAreas, floorTileWeights, obstructionTileWeights);
+        placeBuildings(tileIndexData, clearings, floorTileWeights, obstructionTileWeights);
         connectClearings(tileIndexData, clearings, floorTileWeights);
         drawAreas(tileIndexData, newAreas);
 
@@ -57,7 +58,7 @@ export const settlementGenerator: SiteGenerator =
             return areas;
         }
 
-        function carveClearings(tileIndexData: number[][], areas: MapArea[], floorTileWeights: { key: number, weight: number }[]): MapArea[] {
+        function carveClearings(tileIndexData: number[][], areas: MapArea[], floorTileWeights: { key: number, weight: number }[], obstructionTileWeights: { key: number, weight: number }[]): MapArea[] {
             const clearings: MapArea[] = [];
 
             for (let area of areas) {
@@ -81,7 +82,7 @@ export const settlementGenerator: SiteGenerator =
                         // if we're very close to the edge, occasionally place an obstruction
                         if (Math.abs(distance - maxDistance) < 1.1 && Phaser.Math.RND.frac() < 0.2) {
                             if (x > 0 && x < siteWidth && y > 0 && y < siteHeight) {
-                                tileIndexData[y][x] = 10; // use obstruction index from config
+                                tileIndexData[y][x] = weightedRandomizeAnything(obstructionTileWeights); // use obstruction index from config
                             }
                         }
                     }
@@ -93,7 +94,7 @@ export const settlementGenerator: SiteGenerator =
             return clearings;
         }
 
-        function placeBuildings(tileIndexData: number[][], clearings: MapArea[], obstructionTileWeights: { key: number, weight: number }[]) {
+        function placeBuildings(tileIndexData: number[][], clearings: MapArea[], floorTileWeights: { key: number, weight: number }[], obstructionTileWeights: { key: number, weight: number }[]) {
             for (let clearing of clearings) {
                 // Skip entrance clearing
                 if (clearing === clearings[0]) continue;
@@ -121,7 +122,7 @@ export const settlementGenerator: SiteGenerator =
                         // Check if building fits and doesn't overlap
                         if (isBuildingValid(building, buildings)) {
                             buildings.push(building);
-                            carveBuilding(tileIndexData, building, obstructionTileWeights, siteConfig.floorTileWeights.map(ftw => ftw.index));
+                            carveBuilding(tileIndexData, building, floorTileWeights, obstructionTileWeights);
                             break;
                         }
                     }
@@ -150,8 +151,8 @@ export const settlementGenerator: SiteGenerator =
         function carveBuilding(
             tileIndexData: number[][],
             building: Building,
+            floorTileWeights: { key: number, weight: number }[],
             obstructionTileWeights: { key: number, weight: number }[],
-            floorTileIndices: number[]
         ) {
             // Calculate how many wall tiles to remove (25-50%)
             const totalWallTiles = (building.width + building.height) * 2;
@@ -160,7 +161,7 @@ export const settlementGenerator: SiteGenerator =
             // Clear interior to floor
             for (let y = building.y + 1; y < building.y + building.height - 1; y++) {
                 for (let x = building.x + 1; x < building.x + building.width - 1; x++) {
-                    tileIndexData[y][x] = Phaser.Math.RND.pick(floorTileIndices);
+                    tileIndexData[y][x] = weightedRandomizeAnything(floorTileWeights);
                 }
             }
 
@@ -184,13 +185,7 @@ export const settlementGenerator: SiteGenerator =
 
             for (let i = 0; i < wallPositions.length; i++) {
                 const pos = wallPositions[i];
-                if (i < tilesToRemove) {
-                    // Remove this wall tile (make it floor)
-                    tileIndexData[pos.y][pos.x] = Phaser.Math.RND.pick(floorTileIndices);
-                } else {
-                    // Place wall
-                    tileIndexData[pos.y][pos.x] = weightedRandomizeAnything(obstructionTileWeights);
-                }
+                tileIndexData[pos.y][pos.x] = weightedRandomizeAnything(i < tilesToRemove ? floorTileWeights : obstructionTileWeights);
             }
         }
 

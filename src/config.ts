@@ -1,5 +1,5 @@
 import { SiteConfig } from "./interfaces/siteConfig";
-import { BOG_TINT, CAVE_TINT, HERO_TINT, OVERWORLD_TINT, SETTLEMENT_TINT, SITE_GENERATION_TYPES, SITE_TYPES, STUFF_TINT, SUPREME_SITE_TINT, TEMPLE_TINT, TERRAIN_TEXTURE_KEY } from './constants';
+import { BOG_TINT, CAVE_TINT, HERO_TINT, OVERWORLD_TINT, PLAY_MODE, PLAY_MODES, SETTLEMENT_TINT, SITE_GENERATION_TYPES, SITE_TYPES, STUFF_TINT, SUPREME_SITE_TINT, TEMPLE_TINT, TERRAIN_TEXTURE_KEY } from './constants';
 import { StuffConfig } from "./interfaces/stuffConfig";
 import { AncestorConfig } from "./interfaces/ancestorConfig";
 import { TokenConfig } from "./interfaces/tokenConfig";
@@ -77,6 +77,58 @@ const OVERWORLD_EXIT_AREA_CONFIGS: AreaConfig[] = [
     },
 ];
 
+const DEMO_OVERWORLD_EXIT_AREA_CONFIGS: AreaConfig[] = [
+    {
+        placement: 'floor',
+        minSize: 5,
+        maxSize: 10,
+        linkedMapConfigType: SITE_TYPES.site,
+        availableLinkedMapConfigName: ['settlement']
+    },
+    {
+        placement: 'floor',
+        minSize: 5,
+        maxSize: 10,
+        linkedMapConfigType: SITE_TYPES.site,
+        availableLinkedMapConfigName: ['cave']
+    },
+    {
+        placement: 'floor',
+        minSize: 5,
+        maxSize: 10,
+        linkedMapConfigType: SITE_TYPES.gatedSite,
+        availableLinkedMapConfigName: ['supreme_settlement'],
+        requiredTokens: { scales: 3 }
+    },
+    {
+        placement: 'floor',
+        minSize: 5,
+        maxSize: 10,
+        linkedMapConfigType: SITE_TYPES.gatedSite,
+        availableLinkedMapConfigName: ['supreme_cave'],
+        requiredTokens: { diamond: 3 }
+    },
+];
+
+const STANDARD_STUFF_WEIGHTS = [
+    {
+        key: 'urn',
+        weight: 2
+    },
+    {
+        key: 'trophy',
+        weight: 2
+    },
+    {
+        key: 'goblet',
+        weight: 2
+    },
+    {
+        key: '',
+        weight: 40
+    }
+]
+
 export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
     'overworld': [
         {
@@ -110,7 +162,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                 maxSize: 10,
                 focusTileIndex: -1,
             },
-            exitAreaConfigs: OVERWORLD_EXIT_AREA_CONFIGS,
+            exitAreaConfigs: PLAY_MODE === PLAY_MODES.prod ? OVERWORLD_EXIT_AREA_CONFIGS : DEMO_OVERWORLD_EXIT_AREA_CONFIGS,
             maxExitAreaCount: 1,
             otherAreaConfigs: [
                 {
@@ -160,7 +212,7 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                 maxSize: 10,
                 focusTileIndex: 4,
             },
-            exitAreaConfigs: OVERWORLD_EXIT_AREA_CONFIGS,
+            exitAreaConfigs: PLAY_MODE === PLAY_MODES.prod ? OVERWORLD_EXIT_AREA_CONFIGS : DEMO_OVERWORLD_EXIT_AREA_CONFIGS,
             maxExitAreaCount: 2,
             allowExtraExitAreas: true,
             otherAreaConfigs: [
@@ -206,8 +258,10 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxMapHeight: 70,
             externalIconTileIndex: 5,
             wallTileWeights: [
-                { index: 10, weight: 1 },
-                { index: 20, weight: 1 },
+                { index: 10, weight: 5 },
+                { index: 20, weight: 3 },
+                { index: 21, weight: 1 },
+                { index: 22, weight: 1 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 1 },
@@ -234,22 +288,12 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             dustWeight: 20,
             availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
+                ...STANDARD_STUFF_WEIGHTS,
                 {
-                    key: 'chest',
+                    key: 'canopic_jar',
                     weight: 1
                 },
-                {
-                    key: 'goblet',
-                    weight: 1
-                },
-                {
-                    key: 'urn',
-                    weight: 2
-                },
-                {
-                    key: '',
-                    weight: 36
-                }
+                
             ],
             songTitle: 'duty'
         },
@@ -278,8 +322,11 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxMapHeight: 80,
             externalIconTileIndex: 6,
             wallTileWeights: [
-                { index: 0, weight: 5 },
-                { index: 1, weight: 1 },
+                { index: 0, weight: 20 },
+                { index: 1, weight: 2 },
+                { index: 25, weight: 1 },
+                { index: 26, weight: 1 },
+                { index: 28, weight: 1 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 1 },
@@ -306,24 +353,13 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             dustWeight: 15,
             availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
+                ...STANDARD_STUFF_WEIGHTS,
                 {
-                    key: 'chest',
-                    weight: 4
-                },
-                {
-                    key: 'urn',
-                    weight: 2
-                },
-                {
-                    key: 'trophy',
+                    key: 'bear_skull_profile',
                     weight: 1
                 },
-                {
-                    key: '',
-                    weight: 63
-                }
             ],
-            songTitle: 'duty'
+            songTitle: 'dredger'
         },
         {
             ancestorTypeWeights: [
@@ -348,19 +384,20 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             minMapHeight: 30,
             maxMapWidth: 100,
             maxMapHeight: 80,
-            externalIconTileIndex: 16,
+            externalIconTileIndex: 7,
             wallTileWeights: [
-                { index: 7, weight: 10 },
-                { index: 8, weight: 1 },
-                { index: 9, weight: 4 },
+                { index: 15, weight: 4 },
+                { index: 16, weight: 10 },
+                { index: 17, weight: 10 },
+                { index: 19, weight: 1 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 20 },
                 { index: 11, weight: 4 },
-                { index: 12, weight: 1 },
             ],
             pathObstructionTileWeights: [
-                { index: 10, weight: 1 },
+                { index: 23, weight: 4 },
+                { index: 24, weight: 3 },
             ],
             entranceAreaConfig: {
                 placement: 'wall',
@@ -376,7 +413,10 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     minSize: 5,
                     maxSize: 10,
                     focusTileIndex: null,
-                    obstructionTileWeights: [{ index: 10, weight: 1 }],
+                    obstructionTileWeights: [
+                        { index: 23, weight: 4 },
+                        { index: 24, weight: 3 },
+                    ],
                 }
             ],
             minCountAreas: 2,
@@ -385,22 +425,11 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             dustWeight: 15,
             availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
+                ...STANDARD_STUFF_WEIGHTS,
                 {
-                    key: 'chest',
-                    weight: 4
-                },
-                {
-                    key: 'urn',
-                    weight: 2
-                },
-                {
-                    key: 'trophy',
+                    key: 'shield',
                     weight: 1
                 },
-                {
-                    key: '',
-                    weight: 63
-                }
             ],
             songTitle: 'duty'
         },
@@ -427,12 +456,13 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             minMapHeight: 30,
             maxMapWidth: 100,
             maxMapHeight: 70,
-            externalIconTileIndex: 25,
+            externalIconTileIndex: 8,
             wallTileWeights: [
-                { index: 7, weight: 1 },
-                { index: 8, weight: 4 },
-                { index: 9, weight: 2 },
+                { index: 13, weight: 1 },
+                { index: 15, weight: 2 },
+                { index: 16, weight: 1 },
                 { index: 18, weight: 4 },
+                { index: 19, weight: 4 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 2 },
@@ -464,22 +494,11 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             dustWeight: 15,
             availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
+                ...STANDARD_STUFF_WEIGHTS,
                 {
                     key: 'chest',
-                    weight: 4
-                },
-                {
-                    key: 'urn',
-                    weight: 2
-                },
-                {
-                    key: 'trophy',
                     weight: 1
                 },
-                {
-                    key: '',
-                    weight: 63
-                }
             ],
             songTitle: 'dredger'
         },
@@ -506,7 +525,10 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxMapHeight: 100,
             externalIconTileIndex: 5,
             wallTileWeights: [
-                { index: 10, weight: 1 },
+                { index: 10, weight: 5 },
+                { index: 20, weight: 3 },
+                { index: 21, weight: 1 },
+                { index: 22, weight: 1 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 1 },
@@ -533,21 +555,10 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             dustWeight: 20,
             availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
+                ...STANDARD_STUFF_WEIGHTS,
                 {
-                    key: 'chest',
-                    weight: 1
-                },
-                {
-                    key: 'goblet',
-                    weight: 1
-                },
-                {
-                    key: 'urn',
+                    key: 'canopic_jar',
                     weight: 2
-                },
-                {
-                    key: '',
-                    weight: 36
                 }
             ],
             songTitle: 'duty'
@@ -573,8 +584,11 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             maxMapHeight: 100,
             externalIconTileIndex: 6,
             wallTileWeights: [
-                { index: 0, weight: 5 },
-                { index: 1, weight: 1 },
+                { index: 0, weight: 20 },
+                { index: 1, weight: 2 },
+                { index: 25, weight: 1 },
+                { index: 26, weight: 1 },
+                { index: 28, weight: 1 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 1 },
@@ -601,24 +615,13 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             dustWeight: 15,
             availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
+                ...STANDARD_STUFF_WEIGHTS,
                 {
-                    key: 'chest',
-                    weight: 4
-                },
-                {
-                    key: 'urn',
+                    key: 'bear_skull_profile',
                     weight: 2
-                },
-                {
-                    key: 'trophy',
-                    weight: 1
-                },
-                {
-                    key: '',
-                    weight: 63
                 }
             ],
-            songTitle: 'duty'
+            songTitle: 'dredger'
         },
         {
             ancestorTypeWeights: [
@@ -639,19 +642,20 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             minMapHeight: 30,
             maxMapWidth: 140,
             maxMapHeight: 100,
-            externalIconTileIndex: 16,
+            externalIconTileIndex: 7,
             wallTileWeights: [
-                { index: 7, weight: 10 },
-                { index: 8, weight: 1 },
-                { index: 9, weight: 4 },
+                { index: 15, weight: 4 },
+                { index: 16, weight: 10 },
+                { index: 17, weight: 10 },
+                { index: 19, weight: 1 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 20 },
                 { index: 11, weight: 4 },
-                { index: 12, weight: 1 },
             ],
             pathObstructionTileWeights: [
-                { index: 10, weight: 1 },
+                { index: 23, weight: 4 },
+                { index: 24, weight: 3 },
             ],
             entranceAreaConfig: {
                 placement: 'wall',
@@ -667,7 +671,10 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                     minSize: 5,
                     maxSize: 10,
                     focusTileIndex: null,
-                    obstructionTileWeights: [{ index: 10, weight: 1 }],
+                    obstructionTileWeights: [
+                        { index: 23, weight: 4 },
+                        { index: 24, weight: 3 },
+                    ],
                 }
             ],
             minCountAreas: 4,
@@ -676,21 +683,10 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             dustWeight: 15,
             availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
+                ...STANDARD_STUFF_WEIGHTS,
                 {
-                    key: 'chest',
-                    weight: 4
-                },
-                {
-                    key: 'urn',
+                    key: 'shield',
                     weight: 2
-                },
-                {
-                    key: 'trophy',
-                    weight: 1
-                },
-                {
-                    key: '',
-                    weight: 63
                 }
             ],
             songTitle: 'duty'
@@ -714,12 +710,13 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             minMapHeight: 30,
             maxMapWidth: 120,
             maxMapHeight: 90,
-            externalIconTileIndex: 25,
+            externalIconTileIndex: 8,
             wallTileWeights: [
-                { index: 7, weight: 1 },
-                { index: 8, weight: 4 },
-                { index: 9, weight: 2 },
+                { index: 13, weight: 1 },
+                { index: 15, weight: 2 },
+                { index: 16, weight: 1 },
                 { index: 18, weight: 4 },
+                { index: 19, weight: 4 },
             ],
             floorTileWeights: [
                 { index: 59, weight: 2 },
@@ -751,22 +748,11 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             dustWeight: 15,
             availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
+                ...STANDARD_STUFF_WEIGHTS,
                 {
                     key: 'chest',
-                    weight: 4
-                },
-                {
-                    key: 'urn',
                     weight: 2
                 },
-                {
-                    key: 'trophy',
-                    weight: 1
-                },
-                {
-                    key: '',
-                    weight: 63
-                }
             ],
             songTitle: 'dredger'
         },
@@ -799,12 +785,11 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             floorTileWeights: [
                 { index: 59, weight: 20 },
                 { index: 11, weight: 4 },
-                { index: 12, weight: 1 },
             ],
             pathObstructionTileWeights: [
                 { index: 10, weight: 1 },
                 { index: 1, weight: 1 },
-                { index: 7, weight: 1 },
+                { index: 16, weight: 1 },
             ],
             entranceAreaConfig: {
                 placement: 'wall',
@@ -839,8 +824,12 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
             availableDustFrames: [0, 1, 2, 3, 4, 5, 6],
             stuffTypeWeights: [
                 {
-                    key: 'chest',
-                    weight: 4
+                    key: '',
+                    weight: 20
+                },
+                {
+                    key: 'goblet',
+                    weight: 2
                 },
                 {
                     key: 'urn',
@@ -848,11 +837,23 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                 },
                 {
                     key: 'trophy',
+                    weight: 2
+                },
+                {
+                    key: 'canopic_jar',
                     weight: 1
                 },
                 {
-                    key: '',
-                    weight: 40
+                    key: 'shield',
+                    weight: 1
+                },
+                {
+                    key: 'bear_skull_profile',
+                    weight: 1
+                },
+                {
+                    key: 'chest',
+                    weight: 1
                 }
             ],
             songTitle: 'duty'
@@ -861,6 +862,26 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
 }
 
 export const STUFF_CONFIGS: StuffConfig[] = [
+    {
+        stuffName: 'canopic_jar',
+        frameIndex: 12,
+        points: 15
+    },
+    {
+        stuffName: 'shield',
+        frameIndex: 13,
+        points: 15
+    },
+    {
+        stuffName: 'bear_skull_profile',
+        frameIndex: 14,
+        points: 15
+    },
+    {
+        stuffName: 'bear_skull',
+        frameIndex: 15,
+        points: 15
+    },
     {
         stuffName: 'chest',
         frameIndex: 16,
@@ -895,25 +916,25 @@ export const ANCESTOR_CONFIGS: AncestorConfig[] = [
         key: 'cave_ancestor',
         tokenKey: 'diamond',
         relicKey: '',
-        frameIndex: 0,
+        frameIndex: 1,
     },
     {
         key: 'temple_ancestor',
         tokenKey: 'ring',
         relicKey: '',
-        frameIndex: 0,
+        frameIndex: 1,
     },
     {
         key: 'settlement_ancestor',
         tokenKey: 'scales',
         relicKey: '',
-        frameIndex: 0,
+        frameIndex: 1,
     },
     {
         key: 'bog_ancestor',
         tokenKey: 'fasces',
         relicKey: '',
-        frameIndex: 0,
+        frameIndex: 1,
     },
     {
         key: 'supreme_temple_ancestor',
