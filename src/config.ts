@@ -125,7 +125,7 @@ const STANDARD_STUFF_WEIGHTS = [
     },
     {
         key: '',
-        weight: 40
+        weight: 50
     }
 ]
 

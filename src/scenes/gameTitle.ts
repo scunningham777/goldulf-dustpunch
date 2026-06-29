@@ -131,8 +131,16 @@ export class GameTitleScene extends Phaser.Scene {
             this.sound.play('punch2', {rate: 1});
 
             this.input.keyboard.on('keydown', this.handleKeydown, this);
-            this.input.on('pointerdown', this.executeSelectedOption, this);
             this.input.gamepad.on('down', this.executeSelectedOption, this);
+
+            if (this.hasSaveData) {
+                this.continueButton.setInteractive({ useHandCursor: true });
+                this.continueButton.on('pointerdown', this.continueGame, this);
+                this.newGameButton.setInteractive({ useHandCursor: true });
+                this.newGameButton.on('pointerdown', this.startNewGame, this);
+            } else {
+                this.input.on('pointerdown', this.executeSelectedOption, this);
+            }
             this.sound.play('yesterpunch', {loop: true});
         }, [], this)
 
