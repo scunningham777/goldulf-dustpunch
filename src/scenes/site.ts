@@ -1,5 +1,5 @@
 import { Hero } from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, PLAY_MODE, SHOW_MENU_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY, INVENTORY_RELICS_REGISTRY_KEY, AUDIO_MUTE_REGISTRY_KEY, WALL_BREAK_EVENT_KEY, EXIT_SITE_REQUEST_KEY, JUMP_TO_SITE_REQUEST_KEY, PLAY_MODES } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, PLAY_MODE, SHOW_MENU_REGISTRY_KEY, SHOW_SETTINGS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY, INVENTORY_RELICS_REGISTRY_KEY, AUDIO_MUTE_REGISTRY_KEY, WALL_BREAK_EVENT_KEY, EXIT_SITE_REQUEST_KEY, JUMP_TO_SITE_REQUEST_KEY, PLAY_MODES } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
@@ -18,6 +18,7 @@ export class SiteScene extends Phaser.Scene {
     private mapConfig: SiteConfig;
     private hero: Hero;
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
+    private escKey: Phaser.Input.Keyboard.Key;
     private map: Phaser.Tilemaps.Tilemap;
     private mapLayer: Phaser.Tilemaps.TilemapLayer;
     private areas: MapArea[] = [];
@@ -55,8 +56,11 @@ export class SiteScene extends Phaser.Scene {
     }
 
     update(): void {
-        if (Phaser.Input.Keyboard.JustDown(this.cursors.shift)) {
+        if (Phaser.Input.Keyboard.JustDown(this.cursors.shift) && !this.registry.get(SHOW_SETTINGS_REGISTRY_KEY)) {
             this.registry.set(SHOW_MENU_REGISTRY_KEY, !this.registry.get(SHOW_MENU_REGISTRY_KEY));
+        }
+        if (Phaser.Input.Keyboard.JustDown(this.escKey) && !this.registry.get(SHOW_MENU_REGISTRY_KEY)) {
+            this.registry.set(SHOW_SETTINGS_REGISTRY_KEY, !this.registry.get(SHOW_SETTINGS_REGISTRY_KEY));
         }
 
         if (!!this.hero) {
@@ -176,15 +180,17 @@ export class SiteScene extends Phaser.Scene {
         this.registry.events.on(EXIT_SITE_REQUEST_KEY, this.exitToOverworld, this);
         this.registry.events.on(JUMP_TO_SITE_REQUEST_KEY, this.jumpToSite, this);
         this.input.gamepad.on('down', this.gamepadDownHandler, this);
+        this.events.once('shutdown', this.clearListeners, this);
     }
     clearListeners() {
         this.registry.events.off(EXIT_COLLISION_EVENT_KEY, this.nextMap, this);
-        this.registry.events.off('changedata', this.registryChangeHandler);
-        this.registry.events.off(SPIN_DUST_BREAK_EVENT_KEY, this.spinDustBreakHandler);
+        this.registry.events.off('changedata', this.registryChangeHandler, this);
+        this.registry.events.off(SPIN_DUST_BREAK_EVENT_KEY, this.spinDustBreakHandler, this);
         this.registry.events.off(WALL_BREAK_EVENT_KEY, this.wallBreakHandler, this);
         this.registry.events.off(EXIT_SITE_REQUEST_KEY, this.exitToOverworld, this);
         this.registry.events.off(JUMP_TO_SITE_REQUEST_KEY, this.jumpToSite, this);
         this.input.gamepad.off('down', this.gamepadDownHandler);
+        this.stopAudio();
     }
 
     addCollisions() {
@@ -209,6 +215,7 @@ export class SiteScene extends Phaser.Scene {
 
     initInput() {
         this.cursors = this.input.keyboard.createCursorKeys();
+        this.escKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     }
 
     initCamera() {
@@ -241,6 +248,7 @@ export class SiteScene extends Phaser.Scene {
 
     initRegistry() {
         this.registry.set(SHOW_MENU_REGISTRY_KEY, false);
+        this.registry.set(SHOW_SETTINGS_REGISTRY_KEY, false);
         this.sound.mute = this.registry.get(AUDIO_MUTE_REGISTRY_KEY) ?? false;
     }
 
@@ -641,7 +649,7 @@ export class SiteScene extends Phaser.Scene {
     }
 
     registryChangeHandler(_parent, key: String, data: any) {
-        if (key === SHOW_MENU_REGISTRY_KEY) {
+        if (key === SHOW_MENU_REGISTRY_KEY || key === SHOW_SETTINGS_REGISTRY_KEY) {
             if (data) {
                 this.hero.freeze();
             } else if (!this.hasHeroReachedExit) {

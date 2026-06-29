@@ -113,7 +113,7 @@ const DEMO_OVERWORLD_EXIT_AREA_CONFIGS: AreaConfig[] = [
 const STANDARD_STUFF_WEIGHTS = [
     {
         key: 'urn',
-        weight: 2
+        weight: 3
     },
     {
         key: 'trophy',
@@ -121,7 +121,7 @@ const STANDARD_STUFF_WEIGHTS = [
     },
     {
         key: 'goblet',
-        weight: 2
+        weight: 4
     },
     {
         key: '',
@@ -829,11 +829,11 @@ export const MAP_CONFIGS: { [T in SITE_TYPES]: SiteConfig[] } = {
                 },
                 {
                     key: 'goblet',
-                    weight: 2
+                    weight: 4
                 },
                 {
                     key: 'urn',
-                    weight: 2
+                    weight: 3
                 },
                 {
                     key: 'trophy',

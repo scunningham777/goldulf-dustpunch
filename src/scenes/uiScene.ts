@@ -1,14 +1,13 @@
 import { MAP_CONFIGS, STUFF_CONFIGS, TOKEN_CONFIGS, RELIC_CONFIGS } from "../config";
-import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, UI_BAR_HEIGHT, AUDIO_MUTE_REGISTRY_KEY, DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, DASH_ACTIVE_UNTIL_REGISTRY_KEY, SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, TEXT_TINT, TEXT_TINT_HEX, SITE_DATA_REGISTRY_KEY, EXIT_SITE_REQUEST_KEY, JUMP_TO_SITE_REQUEST_KEY, SITE_TYPES, PLAY_MODE, PLAY_MODES } from "../constants";
+import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, SHOW_SETTINGS_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, UI_BAR_HEIGHT, AUDIO_MUTE_REGISTRY_KEY, DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, DASH_ACTIVE_UNTIL_REGISTRY_KEY, SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, TEXT_TINT, TEXT_TINT_HEX, SITE_DATA_REGISTRY_KEY, EXIT_SITE_REQUEST_KEY, JUMP_TO_SITE_REQUEST_KEY, SITE_TYPES, PLAY_MODE, PLAY_MODES } from "../constants";
 import { HERO_MOVEMENT_CONTROLLERS } from "../interfaces/heroMovementController";
 import { InventoryItem } from "../interfaces/stuffInInventory";
-import { TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT } from "../text";
+import { TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT, TEXT_SETTINGS_TITLE_TEXT } from "../text";
 
 const VIRTUAL_JOYSTICK_DIAMETER = 16;
 const MENU_BTN_DIMENSION = UI_BAR_HEIGHT;
 const MENU_BODY_OFFSET_X_RATIO = 0.06;
 const STANDARD_FONT_SIZE = 8 * GAME_SCALE;
-const HEADER_FONT_SIZE = 12 * GAME_SCALE;
 const TITLE_FONT_SIZE = 16 * GAME_SCALE;
 const ITEM_SPACING = 24 * GAME_SCALE;
 const SECTION_VERTICAL_SPACING = 36 * GAME_SCALE;
@@ -28,14 +27,19 @@ export class UIScene extends Phaser.Scene {
     private menuBackground: Phaser.GameObjects.Rectangle;
     private closeImage: Phaser.GameObjects.Image;
     private menuHeaderText: Phaser.GameObjects.Text;
+    private settingsLayer: Phaser.GameObjects.Layer;
+    private settingsBackground: Phaser.GameObjects.Rectangle;
+    private settingsCloseImage: Phaser.GameObjects.Image;
     private settingsHeaderText: Phaser.GameObjects.Text;
     private mvtCtrlHeaderText: Phaser.GameObjects.Text;
     private mvtCtrlFollowBtn: Phaser.GameObjects.Text;
     private mvtCtrlJoystickBtn: Phaser.GameObjects.Text;
     private fleeSiteBtnText: Phaser.GameObjects.Text;
+    private exitToTitleBtnText: Phaser.GameObjects.Text;
     private muteBtn: Phaser.GameObjects.Text;
     private menuBtn: Phaser.GameObjects.Rectangle;
     private menuBtnImage: Phaser.GameObjects.Image;
+    private settingsBtnImage: Phaser.GameObjects.Image;
     private sandalCooldownIcon: Phaser.GameObjects.Image;
     private sandalCooldownText: Phaser.GameObjects.Text;
     private daggerCooldownIcon: Phaser.GameObjects.Image;
@@ -43,6 +47,7 @@ export class UIScene extends Phaser.Scene {
     private cestusCooldownIcon: Phaser.GameObjects.Image;
     private cestusCooldownText: Phaser.GameObjects.Text;
     private isHidingMenu: boolean = false;
+    private isHidingSettings: boolean = false;
 
     private menuSections: { [key: string]: MenuSection } = {};
 
@@ -60,15 +65,25 @@ export class UIScene extends Phaser.Scene {
 
     private initMenuButton(): void {
         this.menuBtn = this.add.rectangle(0, this.scale.height - MENU_BTN_DIMENSION, this.scale.width, MENU_BTN_DIMENSION, 0x000000).setOrigin(0, 0);
-        this.menuBtnImage = this.add.image(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 0).setScale(GAME_SCALE);
+        this.menuBtnImage = this.add.image(MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 0).setScale(GAME_SCALE);
+        this.settingsBtnImage = this.add.image(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 2).setScale(GAME_SCALE);
         this.menuBtn.setInteractive();
 
         this.menuBtn.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             if (pointer.event) pointer.event.stopPropagation();
-            if (!this.registry.get(SHOW_MENU_REGISTRY_KEY)) {
+            const inventoryOpen = this.registry.get(SHOW_MENU_REGISTRY_KEY);
+            const settingsOpen = this.registry.get(SHOW_SETTINGS_REGISTRY_KEY);
+            if (inventoryOpen) {
+                // any click along the bottom bar closes the open inventory menu
+                this.isHidingMenu = true;
+            } else if (settingsOpen) {
+                // any click along the bottom bar closes the open settings menu
+                this.isHidingSettings = true;
+            } else if (pointer.x < this.scale.width / 2) {
+                // left half opens inventory, right half opens settings
                 this.registry.set(SHOW_MENU_REGISTRY_KEY, true);
             } else {
-                this.isHidingMenu = true;
+                this.registry.set(SHOW_SETTINGS_REGISTRY_KEY, true);
             }
         });
 
@@ -77,6 +92,10 @@ export class UIScene extends Phaser.Scene {
             if (this.isHidingMenu) {
                 this.isHidingMenu = false;
                 this.registry.set(SHOW_MENU_REGISTRY_KEY, false);
+            }
+            if (this.isHidingSettings) {
+                this.isHidingSettings = false;
+                this.registry.set(SHOW_SETTINGS_REGISTRY_KEY, false);
             }
         });
     }
@@ -87,15 +106,21 @@ export class UIScene extends Phaser.Scene {
     }
 
     private initMenu(): void {
+        // Inventory menu
         this.createMenuBackground();
         this.createMenuHeader();
         this.createPointsText();
         this.createInventorySections();
+        this.createCloseButton();
+        this.assembleMenuLayer();
+
+        // Settings menu
+        this.createSettingsBackground();
         this.createSettingsSection();
         this.createMovementControls();
-        this.createCloseButton();
         this.createMuteButton();
-        this.assembleMenuLayer();
+        this.createSettingsCloseButton();
+        this.assembleSettingsLayer();
     }
 
     private createMenuBackground(): void {
@@ -152,18 +177,22 @@ export class UIScene extends Phaser.Scene {
         };
     }
 
+    private createSettingsBackground(): void {
+        const menuBGWidth = this.calculateMenuBGWidth();
+        this.settingsBackground = this.add.rectangle(window.innerWidth - menuBGWidth, 0, menuBGWidth, window.innerHeight, 0x000000).setOrigin(0, 0);
+    }
+
     private createSettingsSection(): void {
-        this.settingsHeaderText = this.add.text(this.menuBackground.x + this.menuBackground.width / 2,
-            this.menuSections[INVENTORY_RELICS_REGISTRY_KEY].headerText.y + this.menuSections[INVENTORY_RELICS_REGISTRY_KEY].headerText.displayHeight + SECTION_VERTICAL_SPACING,
-            'Settings', {
-            font: `${HEADER_FONT_SIZE}px '7_12'`,
+        this.settingsHeaderText = this.add.text(this.settingsBackground.x + this.settingsBackground.width / 2, HEADER_TEXT_OFFSET,
+            TEXT_SETTINGS_TITLE_TEXT, {
+            font: `${TITLE_FONT_SIZE}px '7_12'`,
             color: TEXT_TINT_HEX
         }).setOrigin(0.5, 0);
     }
 
     private createMovementControls(): void {
-        const menuBodyOffsetX = this.menuBackground.width * MENU_BODY_OFFSET_X_RATIO;
-        this.mvtCtrlHeaderText = this.add.text(menuBodyOffsetX, this.settingsHeaderText.y + this.settingsHeaderText.displayHeight + TEXT_VERTICAL_SPACING, 'Player Movement: ', {
+        const menuBodyOffsetX = this.settingsBackground.width * MENU_BODY_OFFSET_X_RATIO;
+        this.mvtCtrlHeaderText = this.add.text(menuBodyOffsetX, this.settingsHeaderText.y + this.settingsHeaderText.displayHeight + POINTS_TEXT_OFFSET, 'Player Movement: ', {
             font: `${STANDARD_FONT_SIZE}px '7_12'`,
             color: TEXT_TINT_HEX
         });
@@ -198,17 +227,36 @@ export class UIScene extends Phaser.Scene {
         });
 
         this.fleeSiteBtnText.setVisible(false);
+
+        const exitTitleBtnY = this.fleeSiteBtnText.y + this.fleeSiteBtnText.displayHeight + TEXT_VERTICAL_SPACING;
+        this.exitToTitleBtnText = this.add.text(menuBodyOffsetX + 4, exitTitleBtnY, 'Exit to Title Screen', {
+            font: `${STANDARD_FONT_SIZE}px '7_12'`,
+            color: '#' + STUFF_TINT.toString(16)
+        }).setOrigin(0, 0).setInteractive();
+
+        this.exitToTitleBtnText.on('pointerdown', () => {
+            const sceneManager = this.game.scene;
+            sceneManager.getScenes(true).forEach(scene => {
+                sceneManager.stop(scene.sys.settings.key);
+            });
+            sceneManager.start('GameTitle');
+        });
     }
 
     private createCloseButton(): void {
-        this.closeImage = this.add.image(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 1).setScale(GAME_SCALE);
+        this.closeImage = this.add.image(MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 1).setScale(GAME_SCALE);
+    }
+
+    private createSettingsCloseButton(): void {
+        this.settingsCloseImage = this.add.image(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2, UI_TEXTURE_KEY, 0).setScale(GAME_SCALE);
     }
 
     private createMuteButton(): void {
-        this.muteBtn = this.add.text(MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2, 'MUTE', {
+        const menuBodyOffsetX = this.settingsBackground.width * MENU_BODY_OFFSET_X_RATIO;
+        this.muteBtn = this.add.text(menuBodyOffsetX, this.exitToTitleBtnText.y + this.exitToTitleBtnText.displayHeight + SECTION_VERTICAL_SPACING, 'MUTE', {
             font: `${STANDARD_FONT_SIZE}px '7_12'`,
             color: TEXT_TINT_HEX
-        }).setOrigin(0.5, 0.5);
+        }).setOrigin(0, 0);
 
         this.muteBtn.setInteractive();
         this.muteBtn.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -269,7 +317,7 @@ export class UIScene extends Phaser.Scene {
     private updateCooldownDisplayVisibility(): void {
         if (!this.sandalCooldownIcon || !this.sandalCooldownText || !this.daggerCooldownIcon || !this.daggerCooldownText || !this.cestusCooldownIcon || !this.cestusCooldownText) return;
 
-        const menuOpen = this.menuLayer?.visible;
+        const menuOpen = this.menuLayer?.visible || this.settingsLayer?.visible;
         const dashActiveUntil = this.registry.get(DASH_ACTIVE_UNTIL_REGISTRY_KEY) || 0;
         const dashCooldownEndsAt = this.registry.get(DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY) || 0;
         const spinCooldownEndsAt = this.registry.get(SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY) || 0;
@@ -296,8 +344,7 @@ export class UIScene extends Phaser.Scene {
 
     private assembleMenuLayer(): void {
         const menuElements: Phaser.GameObjects.GameObject[] = [
-            this.menuBackground, this.menuHeaderText, this.pointsText, this.closeImage, this.muteBtn, this.settingsHeaderText,
-            this.mvtCtrlHeaderText, this.mvtCtrlFollowBtn, this.mvtCtrlJoystickBtn, this.fleeSiteBtnText
+            this.menuBackground, this.menuHeaderText, this.pointsText, this.closeImage
         ];
 
         // Add section headers and groups
@@ -308,6 +355,14 @@ export class UIScene extends Phaser.Scene {
 
         this.menuLayer = this.add.layer(menuElements);
         this.menuLayer.setVisible(false);
+    }
+
+    private assembleSettingsLayer(): void {
+        this.settingsLayer = this.add.layer([
+            this.settingsBackground, this.settingsHeaderText, this.mvtCtrlHeaderText,
+            this.mvtCtrlFollowBtn, this.mvtCtrlJoystickBtn, this.fleeSiteBtnText, this.exitToTitleBtnText, this.muteBtn, this.settingsCloseImage
+        ]);
+        this.settingsLayer.setVisible(false);
     }
 
     private initEventListeners(): void {
@@ -325,6 +380,7 @@ export class UIScene extends Phaser.Scene {
             },
             [HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY]: (data: HERO_MOVEMENT_CONTROLLERS) => this.updateMenuMvtCtrlSelection(data),
             [SHOW_MENU_REGISTRY_KEY]: (data: boolean) => this.showInventory(data),
+            [SHOW_SETTINGS_REGISTRY_KEY]: (data: boolean) => this.showSettings(data),
             [AUDIO_MUTE_REGISTRY_KEY]: (data: boolean) => this.updateMuteButtonState(data),
             [SITE_DATA_REGISTRY_KEY]: (data: any) => this.updateFleeButtonVisibility(data)
         };
@@ -339,6 +395,10 @@ export class UIScene extends Phaser.Scene {
         // Remove duplicate listeners
         this.registry.events.off('changedata', this.updateUI, this);
         this.registry.events.on('changedata', this.updateUI, this);
+
+        this.events.once('shutdown', () => {
+            this.registry.events.off('changedata', this.updateUI, this);
+        });
     }
 
     private initDebugKeyBinding(): void {
@@ -444,6 +504,20 @@ export class UIScene extends Phaser.Scene {
     private showInventory(doShow: boolean): void {
         const visible = doShow ?? !this.menuLayer.visible;
         this.menuLayer.setVisible(visible);
+        // the two menus are mutually exclusive
+        if (visible && this.registry.get(SHOW_SETTINGS_REGISTRY_KEY)) {
+            this.registry.set(SHOW_SETTINGS_REGISTRY_KEY, false);
+        }
+        this.updateCooldownDisplayVisibility();
+    }
+
+    private showSettings(doShow: boolean): void {
+        const visible = doShow ?? !this.settingsLayer.visible;
+        this.settingsLayer.setVisible(visible);
+        // the two menus are mutually exclusive
+        if (visible && this.registry.get(SHOW_MENU_REGISTRY_KEY)) {
+            this.registry.set(SHOW_MENU_REGISTRY_KEY, false);
+        }
         this.updateCooldownDisplayVisibility();
     }
 
@@ -497,9 +571,10 @@ export class UIScene extends Phaser.Scene {
 
     private resizeMenu(): void {
         this.menuBtn.setPosition(0, this.scale.height - MENU_BTN_DIMENSION).setSize(this.scale.width, MENU_BTN_DIMENSION);
-        this.menuBtnImage.setPosition(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
-        this.closeImage.setPosition(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
-        this.muteBtn.setPosition(MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
+        this.menuBtnImage.setPosition(MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
+        this.closeImage.setPosition(MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
+        this.settingsBtnImage.setPosition(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
+        this.settingsCloseImage.setPosition(this.menuBtn.width - MENU_BTN_DIMENSION / 2, this.menuBtn.y + this.menuBtn.height / 2);
 
         const cooldownIconY = this.calculateCooldownIconY();
         const sandalX = this.calculateCooldownIconX(0);
@@ -540,15 +615,23 @@ export class UIScene extends Phaser.Scene {
             currentY += section.headerText.displayHeight + SECTION_VERTICAL_SPACING;
         });
 
-        this.settingsHeaderText.setPosition(this.menuBackground.x + this.menuBackground.width / 2,
-            this.menuSections[INVENTORY_RELICS_REGISTRY_KEY].headerText.y + this.menuSections[INVENTORY_RELICS_REGISTRY_KEY].headerText.displayHeight + SECTION_VERTICAL_SPACING);
-        this.mvtCtrlHeaderText.setPosition(menuBodyOffsetX, this.settingsHeaderText.y + this.settingsHeaderText.displayHeight + TEXT_VERTICAL_SPACING);
-        this.mvtCtrlFollowBtn.setPosition(menuBodyOffsetX + TEXT_VERTICAL_SPACING, this.mvtCtrlHeaderText.y + this.mvtCtrlHeaderText.displayHeight + TEXT_VERTICAL_SPACING);
+        // Settings menu
+        this.settingsBackground.setPosition(window.innerWidth - menuBGWidth, 0).setSize(menuBGWidth, window.innerHeight);
+        const settingsBodyOffsetX = this.settingsBackground.width * MENU_BODY_OFFSET_X_RATIO;
+        this.settingsHeaderText.setPosition(this.settingsBackground.x + this.settingsBackground.width / 2, HEADER_TEXT_OFFSET);
+        this.mvtCtrlHeaderText.setPosition(settingsBodyOffsetX, this.settingsHeaderText.y + this.settingsHeaderText.displayHeight + POINTS_TEXT_OFFSET);
+        this.mvtCtrlFollowBtn.setPosition(settingsBodyOffsetX + TEXT_VERTICAL_SPACING, this.mvtCtrlHeaderText.y + this.mvtCtrlHeaderText.displayHeight + TEXT_VERTICAL_SPACING);
         this.mvtCtrlJoystickBtn.setPosition(this.mvtCtrlFollowBtn.x + this.mvtCtrlFollowBtn.displayWidth + TEXT_VERTICAL_SPACING, this.mvtCtrlFollowBtn.y);
 
+        const fleeBtnY = this.mvtCtrlFollowBtn.y + this.mvtCtrlFollowBtn.displayHeight + TEXT_VERTICAL_SPACING;
         if (this.fleeSiteBtnText) {
-            const fleeBtnY = this.mvtCtrlFollowBtn.y + this.mvtCtrlFollowBtn.displayHeight + TEXT_VERTICAL_SPACING;
-            this.fleeSiteBtnText.setPosition(menuBodyOffsetX + 4, fleeBtnY);
+            this.fleeSiteBtnText.setPosition(settingsBodyOffsetX + 4, fleeBtnY);
+        }
+        if (this.exitToTitleBtnText) {
+            this.exitToTitleBtnText.setPosition(settingsBodyOffsetX + 4, this.fleeSiteBtnText.y + this.fleeSiteBtnText.displayHeight + TEXT_VERTICAL_SPACING);
+        }
+        if (this.muteBtn) {
+            this.muteBtn.setPosition(settingsBodyOffsetX, this.exitToTitleBtnText.y + this.exitToTitleBtnText.displayHeight + SECTION_VERTICAL_SPACING);
         }
     }
 
@@ -591,7 +674,8 @@ export class UIScene extends Phaser.Scene {
         return this.scale.height - MENU_BTN_DIMENSION / 2;
     }
     private calculateCooldownIconX(index: number): number {
-        return (index + .5) * MENU_BTN_DIMENSION + (index * 32);
+        // reserve the first slot (lower-left) for the settings menu button
+        return (index + 1.5) * MENU_BTN_DIMENSION + (index * 32);
     }
     private calculateCooldownTextX(index: number): number {
         return this.calculateCooldownIconX(index) + MENU_BTN_DIMENSION / 2 + 4;

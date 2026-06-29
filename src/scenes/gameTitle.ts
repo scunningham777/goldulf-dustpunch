@@ -1,4 +1,5 @@
-import { GAME_BG_COLOR, HERO_TEXTURE_KEY, SITE_TYPES, SKIP_OVERWORLD, UI_SCENE_KEY } from "../constants";
+import { GAME_BG_COLOR, HERO_TEXTURE_KEY, INVENTORY_RELICS_REGISTRY_KEY, INVENTORY_STUFF_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, SITE_DATA_REGISTRY_KEY, SITE_TYPES, SKIP_OVERWORLD, UI_SCENE_KEY } from "../constants";
+import { SiteGenerationData } from "../interfaces/siteGenerationData";
 import { TEXT_TITLE_TUTORIAL_BODY, TEXT_TITLE_TUTORIAL_CALL_TO_ACTION } from "../text";
 
 const TITLE_PORTION = .25;
@@ -14,16 +15,20 @@ const TITLE_DELAY = 200;
 const DUSTPUNCH_DELAY = 500;
 const INSTRUCTION_DELAY = 1000;
 const TUTORIAL_DELAY = 2000;
-const INSTRUCTION_SHOW_PERIOD = 900;
-const INSTRUCTION_BLINK_PERIOD = 500;
+
+const SELECTED_COLOR = '#ffffff';
+const UNSELECTED_COLOR = '#888888';
 
 export class GameTitleScene extends Phaser.Scene {
     private titleText: Phaser.GameObjects.Text;
     private subtitleText: Phaser.GameObjects.Text;
     private dustpunchLogo: Phaser.GameObjects.Image;
-    private instructionText: Phaser.GameObjects.Text;
+    private continueButton: Phaser.GameObjects.Text;
+    private newGameButton: Phaser.GameObjects.Text;
     private tutorialText: Phaser.GameObjects.Text;
     private tutorialCTAText: Phaser.GameObjects.Text;
+    private selectedOption: number = 0;
+    private hasSaveData: boolean = false;
 
     create(): void {
         this.time.delayedCall(TITLE_DELAY, () => {
@@ -36,7 +41,7 @@ export class GameTitleScene extends Phaser.Scene {
             this.titleText.setOrigin(0.5, 1);
             this.sound.play('punch1');
         }, [], this);
-        
+
         this.time.delayedCall(TITLE_DELAY + DUSTPUNCH_DELAY, () => {
             let subtitleFontSize = this.scale.height * SUBTITLE_TEXT_PORTION;
             this.subtitleText = this.add.text(
@@ -63,8 +68,11 @@ export class GameTitleScene extends Phaser.Scene {
 
             this.sound.play('punch1');
         }, [], this);
-        
+
         this.time.delayedCall(TITLE_DELAY + DUSTPUNCH_DELAY + INSTRUCTION_DELAY, () => {
+            const inventoryStuff = this.registry.get(INVENTORY_STUFF_REGISTRY_KEY) as any[];
+            this.hasSaveData = !!(inventoryStuff?.length);
+
             this.add.rectangle(
                 this.scale.width / 2,
                 this.scale.height * (1 - INSTRUCTION_PORTION - INSTRUCTION_TEXT_PORTION),
@@ -76,24 +84,56 @@ export class GameTitleScene extends Phaser.Scene {
             .setScrollFactor(0)
             .setDepth(1);
 
-            this.instructionText = this.add.text(
-                this.scale.width / 2,
-                this.scale.height * (1 - INSTRUCTION_PORTION),
-                'Tap or press any key to begin',
-                {font: `${this.scale.height * INSTRUCTION_TEXT_PORTION}px '7_12'`, color: '#fff', align: 'center', wordWrap: {width: this.scale.width - 16}},
-            )
-            .setOrigin(0.5, 0)
-            .setScrollFactor(0)
-            .setDepth(2);
+            const buttonFontSize = this.scale.height * INSTRUCTION_TEXT_PORTION;
+            const buttonStyle = (color: string) => ({
+                font: `${buttonFontSize}px '7_12'`,
+                color,
+                align: 'center',
+                wordWrap: {width: this.scale.width - 16},
+            });
+
+            if (this.hasSaveData) {
+                this.selectedOption = 0;
+
+                this.continueButton = this.add.text(
+                    this.scale.width / 2,
+                    this.scale.height * (1 - INSTRUCTION_PORTION),
+                    '> Continue',
+                    buttonStyle(SELECTED_COLOR),
+                )
+                .setOrigin(0.5, 0)
+                .setScrollFactor(0)
+                .setDepth(2);
+
+                this.newGameButton = this.add.text(
+                    this.scale.width / 2,
+                    this.scale.height * (1 - INSTRUCTION_PORTION) + buttonFontSize * 1.6,
+                    '  New Game',
+                    buttonStyle(UNSELECTED_COLOR),
+                )
+                .setOrigin(0.5, 0)
+                .setScrollFactor(0)
+                .setDepth(2);
+            } else {
+                this.selectedOption = 0;
+
+                this.newGameButton = this.add.text(
+                    this.scale.width / 2,
+                    this.scale.height * (1 - INSTRUCTION_PORTION),
+                    '> New Game',
+                    buttonStyle(SELECTED_COLOR),
+                )
+                .setOrigin(0.5, 0)
+                .setScrollFactor(0)
+                .setDepth(2);
+            }
 
             this.sound.play('punch2', {rate: 1});
 
-            this.input.keyboard.on('keydown', this.startGame, this);
-            this.input.on('pointerdown', this.startGame, this);
-            this.input.gamepad.on('down', this.startGame, this);
-
-            // blink
-            this.time.delayedCall(INSTRUCTION_SHOW_PERIOD, this.hideInstructions, [], this);
+            this.input.keyboard.on('keydown', this.handleKeydown, this);
+            this.input.on('pointerdown', this.executeSelectedOption, this);
+            this.input.gamepad.on('down', this.executeSelectedOption, this);
+            this.sound.play('yesterpunch', {loop: true});
         }, [], this)
 
         this.time.delayedCall(TITLE_DELAY + DUSTPUNCH_DELAY + INSTRUCTION_DELAY + TUTORIAL_DELAY, () => {
@@ -123,18 +163,60 @@ export class GameTitleScene extends Phaser.Scene {
         this.scale.on('orientationchange', this.recenterContents, this);
     }
 
-    showInstructions() {
-        if (this.instructionText != null) {
-            this.instructionText.alpha = 1;
+    private handleKeydown(event: KeyboardEvent) {
+        if (this.hasSaveData && (event.code === 'ArrowUp' || event.code === 'ArrowDown')) {
+            this.selectedOption = this.selectedOption === 0 ? 1 : 0;
+            this.updateButtonVisuals();
+            return;
         }
-        this.time.delayedCall(INSTRUCTION_SHOW_PERIOD, this.hideInstructions, [], this);
+        this.executeSelectedOption();
     }
 
-    hideInstructions() {
-        if (this.instructionText != null) {
-            this.instructionText.alpha = 0;
+    private updateButtonVisuals() {
+        if (this.selectedOption === 0) {
+            this.continueButton.setText('> Continue').setColor(SELECTED_COLOR);
+            this.newGameButton.setText('  New Game').setColor(UNSELECTED_COLOR);
+        } else {
+            this.continueButton.setText('  Continue').setColor(UNSELECTED_COLOR);
+            this.newGameButton.setText('> New Game').setColor(SELECTED_COLOR);
         }
-        this.time.delayedCall(INSTRUCTION_BLINK_PERIOD, this.showInstructions, [], this);
+    }
+
+    private executeSelectedOption() {
+        if (this.hasSaveData && this.selectedOption === 1) {
+            this.startNewGame();
+        } else if (this.hasSaveData) {
+            this.continueGame();
+        } else {
+            this.startNewGame();
+        }
+    }
+
+    private continueGame() {
+        this.scene.launch(UI_SCENE_KEY);
+        const savedSiteData: SiteGenerationData = this.registry.get(SITE_DATA_REGISTRY_KEY);
+        const sceneKey = savedSiteData?.siteType ?? (SKIP_OVERWORLD ? SITE_TYPES.site : SITE_TYPES.overworld);
+        const mapConfigName = savedSiteData?.siteConfigName ?? (SKIP_OVERWORLD ? 'temple' : 'new_game');
+        this.cleanup();
+        this.scene.start(sceneKey, {mapConfigName});
+    }
+
+    private startNewGame() {
+        this.registry.set(INVENTORY_STUFF_REGISTRY_KEY, []);
+        this.registry.set(INVENTORY_TOKENS_REGISTRY_KEY, []);
+        this.registry.set(INVENTORY_RELICS_REGISTRY_KEY, []);
+        this.registry.set(SITE_DATA_REGISTRY_KEY, null);
+
+        this.scene.launch(UI_SCENE_KEY);
+        const initialMapSceneConfig = {
+            mapConfigName: SKIP_OVERWORLD ? 'temple' : 'new_game',
+        };
+        this.cleanup();
+        this.scene.start(SKIP_OVERWORLD ? SITE_TYPES.site : SITE_TYPES.overworld, initialMapSceneConfig);
+    }
+
+    startGame() {
+        this.startNewGame();
     }
 
     private recenterContents() {
@@ -150,27 +232,26 @@ export class GameTitleScene extends Phaser.Scene {
             this.dustpunchLogo.setX(this.scale.width / 2);
             this.dustpunchLogo.setY(this.scale.height * (TITLE_PORTION + SUBTITLE_Y_OFFSET + SUBTITLE_TEXT_PORTION + LOGO_Y_OFFSET));
         }
-        if (!!this.instructionText) {
-            this.instructionText.setX(this.scale.width / 2);
-            this.instructionText.setY(this.scale.height * (1 - INSTRUCTION_PORTION));
+        if (!!this.continueButton) {
+            this.continueButton.setX(this.scale.width / 2);
+            this.continueButton.setY(this.scale.height * (1 - INSTRUCTION_PORTION));
+        }
+        if (!!this.newGameButton) {
+            this.newGameButton.setX(this.scale.width / 2);
+            const buttonFontSize = this.scale.height * INSTRUCTION_TEXT_PORTION;
+            this.newGameButton.setY(
+                this.hasSaveData
+                    ? this.scale.height * (1 - INSTRUCTION_PORTION) + buttonFontSize * 1.6
+                    : this.scale.height * (1 - INSTRUCTION_PORTION)
+            );
         }
     }
-    
-    startGame() {
-        this.scene.launch(UI_SCENE_KEY);
 
-        const initialMapSceneConfig = {
-            mapConfigName: SKIP_OVERWORLD ? 'temple' : 'new_game',
-        };
-        this.cleanup();
-        
-        this.scene.start(SKIP_OVERWORLD ? SITE_TYPES.site : SITE_TYPES.overworld, initialMapSceneConfig);
-    }
-    
     cleanup(): void {
         this.scale.off('orientationchange');
         this.input.off('pointerdown');
         this.input.keyboard.off('keydown');
         this.input.gamepad.off('down');
+        this.sound.getAll('yesterpunch').forEach(s => s.stop());
     }
 }

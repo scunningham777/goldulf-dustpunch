@@ -27,6 +27,7 @@ export class PreloadScene extends Phaser.Scene {
         this.load.audio('type', 'assets/sounds/type.wav');
         this.load.audio('glory', 'assets/sounds/deep_glory.wav');
         this.load.audio('spirit', 'assets/sounds/spirited_away.wav');
+        this.load.audio('yesterpunch', 'assets/music/yesterpunch.mp3');
         this.load.audio('duty', 'assets/music/duty.mp3');
         this.load.audio('dredger', 'assets/music/dredger.mp3');
         this.load.audio('ramble', 'assets/music/ramble.mp3');

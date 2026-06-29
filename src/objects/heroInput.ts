@@ -1,5 +1,5 @@
 import { CARDINAL_DIRECTION } from '../utils';
-import { DOUBLE_TAP_THRESHOLD, SWIPE_MAX_TIME, SWIPE_MIN_DISTANCE, SHOW_MENU_REGISTRY_KEY, UI_BAR_HEIGHT } from '../constants';
+import { DOUBLE_TAP_THRESHOLD, SWIPE_MAX_TIME, SWIPE_MIN_DISTANCE, SHOW_MENU_REGISTRY_KEY, SHOW_SETTINGS_REGISTRY_KEY, UI_BAR_HEIGHT } from '../constants';
 
 export class HeroInput {
     // ---- existing input state (used by joystick controller) ----
@@ -21,10 +21,44 @@ export class HeroInput {
     private spinRequested = false; // flag set by double tap detection
     private swipeDirection: CARDINAL_DIRECTION | null = null; // direction of detected swipe
 
+    private wasd: {
+        up: Phaser.Input.Keyboard.Key;
+        down: Phaser.Input.Keyboard.Key;
+        left: Phaser.Input.Keyboard.Key;
+        right: Phaser.Input.Keyboard.Key;
+    };
+
     constructor(private scene: Phaser.Scene) {
+        const kb = this.scene.input.keyboard;
+        this.wasd = {
+            up:    kb.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+            down:  kb.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+            left:  kb.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+            right: kb.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+        };
+
         // hook pointer events for swipe detection/double tap on mobile
         this.scene.input.on('pointerdown', this.onPointerDown, this);
         this.scene.input.on('pointerup', this.onPointerUp, this);
+    }
+
+    isDirectionDown(dir: CARDINAL_DIRECTION, cursors: Phaser.Types.Input.Keyboard.CursorKeys): boolean {
+        switch (dir) {
+            case CARDINAL_DIRECTION.LEFT:  return cursors.left.isDown  || this.wasd.left.isDown;
+            case CARDINAL_DIRECTION.RIGHT: return cursors.right.isDown || this.wasd.right.isDown;
+            case CARDINAL_DIRECTION.UP:    return cursors.up.isDown    || this.wasd.up.isDown;
+            case CARDINAL_DIRECTION.DOWN:  return cursors.down.isDown  || this.wasd.down.isDown;
+        }
+    }
+
+    isDirectionJustDown(dir: CARDINAL_DIRECTION, cursors: Phaser.Types.Input.Keyboard.CursorKeys): boolean {
+        const JustDown = Phaser.Input.Keyboard.JustDown;
+        switch (dir) {
+            case CARDINAL_DIRECTION.LEFT:  return JustDown(cursors.left)  || JustDown(this.wasd.left);
+            case CARDINAL_DIRECTION.RIGHT: return JustDown(cursors.right) || JustDown(this.wasd.right);
+            case CARDINAL_DIRECTION.UP:    return JustDown(cursors.up)    || JustDown(this.wasd.up);
+            case CARDINAL_DIRECTION.DOWN:  return JustDown(cursors.down)  || JustDown(this.wasd.down);
+        }
     }
 
     // ---------- tap detection methods ----------
@@ -49,8 +83,8 @@ export class HeroInput {
             return;
         }
 
-        // if the inventory/menu is currently open, ignore pointer starts
-        if (this.scene.registry.get(SHOW_MENU_REGISTRY_KEY)) {
+        // if the inventory/menu or settings menu is currently open, ignore pointer starts
+        if (this.scene.registry.get(SHOW_MENU_REGISTRY_KEY) || this.scene.registry.get(SHOW_SETTINGS_REGISTRY_KEY)) {
             return;
         }
 

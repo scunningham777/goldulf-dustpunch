@@ -87,24 +87,11 @@ export class Hero {
         const gamepadDirections = this.input.calculateGamepad(gamepad);
 
         // keyboard just-down detection
-        if (Phaser.Input.Keyboard.JustDown(cursors.left)) {
-            if (this.input.handleTap(CARDINAL_DIRECTION.LEFT)) {
-                this.abilities.startDash(CARDINAL_DIRECTION.LEFT);
-            }
-        }
-        if (Phaser.Input.Keyboard.JustDown(cursors.right)) {
-            if (this.input.handleTap(CARDINAL_DIRECTION.RIGHT)) {
-                this.abilities.startDash(CARDINAL_DIRECTION.RIGHT);
-            }
-        }
-        if (Phaser.Input.Keyboard.JustDown(cursors.up)) {
-            if (this.input.handleTap(CARDINAL_DIRECTION.UP)) {
-                this.abilities.startDash(CARDINAL_DIRECTION.UP);
-            }
-        }
-        if (Phaser.Input.Keyboard.JustDown(cursors.down)) {
-            if (this.input.handleTap(CARDINAL_DIRECTION.DOWN)) {
-                this.abilities.startDash(CARDINAL_DIRECTION.DOWN);
+        for (const dir of [CARDINAL_DIRECTION.LEFT, CARDINAL_DIRECTION.RIGHT, CARDINAL_DIRECTION.UP, CARDINAL_DIRECTION.DOWN]) {
+            if (this.input.isDirectionJustDown(dir, cursors)) {
+                if (this.input.handleTap(dir)) {
+                    this.abilities.startDash(dir);
+                }
             }
         }
 
@@ -138,18 +125,18 @@ export class Hero {
 
             let newDirection: CARDINAL_DIRECTION = null;
 
-            if (cursors.left.isDown || gamepadDirections.left || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.LEFT)) {
+            if (this.input.isDirectionDown(CARDINAL_DIRECTION.LEFT, cursors) || gamepadDirections.left || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.LEFT)) {
                 this.heroSprite.setVelocityX(-this.velocity);
                 newDirection = CARDINAL_DIRECTION.LEFT;
-            } else if (cursors.right.isDown || gamepadDirections.right || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.RIGHT)) {
+            } else if (this.input.isDirectionDown(CARDINAL_DIRECTION.RIGHT, cursors) || gamepadDirections.right || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.RIGHT)) {
                 this.heroSprite.setVelocityX(this.velocity);
                 newDirection = CARDINAL_DIRECTION.RIGHT;
             }
 
-            if (cursors.up.isDown || gamepadDirections.up || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.UP)) {
+            if (this.input.isDirectionDown(CARDINAL_DIRECTION.UP, cursors) || gamepadDirections.up || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.UP)) {
                 this.heroSprite.setVelocityY(-this.velocity);
                 newDirection = CARDINAL_DIRECTION.UP;
-            } else if (cursors.down.isDown || gamepadDirections.down || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.DOWN)) {
+            } else if (this.input.isDirectionDown(CARDINAL_DIRECTION.DOWN, cursors) || gamepadDirections.down || this.mvtCtrl.testDirection(this, pointer, CARDINAL_DIRECTION.DOWN)) {
                 this.heroSprite.setVelocityY(this.velocity);
                 newDirection = CARDINAL_DIRECTION.DOWN;
             }

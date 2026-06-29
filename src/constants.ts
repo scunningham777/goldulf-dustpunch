@@ -41,6 +41,7 @@ export const ANCESTORS_TEXTURE_KEY = 'ancestors_texture';
 export const EXIT_COLLISION_EVENT_KEY = 'exit_collision';
 export const TOUCH_MOVEMENT_REGISTRY_KEY = 'touch_mvt_coords';
 export const SHOW_MENU_REGISTRY_KEY = 'do_show_menu';
+export const SHOW_SETTINGS_REGISTRY_KEY = 'do_show_settings';
 export const DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY = 'dash_cooldown_ends_at';
 export const DASH_ACTIVE_UNTIL_REGISTRY_KEY = 'dash_active_until';
 export const SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY = 'spin_cooldown_ends_at';

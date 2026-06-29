@@ -29,7 +29,7 @@ export class Relic extends Phaser.GameObjects.Image {
             onComplete: () => {
                 this.addToInventoryTween = this.scene.tweens.add({
                     targets: this,
-                    x: { value: () => this.scene.cameras.main.scrollX + this.scene.scale.width, ease: 'Quad.easeIn' },
+                    x: { value: () => this.scene.cameras.main.scrollX, ease: 'Quad.easeIn' },
                     y: { value: () => this.scene.cameras.main.scrollY + this.scene.scale.height, ease: 'Back.easeIn' },
                     scale: { value: 1, ease: 'Quad.easeIn' },
                     duration: 1500,
@@ -46,7 +46,7 @@ export class Relic extends Phaser.GameObjects.Image {
 
     update() {
         if (this.addToInventoryTween && this.addToInventoryTween.isPlaying()) {
-            this.addToInventoryTween.updateTo('x', this.scene.cameras.main.scrollX + this.scene.scale.width);
+            this.addToInventoryTween.updateTo('x', this.scene.cameras.main.scrollX);
             this.addToInventoryTween.updateTo('y', this.scene.cameras.main.scrollY + this.scene.scale.height);
         }
     }
