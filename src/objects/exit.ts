@@ -38,7 +38,9 @@ export class Exit extends Phaser.Physics.Arcade.Image {
         this.scene.registry.events.emit(EXIT_COLLISION_EVENT_KEY, {
             linkedMapSceneType: this.linkedMapSceneType,
             linkedMapConfigName: this.linkedMapConfigName,
-            requiredTokens: this.requiredTokens
+            requiredTokens: this.requiredTokens,
+            x: this.x,
+            y: this.y,
         });
     }
 

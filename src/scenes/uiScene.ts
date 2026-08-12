@@ -2,7 +2,7 @@ import { MAP_CONFIGS, STUFF_CONFIGS, TOKEN_CONFIGS, RELIC_CONFIGS } from "../con
 import { INVENTORY_STUFF_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, GAME_SCALE, SHOW_MENU_REGISTRY_KEY, SHOW_SETTINGS_REGISTRY_KEY, STATIC_TEXTURE_KEY, STUFF_TINT, HERO_TINT, UI_TEXTURE_KEY, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, UI_BAR_HEIGHT, AUDIO_MUTE_REGISTRY_KEY, DASH_COOLDOWN_ENDS_AT_REGISTRY_KEY, DASH_ACTIVE_UNTIL_REGISTRY_KEY, SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY, WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY, TEXT_TINT, TEXT_TINT_HEX, SITE_DATA_REGISTRY_KEY, EXIT_SITE_REQUEST_KEY, JUMP_TO_SITE_REQUEST_KEY, SITE_TYPES, PLAY_MODE, PLAY_MODES } from "../constants";
 import { HERO_MOVEMENT_CONTROLLERS } from "../interfaces/heroMovementController";
 import { InventoryItem } from "../interfaces/stuffInInventory";
-import { TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT, TEXT_SETTINGS_TITLE_TEXT } from "../text";
+import { TEXT_FLEE_BUTTON, TEXT_FLEE_BUTTON_GATED, TEXT_INVENTORY_TITLE_TEXT as TEXT_INVENTORY_HEADER_TEXT, TEXT_SETTINGS_TITLE_TEXT } from "../text";
 
 const VIRTUAL_JOYSTICK_DIAMETER = 16;
 const MENU_BTN_DIMENSION = UI_BAR_HEIGHT;
@@ -216,7 +216,7 @@ export class UIScene extends Phaser.Scene {
         });
 
         const fleeBtnTextY = this.mvtCtrlFollowBtn.y + this.mvtCtrlFollowBtn.displayHeight + TEXT_VERTICAL_SPACING;
-        this.fleeSiteBtnText = this.add.text(menuBodyOffsetX + 4, fleeBtnTextY, 'Flee This Place!', {
+        this.fleeSiteBtnText = this.add.text(menuBodyOffsetX + 4, fleeBtnTextY, TEXT_FLEE_BUTTON, {
             font: `${STANDARD_FONT_SIZE}px '7_12'`,
             color: '#' + STUFF_TINT.toString(16)
         }).setOrigin(0, 0).setInteractive();
@@ -382,7 +382,7 @@ export class UIScene extends Phaser.Scene {
             [SHOW_MENU_REGISTRY_KEY]: (data: boolean) => this.showInventory(data),
             [SHOW_SETTINGS_REGISTRY_KEY]: (data: boolean) => this.showSettings(data),
             [AUDIO_MUTE_REGISTRY_KEY]: (data: boolean) => this.updateMuteButtonState(data),
-            [SITE_DATA_REGISTRY_KEY]: (data: any) => this.updateFleeButtonVisibility(data)
+            [SITE_DATA_REGISTRY_KEY]: (data: any) => this.updateFleeButton(data)
         };
 
         // Initial updates
@@ -560,8 +560,9 @@ export class UIScene extends Phaser.Scene {
         this.mvtCtrlJoystickBtn.setAlpha(isFollow ? 0.8 : 1).setTint(isFollow ? TEXT_TINT : HERO_TINT);
     }
 
-    private updateFleeButtonVisibility(siteData: any): void {
+    private updateFleeButton(siteData: any): void {
         const visible = !!siteData && siteData.siteType !== SITE_TYPES.overworld;
+        if (visible) this.fleeSiteBtnText.setText(siteData.siteType === SITE_TYPES.gatedSite ? TEXT_FLEE_BUTTON_GATED : TEXT_FLEE_BUTTON)
         if (this.fleeSiteBtnText) this.fleeSiteBtnText.setVisible(visible);
     }
 

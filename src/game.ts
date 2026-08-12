@@ -7,13 +7,14 @@ import { GameTitleScene } from './scenes/gameTitle';
 import { SiteScene } from './scenes/site';
 import { GameOverScene } from './scenes/gameOver';
 
-import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_STUFF_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR_HEX_STRING, SITE_TYPES, PLAY_MODE, SITE_COMPLETE_SCENE_KEY, SITE_DATA_REGISTRY_KEY, INVENTORY_STUFF_REGISTRY_KEY__OLD, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, AUDIO_MUTE_REGISTRY_KEY, PLAY_MODES } from './constants';
+import { WORLD_WIDTH, WORLD_HEIGHT, INVENTORY_STUFF_REGISTRY_KEY, UI_SCENE_KEY, GAME_BG_COLOR_HEX_STRING, SITE_TYPES, PLAY_MODE, SITE_COMPLETE_SCENE_KEY, GATED_ENTRY_SCENE_KEY, SITE_DATA_REGISTRY_KEY, INVENTORY_STUFF_REGISTRY_KEY__OLD, INVENTORY_TOKENS_REGISTRY_KEY, INVENTORY_RELICS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, AUDIO_MUTE_REGISTRY_KEY, PLAY_MODES } from './constants';
 
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 import { UIScene } from './scenes/uiScene';
 import { SiteCompleteScene } from './scenes/siteComplete';
+import { GatedEntryScene } from './scenes/gatedEntry';
 import { Storage } from './objects/storage';
 import { InventoryItem } from './interfaces/stuffInInventory';
 import { SiteGenerationData } from './interfaces/siteGenerationData';
@@ -72,6 +73,7 @@ export class Game extends Phaser.Game {
         this.scene.add(UI_SCENE_KEY, UIScene, false);
         this.scene.add('GameOver', GameOverScene, false);
         this.scene.add(SITE_COMPLETE_SCENE_KEY, SiteCompleteScene, false);
+        this.scene.add(GATED_ENTRY_SCENE_KEY, GatedEntryScene, false);
 
         Promise.all([
             this.dataStore.get(SITE_DATA_REGISTRY_KEY),

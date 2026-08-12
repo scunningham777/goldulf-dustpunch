@@ -98,7 +98,7 @@ const DEMO_OVERWORLD_EXIT_AREA_CONFIGS: AreaConfig[] = [
         maxSize: 10,
         linkedMapConfigType: SITE_TYPES.gatedSite,
         availableLinkedMapConfigName: ['supreme_settlement'],
-        requiredTokens: { scales: 3 }
+        requiredTokens: { scales: 1 }
     },
     {
         placement: 'floor',
@@ -106,7 +106,7 @@ const DEMO_OVERWORLD_EXIT_AREA_CONFIGS: AreaConfig[] = [
         maxSize: 10,
         linkedMapConfigType: SITE_TYPES.gatedSite,
         availableLinkedMapConfigName: ['supreme_cave'],
-        requiredTokens: { diamond: 3 }
+        requiredTokens: { diamond: 1 }
     },
 ];
 

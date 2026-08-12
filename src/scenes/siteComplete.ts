@@ -7,7 +7,7 @@ import { Token } from "../objects/token";
 // @ts-ignore - module sometimes not picked up by TS watcher until rebuild
 import { Relic } from "../objects/relic.ts";
 import { TypewriterText } from "../objects/typewriterText";
-import { TEXT_ANCESTOR_BESTOWED_TOKEN_CTA, TEXT_ANCESTOR_FREED_CTA, TEXT_ANCESTOR_FREED_SPEECH, TEXT_FIRST_TOKEN_RECEIVED } from "../text";
+import { TEXT_ANCESTOR_BESTOWED_RELIC_CTA, TEXT_ANCESTOR_BESTOWED_TOKEN_CTA, TEXT_ANCESTOR_FREED_CTA, TEXT_ANCESTOR_FREED_SPEECH, TEXT_FIRST_TOKEN_RECEIVED } from "../text";
 import { CARDINAL_DIRECTION, weightedRandomizeAnything } from "../utils";
 import { SiteScene } from "./site";
 
@@ -99,7 +99,7 @@ export class SiteCompleteScene extends Phaser.Scene {
             const halfHeight = this.cameras.main.displayHeight / 2
             const speechTextYOffset = (this.hero.entity.y > halfHeight - (this.hero.entity.height * GAME_SCALE)) ? 0 : halfHeight;
             const speechTextY = this.cameras.main.displayHeight * .1 + speechTextYOffset;
-            const speechText = `${TEXT_ANCESTOR_FREED_SPEECH}\n\n${this.ancestorSpirit.config.tokenKey ? TEXT_ANCESTOR_BESTOWED_TOKEN_CTA : TEXT_ANCESTOR_FREED_CTA}`;
+            const speechText = `${TEXT_ANCESTOR_FREED_SPEECH}\n\n${this.ancestorSpirit.config.tokenKey ? TEXT_ANCESTOR_BESTOWED_TOKEN_CTA : this.ancestorSpirit.config.relicKey ? TEXT_ANCESTOR_BESTOWED_RELIC_CTA : TEXT_ANCESTOR_FREED_CTA}`;
             this.speechText = new TypewriterText(speechText, this, speechTextY, TYPEWRITER_WORD_INTERVAL, () => {
                 this.sound.play('glory');
                 this.input.keyboard.on('keydown', this.nextMap, this);

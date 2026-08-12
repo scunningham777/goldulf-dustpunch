@@ -1,5 +1,5 @@
 import { Hero } from '../objects/hero';
-import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, PLAY_MODE, SHOW_MENU_REGISTRY_KEY, SHOW_SETTINGS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY, INVENTORY_RELICS_REGISTRY_KEY, AUDIO_MUTE_REGISTRY_KEY, WALL_BREAK_EVENT_KEY, EXIT_SITE_REQUEST_KEY, JUMP_TO_SITE_REQUEST_KEY, PLAY_MODES } from '../constants';
+import { GAME_SCALE, DUNGEON_LAYER_KEYS, EXIT_COLLISION_EVENT_KEY, SITE_TYPES, PLAY_MODE, SHOW_MENU_REGISTRY_KEY, SHOW_SETTINGS_REGISTRY_KEY, HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY, STATIC_TEXTURE_KEY, SITE_COMPLETE_SCENE_KEY, GATED_ENTRY_SCENE_KEY, HERO_FRAMES, HERO_VELOCITY, HERO_DEBUG_VELOCITY_MULTIPLIER, SITE_DATA_REGISTRY_KEY, TOUCH_MOVEMENT_REGISTRY_KEY, INVENTORY_TOKENS_REGISTRY_KEY, GAME_BG_COLOR, GATE_SITE_BG_COLOR, HERO_TINT, UI_BAR_HEIGHT, SPIN_DUST_BREAK_EVENT_KEY, INVENTORY_RELICS_REGISTRY_KEY, AUDIO_MUTE_REGISTRY_KEY, WALL_BREAK_EVENT_KEY, EXIT_SITE_REQUEST_KEY, JUMP_TO_SITE_REQUEST_KEY, PLAY_MODES } from '../constants';
 import { CARDINAL_DIRECTION, justInsideWall, weightedRandomizeAnything } from '../utils';
 import { SiteConfig } from '../interfaces/siteConfig';
 import { MAP_CONFIGS, STUFF_CONFIGS } from '../config';
@@ -10,6 +10,7 @@ import { DustModel } from '../siteGenerator/dustModel';
 import { Dust } from '../objects/dust';
 import { Exit } from '../objects/exit';
 import { SiteCompleteSceneProps } from './siteComplete';
+import { GatedEntrySceneProps } from './gatedEntry';
 import { SiteGenerationData } from '../interfaces/siteGenerationData';
 import { GeneratorMapping } from '../siteGenerator/siteGenerator';
 import { InventoryItem } from '../interfaces/stuffInInventory';
@@ -377,7 +378,12 @@ export class SiteScene extends Phaser.Scene {
         }
     }
 
-    nextMap(exitConfig?: {linkedMapSceneType: SITE_TYPES, linkedMapConfigName: string, requiredTokens?: { [tokenKey: string]: number }}) {
+    nextMap(exitConfig?: {linkedMapSceneType: SITE_TYPES, linkedMapConfigName: string, requiredTokens?: { [tokenKey: string]: number }, x?: number, y?: number}) {
+        if (exitConfig?.linkedMapSceneType === SITE_TYPES.gatedSite) {
+            this.beginGatedEntry(exitConfig);
+            return;
+        }
+
         this.hasHeroReachedExit = true;
         this.hero.freeze();
         this.clearListeners();
@@ -408,6 +414,33 @@ export class SiteScene extends Phaser.Scene {
             };
             this.scene.start(exitConfig.linkedMapSceneType, sceneConfig);
         });
+    }
+
+    beginGatedEntry(exitConfig: {linkedMapSceneType: SITE_TYPES, linkedMapConfigName: string, requiredTokens?: { [tokenKey: string]: number }, x?: number, y?: number}) {
+        this.hasHeroReachedExit = true;
+        this.hero.freeze();
+        this.stopAudio();
+        this.hero.entity.setFrame(HERO_FRAMES.standing[this.hero.currentDirection]);
+
+        const cam = this.cameras.main;
+        // fall back to the hero's position (matching the old hard-coded placement) if the
+        // exit's world position wasn't provided, e.g. when jumping straight to a site via
+        // the debug menu rather than colliding with an actual Exit
+        const entranceDisplayX = exitConfig.x != null ? exitConfig.x - cam.scrollX : this.hero.entity.x - cam.scrollX + this.hero.entity.displayWidth;
+        const entranceDisplayY = exitConfig.y != null ? exitConfig.y - cam.scrollY : this.hero.entity.y - cam.scrollY;
+
+        const gatedEntryProps: GatedEntrySceneProps = {
+            heroDisplayX: this.hero.entity.x - cam.scrollX,
+            heroDisplayY: this.hero.entity.y - cam.scrollY,
+            heroDirection: this.hero.currentDirection,
+            entranceDisplayX,
+            entranceDisplayY,
+            callingSceneKey: this.scene.key as SITE_TYPES,
+            exitConfig,
+        };
+        this.scene.launch(GATED_ENTRY_SCENE_KEY, gatedEntryProps);
+
+        this.hero.entity.setVisible(false);
     }
 
     dustCollision = (_heroObj: Phaser.Types.Physics.Arcade.GameObjectWithBody, dustObj: Phaser.Types.Physics.Arcade.GameObjectWithBody) => {

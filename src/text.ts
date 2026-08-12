@@ -5,4 +5,7 @@ export const TEXT_TITLE_TUTORIAL_CALL_TO_ACTION = `HASTE you must make!\nCOURAGE
 export const TEXT_ANCESTOR_FREED_SPEECH = `Trapped here for centuries by the final curse of Goldulf, my spirit has at last been set free by your fastidious fistwork!`;
 export const TEXT_ANCESTOR_FREED_CTA = `Punch on to free the rest of our bodacious bloodline!`;
 export const TEXT_ANCESTOR_BESTOWED_TOKEN_CTA = `Bear this Token as proof of your devotion to our family! And to cleanliness.`;
+export const TEXT_ANCESTOR_BESTOWED_RELIC_CTA = `The power of our ancient line bequeatheth unto thee this rad relic! Now you really have no excuses.`;
 export const TEXT_FIRST_TOKEN_RECEIVED = (tokenName: string) => `Wow, you got a ${tokenName}! Collect more of these to unlock supreme sites!`;
+export const TEXT_FLEE_BUTTON = `Flee This Place!`;
+export const TEXT_FLEE_BUTTON_GATED = `${TEXT_FLEE_BUTTON} (No refund for tokens paid to enter)`;
