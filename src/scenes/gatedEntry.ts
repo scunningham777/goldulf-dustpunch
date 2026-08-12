@@ -1,7 +1,10 @@
 import { MAP_CONFIGS, TOKEN_CONFIGS } from "../config";
-import { GAME_SCALE, HERO_FRAMES, INVENTORY_TOKENS_REGISTRY_KEY, SITE_TYPES, STATIC_TEXTURE_KEY, TERRAIN_TEXTURE_KEY } from "../constants";
+import { GAME_SCALE, HERO_FRAMES, INVENTORY_TOKENS_REGISTRY_KEY, SITE_TYPES, STATIC_TEXTURE_KEY, TERRAIN_TEXTURE_KEY, TYPEWRITER_WORD_INTERVAL } from "../constants";
+import { TokenConfig } from "../interfaces/tokenConfig";
 import { InventoryItem } from "../interfaces/stuffInInventory";
 import { Hero } from "../objects/hero";
+import { TypewriterText } from "../objects/typewriterText";
+import { TEXT_GATED_ENTRY_CHALLENGE } from "../text";
 import { CARDINAL_DIRECTION } from "../utils";
 import { SiteScene } from "./site";
 
@@ -19,11 +22,20 @@ export interface GatedEntrySceneProps {
     };
 }
 
+interface TokenIconLayout {
+    tokenConfig: TokenConfig;
+    x: number;
+    y: number;
+}
+
 const BLACKOUT_DURATION = 600;
 const CENTERING_DELAY = 400;
 const CENTERING_DURATION = 600;
-const TOKENS_DELAY = CENTERING_DELAY + CENTERING_DURATION + 1500;
-const TOKEN_FADE_IN_DURATION = 400;
+const CHALLENGE_DELAY = CENTERING_DELAY + CENTERING_DURATION + 500;
+const GHOST_TOKEN_FADE_IN_DURATION = 400;
+const GHOST_TINT = 0x888888;
+const TOKEN_PAY_DURATION = 900;
+const PAY_TO_FLASH_DELAY = 1500;
 const FLASH_DELAY = 240;
 const FLASH_DURATION = 60;
 const FLASH_RGB = 128;
@@ -38,6 +50,7 @@ export class GatedEntryScene extends Phaser.Scene {
     private entranceIconBlinkState: 0 | 1 | 2 | 3 = 0;
     private entranceIconBlinkTimer: Phaser.Time.TimerEvent;
     private background: Phaser.GameObjects.Rectangle;
+    private tokenLayout: TokenIconLayout[];
     private isMovingOn: boolean;
     private callingSceneKey: SITE_TYPES;
     private exitConfig: GatedEntrySceneProps['exitConfig'];
@@ -90,7 +103,8 @@ export class GatedEntryScene extends Phaser.Scene {
             });
         });
 
-        this.time.delayedCall(TOKENS_DELAY, () => this.showRequiredTokens());
+        this.tokenLayout = this.computeTokenLayout();
+        this.time.delayedCall(CHALLENGE_DELAY, () => this.showChallenge());
     }
 
     private blinkEntranceIcon() {
@@ -121,55 +135,95 @@ export class GatedEntryScene extends Phaser.Scene {
         this.entranceIconBlinkTimer = this.time.delayedCall(delay, this.blinkEntranceIcon, [], this);
     }
 
-    private showRequiredTokens() {
-        // one icon per required unit, e.g. { ring: 2 } shows two ring icons
-        const tokenIcons: typeof TOKEN_CONFIGS = [];
+    /**
+     * Lays out one slot per required unit, e.g. { ring: 2 } gets two ring slots,
+     * centered over the midpoint between the hero and the entrance icon (not the
+     * screen midpoint, which sits directly above the entrance icon).
+     */
+    private computeTokenLayout(): TokenIconLayout[] {
+        const tokenConfigs: TokenConfig[] = [];
         Object.entries(this.exitConfig.requiredTokens ?? {}).forEach(([key, qty]) => {
             const tokenConfig = TOKEN_CONFIGS.find(tc => tc.key === key);
             if (!tokenConfig) {
                 return;
             }
             for (let i = 0; i < qty; i++) {
-                tokenIcons.push(tokenConfig);
+                tokenConfigs.push(tokenConfig);
             }
         });
 
         const iconSpacing = this.hero.entity.displayWidth;
-        const totalWidth = (tokenIcons.length - 1) * iconSpacing;
-        // center the row over the midpoint between the hero and the entrance icon,
-        // not the screen midpoint (which sits directly above the entrance icon)
+        const totalWidth = (tokenConfigs.length - 1) * iconSpacing;
         const pairCenterX = window.innerWidth / 2 - this.hero.entity.displayWidth / 2;
         const startX = pairCenterX - totalWidth / 2;
         const iconY = window.innerHeight * .6 - this.hero.entity.displayHeight * 1.5;
 
-        tokenIcons.forEach((tokenConfig, i) => {
-            const icon = this.add.image(startX + i * iconSpacing, iconY, STATIC_TEXTURE_KEY, tokenConfig.frameIndex);
-            icon.setScale(GAME_SCALE);
-            icon.setTint(tokenConfig.tint);
-            icon.setDepth(1);
-            icon.setAlpha(0);
+        return tokenConfigs.map((tokenConfig, i) => ({
+            tokenConfig,
+            x: startX + i * iconSpacing,
+            y: iconY,
+        }));
+    }
+
+    private showChallenge() {
+        this.tokenLayout.forEach(({ tokenConfig, x, y }) => {
+            const ghostIcon = this.add.image(x, y, STATIC_TEXTURE_KEY, tokenConfig.frameIndex);
+            ghostIcon.setScale(GAME_SCALE);
+            ghostIcon.setTint(GHOST_TINT);
+            ghostIcon.setDepth(1);
+            ghostIcon.setAlpha(0);
             this.tweens.add({
-                targets: icon,
+                targets: ghostIcon,
                 alpha: 1,
-                duration: TOKEN_FADE_IN_DURATION,
+                duration: GHOST_TOKEN_FADE_IN_DURATION,
             });
         });
 
-        this.input.keyboard.on('keydown', this.continueToSite, this);
-        this.input.on('pointerdown', this.continueToSite, this);
-        this.input.gamepad.on('down', this.continueToSite, this);
+        const speechTextY = this.cameras.main.displayHeight * .1;
+        new TypewriterText(TEXT_GATED_ENTRY_CHALLENGE, this, speechTextY, TYPEWRITER_WORD_INTERVAL, () => {
+            this.input.keyboard.on('keydown', this.payTokens, this);
+            this.input.on('pointerdown', this.payTokens, this);
+            this.input.gamepad.on('down', this.payTokens, this);
+        });
     }
 
-    private continueToSite() {
+    /**
+     * Lerps correctly-tinted token icons up from the bottom-left corner of the
+     * screen to cover the ghost icons -- the inverse of Token.animateToInventory,
+     * which flies a bestowed token from the center out to that same corner.
+     */
+    private payTokens() {
         if (this.isMovingOn) {
             return;
         }
         this.isMovingOn = true;
 
-        this.input.keyboard.off('keydown', this.continueToSite, this);
-        this.input.off('pointerdown', this.continueToSite, this);
-        this.input.gamepad.off('down', this.continueToSite, this);
+        this.input.keyboard.off('keydown', this.payTokens, this);
+        this.input.off('pointerdown', this.payTokens, this);
+        this.input.gamepad.off('down', this.payTokens, this);
 
+        const cam = this.cameras.main;
+        const startX = cam.scrollX;
+        const startY = cam.scrollY + this.scale.height;
+
+        this.tokenLayout.forEach(({ tokenConfig, x, y }) => {
+            const paidIcon = this.add.image(startX, startY, STATIC_TEXTURE_KEY, tokenConfig.frameIndex);
+            paidIcon.setScale(1);
+            paidIcon.setTint(tokenConfig.tint);
+            paidIcon.setDepth(1);
+            this.tweens.add({
+                targets: paidIcon,
+                x: { value: x, ease: 'Quad.easeOut' },
+                y: { value: y, ease: 'Back.easeOut' },
+                scale: { value: GAME_SCALE, ease: 'Back.easeOut' },
+                duration: TOKEN_PAY_DURATION,
+            });
+        });
+
+        this.time.delayedCall(TOKEN_PAY_DURATION + PAY_TO_FLASH_DELAY, () => this.beginFlashAndFade());
+    }
+
+    private beginFlashAndFade() {
         const cam = this.cameras.main;
         this.time.delayedCall(1, () => cam.flash(FLASH_DURATION, FLASH_RGB, FLASH_RGB, FLASH_RGB));
         this.time.delayedCall(FLASH_DELAY, () => cam.flash(FLASH_DURATION, FLASH_RGB, FLASH_RGB, FLASH_RGB));

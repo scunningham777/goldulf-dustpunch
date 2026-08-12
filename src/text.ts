@@ -9,3 +9,4 @@ export const TEXT_ANCESTOR_BESTOWED_RELIC_CTA = `The power of our ancient line b
 export const TEXT_FIRST_TOKEN_RECEIVED = (tokenName: string) => `Wow, you got a ${tokenName}! Collect more of these to unlock supreme sites!`;
 export const TEXT_FLEE_BUTTON = `Flee This Place!`;
 export const TEXT_FLEE_BUTTON_GATED = `${TEXT_FLEE_BUTTON} (No refund for tokens paid to enter)`;
+export const TEXT_GATED_ENTRY_CHALLENGE = `Present a token of your worthiness or be gone from this place!`;

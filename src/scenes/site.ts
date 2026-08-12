@@ -423,6 +423,13 @@ export class SiteScene extends Phaser.Scene {
         this.hero.entity.setFrame(HERO_FRAMES.standing[this.hero.currentDirection]);
 
         const cam = this.cameras.main;
+        // this scene keeps running (and its camera keeps easing toward the hero via
+        // its smoothed follow) underneath the launched overlay scene, so lock scroll
+        // in place now -- otherwise it keeps drifting for a few frames after this
+        // snapshot is taken, and the in-place Exit (never hidden, unlike the hero)
+        // visibly slides out from under the overlay's static copy of its icon
+        cam.stopFollow();
+
         // fall back to the hero's position (matching the old hard-coded placement) if the
         // exit's world position wasn't provided, e.g. when jumping straight to a site via
         // the debug menu rather than colliding with an actual Exit
