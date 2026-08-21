@@ -4,6 +4,12 @@ export const GAME_SCALE = 3;
 export const GAME_BG_COLOR = 0x000066;
 export const GAME_BG_COLOR_HEX_STRING = '#000066';
 
+// "ENVIRONMENT"
+export enum PLAY_MODES {debug = 'DEBUG', dev = 'DEV', demo = 'DEMO', prod = 'PROD'};
+export const PLAY_MODE: PLAY_MODES = PLAY_MODES.demo; // set to PLAY_MODES.debug, PLAY_MODES.dev, or PLAY_MODES.prod
+export const SKIP_OVERWORLD = false;
+export const HERO_MOVEMENT_CONTROLLER: 'follow' | 'joystick' = 'follow';
+
 // height in pixels for the UI bar that spans the bottom of the screen.  Using a
 // constant lets the site scene offset its camera so that the bottom row of
 // tiles is never obscured by the overlaying UI.
@@ -48,6 +54,7 @@ export const SPIN_COOLDOWN_ENDS_AT_REGISTRY_KEY = 'spin_cooldown_ends_at';
 export const WALL_BREAK_COOLDOWN_ENDS_AT_REGISTRY_KEY = 'wall_break_cooldown_ends_at';
 export const HERO_VELOCITY = 250;
 export const HERO_DEBUG_VELOCITY_MULTIPLIER = 1.5;
+export const HERO_DEBUG_VELOCITY_MODES = [PLAY_MODES.debug, PLAY_MODES.dev];
 export const HERO_MOVEMENT_CONTROLLER_REGISTRY_KEY = 'hero_mvt_ctrl';
 export const AUDIO_MUTE_REGISTRY_KEY = 'audio_mute';
 export const EXIT_SITE_REQUEST_KEY = 'exit_site_request';
@@ -122,12 +129,6 @@ export const enum SITE_GENERATION_TYPES {
 export const TYPEWRITER_WORD_INTERVAL = 80;
 export const TEXT_TINT = 0xffffff;
 export const TEXT_TINT_HEX = '#ffffff';
-
-// "ENVIRONMENT"
-export enum PLAY_MODES {debug = 'DEBUG', dev = 'DEV', prod = 'PROD'};
-export const PLAY_MODE: PLAY_MODES = PLAY_MODES.dev; // set to PLAY_MODES.debug, PLAY_MODES.dev, or PLAY_MODES.prod
-export const SKIP_OVERWORLD = false;
-export const HERO_MOVEMENT_CONTROLLER: 'follow' | 'joystick' = 'follow';
 
 // dash / double-tap settings
 export const DOUBLE_TAP_THRESHOLD = 250; // ms allowed between taps
